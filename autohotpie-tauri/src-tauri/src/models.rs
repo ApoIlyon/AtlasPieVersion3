@@ -380,3 +380,24 @@ fn default_params() -> Value {
 fn default_label() -> String {
     "New Slice".to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_settings_contains_one_profile() {
+        let settings = Settings::default();
+        assert_eq!(settings.app_profiles.len(), 1);
+        let profile = &settings.app_profiles[0];
+        assert_eq!(profile.name, "Default Profile");
+        assert!(profile.enable);
+    }
+
+    #[test]
+    fn set_app_version_returns_true_when_updated() {
+        let mut settings = Settings::default();
+        assert!(settings.set_app_version("1.2.3"));
+        assert!(!settings.set_app_version("1.2.3"));
+    }
+}

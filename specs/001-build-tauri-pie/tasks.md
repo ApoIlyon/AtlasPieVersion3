@@ -23,15 +23,15 @@
 
 **Purpose**: Establish the toolchain, styling system, and cross-platform project scaffolding.
 
-- [ ] T001 Upgrade `autohotpie-tauri/package.json` and regenerate lockfile to enable React 18, TypeScript, Tailwind, Zustand, and Playwright stacks
-- [ ] T002 [P] Configure Tailwind tokens and dark theme foundations in `autohotpie-tauri/tailwind.config.cjs` and `autohotpie-tauri/postcss.config.cjs`
-- [ ] T003 [P] Replace placeholder entrypoint with TypeScript scaffolding in `autohotpie-tauri/src/main.tsx` and `autohotpie-tauri/src/App.tsx`
-- [ ] T004 Add required Rust crates (serde, tokio, tauri plugins) in `autohotpie-tauri/src-tauri/Cargo.toml`
-- [ ] T004d [P] Configure unit test tooling (`vitest`, `react-testing-library`) with sample suite in `autohotpie-tauri/vitest.config.ts`
-- [ ] T004e Set up `cargo test`/`cargo nextest` harness (workspace config, sample tests) in `autohotpie-tauri/src-tauri/`
-- [ ] T004a Configure GitHub Actions workflow for `npm run tauri build` on Windows/macOS/Linux в `.github/workflows/tauri-build.yml`
-- [ ] T004b [P] Добавить шаги генерации установщиков (NSIS `.exe`, DMG `.dmg`, AppImage/DEB/RPM) в `autohotpie-tauri/src-tauri/tauri.conf.json` и CI
-- [ ] T004c [P] Настроить smoke-проверку билдов (запуск `tauri info --plugin` и автоматический старт бинаря) в `.github/workflows/tauri-build.yml`
+- [x] T001 Upgrade `autohotpie-tauri/package.json` and regenerate lockfile to enable React 18, TypeScript, Tailwind, Zustand, and Playwright stacks
+- [x] T002 [P] Configure Tailwind tokens and dark theme foundations in `autohotpie-tauri/tailwind.config.cjs` and `autohotpie-tauri/postcss.config.cjs`
+- [x] T003 [P] Replace placeholder entrypoint with TypeScript scaffolding in `autohotpie-tauri/src/main.tsx` and `autohotpie-tauri/src/App.tsx`
+- [x] T004 Add required Rust crates (serde, tokio, tauri plugins) in `autohotpie-tauri/src-tauri/Cargo.toml`
+- [x] T004d [P] Configure unit test tooling (`vitest`, `react-testing-library`) with sample suite in `autohotpie-tauri/vitest.config.ts`
+- [x] T004e Set up `cargo test`/`cargo nextest` harness (workspace config, sample tests) in `autohotpie-tauri/src-tauri/`
+- [x] T004a Configure GitHub Actions workflow for `npm run tauri build` on Windows/macOS/Linux в `.github/workflows/tauri-build.yml`
+- [x] T004b [P] Добавить шаги генерации установщиков (NSIS `.exe`, DMG `.dmg`, AppImage/DEB/RPM) в `autohotpie-tauri/src-tauri/tauri.conf.json` и CI
+- [x] T004c [P] Настроить smoke-проверку билдов (запуск `tauri info --plugin` и автоматический старт бинаря) в `.github/workflows/tauri-build.yml`
 
 ---
 
@@ -39,10 +39,10 @@
 
 **Purpose**: Core infrastructure that MUST be complete before any user story can be implemented.
 
-- [ ] T005 Implement versioned JSON storage layer with backups in `autohotpie-tauri/src-tauri/src/storage/mod.rs`
-- [ ] T006 [P] Create audit log writer with daily rotation in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
-- [ ] T007 [P] Define shared domain structs and validation helpers in `autohotpie-tauri/src-tauri/src/domain/` (profiles, pie menus, actions)
-- [ ] T008 Wire base Tauri command router and error handling in `autohotpie-tauri/src-tauri/src/main.rs` and `autohotpie-tauri/src-tauri/src/commands/mod.rs`
+- [x] T005 Implement versioned JSON storage layer with backups in `autohotpie-tauri/src-tauri/src/storage/mod.rs`
+- [x] T006 [P] Create audit log writer with daily rotation in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
+- [x] T007 [P] Define shared domain structs and validation helpers in `autohotpie-tauri/src-tauri/src/domain/` (profiles, pie menus, actions)
+- [x] T008 Wire base Tauri command router and error handling in `autohotpie-tauri/src-tauri/src/main.rs` and `autohotpie-tauri/src-tauri/src/commands/mod.rs`
 - [ ] T009 [P] Establish global Zustand stores and system context in `autohotpie-tauri/src/state/appStore.ts` and `autohotpie-tauri/src/state/systemStore.ts`
 - [ ] T010 Configure Playwright harness and npm scripts in `autohotpie-tauri/tests/e2e/playwright.config.ts`
 - [ ] T010a [P] Implement connectivity watchdog and offline flag in `autohotpie-tauri/src-tauri/src/services/connectivity.rs`
