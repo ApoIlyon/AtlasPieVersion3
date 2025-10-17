@@ -9,53 +9,6 @@
   </head>
 
   <body>
-    <main class="container">
-      <header class="app-header">
-        <h1>AutoHotPie</h1>
-        <p class="subtitle">Управление профилями и PieMenu</p>
-      </header>
-
-      <section class="panel">
-        <header class="panel-header">
-          <h2>Профили</h2>
-          <div class="panel-actions">
-            <button id="save-settings-btn" class="btn primary">Сохранить</button>
-            <button id="reset-settings-btn" class="btn">Сбросить</button>
-          </div>
-        </header>
-        <ul id="profile-list" class="profile-list"></ul>
-      </section>
-
-      <section class="panel">
-        <header class="panel-header">
-          <h2>Добавить профиль</h2>
-        </header>
-        <form id="add-profile-form" class="form-grid">
-          <label class="form-field">
-            <span>Имя профиля</span>
-            <input id="add-profile-name" type="text" placeholder="Например, Photoshop" />
-          </label>
-          <label class="form-field">
-            <span>EXE / AHK handle</span>
-            <input id="add-profile-exe" type="text" placeholder="Например, Photoshop.exe" />
-          </label>
-          <button type="submit" class="btn primary">Добавить</button>
-        </form>
-      </section>
-
-      <section class="panel">
-        <header class="panel-header">
-          <h2>Запуск PieMenu</h2>
-        </header>
-        <div class="run-actions">
-          <button id="run-exe-btn" class="btn">Запустить PieMenu.exe</button>
-          <button id="run-ahk-btn" class="btn">Запустить PieMenu.ahk</button>
-        </div>
-      </section>
-
-      <footer class="status-bar">
-        <p id="status-text">Готово</p>
-      </footer>
-    </main>
+    <div id="app"></div>
   </body>
 </html>
