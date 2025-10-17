@@ -12,7 +12,7 @@
 ## Technical Context
 
 **Language/Version**: Rust 1.75+ (Tauri backend commands), Node.js 18 + TypeScript/React 18 (frontend)  
-**Primary Dependencies**: Tauri 1.x, @tauri-apps/plugin-global-shortcut, @tauri-apps/plugin-store, React 18, Zustand/Recoil, Tailwind/Chakra (theme TBD), Serde/Tokio, crossbeam, OS-specific API через Tauri  
+**Primary Dependencies**: Tauri 1.x, @tauri-apps/plugin-global-shortcut, @tauri-apps/plugin-store, React 18, Zustand/Recoil, Tailwind CSS + Radix UI, Serde/Tokio, crossbeam, OS-specific API через Tauri  
 **Storage**: JSON файлы в пользовательском каталоге (`%APPDATA%`, `~/Library/Application Support`, `~/.config`) с модулем миграций и резервного копирования  
 **Testing**: `cargo test` + `cargo nextest` для Rust, `vitest`/`react-testing-library` для UI, Playwright smoke e2e на `windows-latest`/`ubuntu-latest` для каждого PR + ночной `macos-latest` прогон  
 **Target Platform**: Windows 10/11 x64, macOS 13+ (Intel/Apple Silicon), Linux (Ubuntu 22.04+, Fedora 38+, KDE Neon)  

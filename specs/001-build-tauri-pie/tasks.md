@@ -48,6 +48,10 @@
 - [ ] T010a [P] Implement connectivity watchdog and offline flag in `autohotpie-tauri/src-tauri/src/services/connectivity.rs`
 - [ ] T010b [P] Persist and hydrate offline-capable settings/profiles cache in `autohotpie-tauri/src-tauri/src/storage/mod.rs`
 - [ ] T010c Surface offline status banner/toast in `autohotpie-tauri/src/components/feedback/OfflineNotice.tsx`
+- [ ] T010d [P] Implement cross-platform active window info service (process name, window title, cursor) in `autohotpie-tauri/src-tauri/src/services/window_info.rs`
+- [ ] T010e Build context matcher (process/window/area rules) in `autohotpie-tauri/src-tauri/src/domain/context_rules.rs`
+- [ ] T010f [P] Detect fullscreen apps and expose safe-mode flag in `autohotpie-tauri/src-tauri/src/services/window_info.rs`
+- [ ] T010g Implement protected data-dir access check with read-only fallback in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel.
 
@@ -68,12 +72,14 @@
 - [ ] T012 [P] [US1] Implement global hotkey registration commands in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
 - [ ] T012a [US1] Detect hotkey conflicts across Windows/macOS/Linux (Win32 Accessibility API, macOS Accessibility, X11/Wayland) with graceful fallback in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
 - [ ] T012b [US1] Surface conflict resolution dialog/toast with retry/disable options in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx`
+- [ ] T012c [US1] Select active profile by context rules before showing pie menu in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
 - [ ] T013 [P] [US1] Build action runner service for launches/macros in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
 - [ ] T014 [US1] Register hotkey and action commands within `autohotpie-tauri/src-tauri/src/main.rs`
 - [ ] T015 [P] [US1] Create animated pie menu renderer in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
 - [ ] T016 [P] [US1] Implement pie menu interaction hook reacting to hotkeys in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
 - [ ] T017 [US1] Compose overlay presentation and dark theme visuals in `autohotpie-tauri/src/App.tsx`
 - [ ] T018 [US1] Log action outcomes and surface toasts in `autohotpie-tauri/src/components/feedback/ActionToast.tsx` and `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
+- [ ] T018a [US1] Show fullscreen safe-mode notification and prevent overlay when flag set in `autohotpie-tauri/src/components/pie/FullscreenNotice.tsx`
 
 **Checkpoint**: Pie menu can be invoked and actions execute with visual confirmation.
 
@@ -99,6 +105,8 @@
 - [ ] T026a [US2] Implement localization pack loader and cache in `autohotpie-tauri/src-tauri/src/services/localization.rs`
 - [ ] T026b [US2] Build language switcher UI and missing translation indicators in `autohotpie-tauri/src/components/localization/LanguageSwitcher.tsx`
 - [ ] T026c [US2] Add localization smoke test (strings render in RU/EN) in `autohotpie-tauri/tests/e2e/localization.spec.ts`
+- [ ] T026d [US2] Add context condition editor (process/window/region) with validation in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
+- [ ] T026e [US2] Persist context rules per profile in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 
 **Checkpoint**: Пользователь может управлять профилями и редактировать pie-меню без перезапуска приложения.
 
@@ -120,6 +128,7 @@
 - [ ] T032 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
 - [ ] T033 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
 - [ ] T034 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [ ] T034a [US3] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 
 **Checkpoint**: Конфигурации мигрируются между машинами, автозапуск работает, обновления и логи доступны из UI.
 
