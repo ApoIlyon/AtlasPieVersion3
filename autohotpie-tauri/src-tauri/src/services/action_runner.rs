@@ -3,12 +3,16 @@ use crate::domain::{Action, ActionId, ActionPayload};
 use crate::services::audit_log::AuditLogger;
 use serde::Serialize;
 use std::collections::HashSet;
+use std::future::Future;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::pin::Pin;
 use tauri::{AppHandle, Emitter};
+use tokio::process::Command;
 
 const ACTION_EXECUTED_EVENT: &str = "actions://executed";
 const ACTION_FAILED_EVENT: &str = "actions://failed";
+
+type RunnerFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 #[derive(Clone)]
 pub struct ActionRunner {
@@ -21,7 +25,7 @@ pub trait ActionProvider: Send + Sync {
     fn get_action(&self, id: &ActionId) -> Option<Action>;
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ActionRunStatus {
     Success,
@@ -29,7 +33,7 @@ pub enum ActionRunStatus {
     Failure,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionEventPayload {
     pub id: String,
@@ -48,115 +52,172 @@ impl ActionRunner {
         &self.data_dir
     }
 
-    pub async fn run<P>(&self, action: &Action, provider: &P) -> Result<(), AppError>
+    pub async fn run<P>(
+        &self,
+        action: &Action,
+        provider: &P,
+    ) -> Result<ActionEventPayload, AppError>
     where
         P: ActionProvider,
     {
-        let mut visited = HashSet::new();
-        let result = self.execute(action, provider, &mut visited).await;
-
-        match result {
-            Ok(status) => {
-                let message = match status {
+        match self.execute_internal(action, provider, HashSet::new()).await {
+            Ok((status, message)) => {
+                match status {
                     ActionRunStatus::Success => {
-                        Some(format!("Action '{}' executed", action.name))
+                        let info = message
+                            .unwrap_or_else(|| format!("Action '{}' executed", action.name));
+                        self.log_info(&info)?;
+                        let payload = ActionEventPayload {
+                            id: action.id.to_string(),
+                            name: action.name.clone(),
+                            status: ActionRunStatus::Success,
+                            message: Some(info),
+                        };
+                        self.emit_payload_event(ACTION_EXECUTED_EVENT, &payload);
+                        Ok(payload)
                     }
-                    ActionRunStatus::Skipped => Some(format!(
-                        "Action '{}' skipped (not implemented)",
-                        action.name
-                    )),
-                    ActionRunStatus::Failure => None,
-                };
-                if let Some(msg) = message {
-                    self.log_info(&msg)?;
+                    ActionRunStatus::Skipped => {
+                        let note = message.unwrap_or_else(|| {
+                            format!("Action '{}' skipped (not supported)", action.name)
+                        });
+                        self.log_warn(&note)?;
+                        let payload = ActionEventPayload {
+                            id: action.id.to_string(),
+                            name: action.name.clone(),
+                            status: ActionRunStatus::Skipped,
+                            message: Some(note),
+                        };
+                        self.emit_payload_event(ACTION_EXECUTED_EVENT, &payload);
+                        Ok(payload)
+                    }
+                    ActionRunStatus::Failure => {
+                        // Currently we should not reach this branch via Ok-path, treat as error.
+                        let failure = message.unwrap_or_else(|| {
+                            format!("Action '{}' failed", action.name)
+                        });
+                        self.log_error(&failure);
+                        let failure_payload = ActionEventPayload {
+                            id: action.id.to_string(),
+                            name: action.name.clone(),
+                            status: ActionRunStatus::Failure,
+                            message: Some(failure.clone()),
+                        };
+                        self.emit_payload_event(ACTION_FAILED_EVENT, &failure_payload);
+                        Err(AppError::Message(failure))
+                    }
                 }
-                self.emit_event(ACTION_EXECUTED_EVENT, action, status, None);
-                Ok(())
             }
             Err(err) => {
                 let message = err.to_string();
                 self.log_error(&message);
-                self.emit_event(
-                    ACTION_FAILED_EVENT,
-                    action,
-                    ActionRunStatus::Failure,
-                    Some(message.clone()),
-                );
+                let payload = ActionEventPayload {
+                    id: action.id.to_string(),
+                    name: action.name.clone(),
+                    status: ActionRunStatus::Failure,
+                    message: Some(message.clone()),
+                };
+                self.emit_payload_event(ACTION_FAILED_EVENT, &payload);
                 Err(err)
             }
         }
     }
 
-    async fn execute<P>(
-        &self,
-        action: &Action,
-        provider: &P,
-        visited: &mut HashSet<ActionId>,
-    ) -> Result<ActionRunStatus, AppError>
+    fn execute_internal<'a, P>(
+        &'a self,
+        action: &'a Action,
+        provider: &'a P,
+        mut visited: HashSet<ActionId>,
+    ) -> RunnerFuture<'a, Result<(ActionRunStatus, Option<String>), AppError>>
     where
-        P: ActionProvider,
+        P: ActionProvider + 'a,
     {
-        if !visited.insert(action.id) {
-            return Err(AppError::Message(format!(
-                "cycle detected while executing action {}",
-                action.id
-            )));
-        }
+        Box::pin(async move {
+            if !visited.insert(action.id) {
+                return Err(AppError::Message(format!(
+                    "cycle detected while executing action {}",
+                    action.id
+                )));
+            }
 
-        let status = match &action.payload {
-            ActionPayload::LaunchProgram {
-                executable,
-                arguments,
-                working_dir,
-            } => {
-                self.launch_program(executable, arguments, working_dir.as_deref())?;
-                ActionRunStatus::Success
-            }
-            ActionPayload::SendKeys { .. } => {
-                self.log_info(&format!(
-                    "SendKeys payload for action '{}' is not yet implemented",
-                    action.name
-                ))?;
-                ActionRunStatus::Skipped
-            }
-            ActionPayload::RunScript { language, script } => {
-                self.log_info(&format!(
-                    "RunScript payload for action '{}' (language: {}) not yet implemented",
-                    action.name,
-                    language
-                ))?;
-                ActionRunStatus::Skipped
-            }
-            ActionPayload::SystemCommand { command } => {
-                self.run_system_command(command)?;
-                ActionRunStatus::Success
-            }
-            ActionPayload::Composite { actions } => {
-                for action_id in actions {
-                    let Some(next_action) = provider.get_action(action_id) else {
-                        return Err(AppError::Message(format!(
-                            "referenced action {action_id} not found"
-                        )));
-                    };
-                    let status = self.execute(&next_action, provider, visited).await?;
-                    if matches!(status, ActionRunStatus::Failure) {
-                        return Ok(ActionRunStatus::Failure);
+            let outcome = match &action.payload {
+                ActionPayload::LaunchProgram {
+                    executable,
+                    arguments,
+                    working_dir,
+                } => {
+                    self.launch_program(executable, arguments, working_dir.as_deref())?;
+                    (ActionRunStatus::Success, None)
+                }
+                ActionPayload::SendKeys { .. } => (
+                    ActionRunStatus::Skipped,
+                    Some(format!(
+                        "Action '{}' skipped: SendKeys payload is not supported yet",
+                        action.name
+                    )),
+                ),
+                ActionPayload::RunScript { language, script } => {
+                    self.run_script(language, script).await?;
+                    (ActionRunStatus::Success, None)
+                }
+                ActionPayload::SystemCommand { command } => {
+                    self.run_system_command(command).await?;
+                    (ActionRunStatus::Success, None)
+                }
+                ActionPayload::Composite { actions } => {
+                    let mut skipped_messages: Vec<String> = Vec::new();
+                    for action_id in actions {
+                        let Some(next_action) = provider.get_action(action_id) else {
+                            return Err(AppError::Message(format!(
+                                "referenced action {action_id} not found"
+                            )));
+                        };
+                        let (status, msg) = self
+                            .execute_internal(&next_action, provider, visited.clone())
+                            .await?;
+                        match status {
+                            ActionRunStatus::Success => {}
+                            ActionRunStatus::Skipped => {
+                                if let Some(value) = msg {
+                                    skipped_messages.push(value);
+                                }
+                            }
+                            ActionRunStatus::Failure => {
+                                return Err(AppError::Message(msg.unwrap_or_else(|| {
+                                    format!(
+                                        "Composite action '{}' failed while executing child {}",
+                                        action.name, action_id
+                                    )
+                                })));
+                            }
+                        }
+                    }
+
+                    if skipped_messages.is_empty() {
+                        (ActionRunStatus::Success, None)
+                    } else {
+                        let summary = skipped_messages.join("; ");
+                        (
+                            ActionRunStatus::Skipped,
+                            Some(format!(
+                                "Composite action '{}' completed with skipped steps: {}",
+                                action.name, summary
+                            )),
+                        )
                     }
                 }
-                ActionRunStatus::Success
-            }
-            ActionPayload::Custom { kind, .. } => {
-                self.log_info(&format!(
-                    "Custom payload '{}' for action '{}' is not supported",
-                    kind,
-                    action.name
-                ))?;
-                ActionRunStatus::Skipped
-            }
-        };
+                ActionPayload::Custom { handler, .. } => {
+                    (
+                        ActionRunStatus::Skipped,
+                        Some(format!(
+                            "Action '{}' skipped: custom payload '{}' is not supported",
+                            action.name, handler
+                        )),
+                    )
+                }
+            };
 
-        visited.remove(&action.id);
-        Ok(status)
+            Ok(outcome)
+        })
     }
 
     fn launch_program(
@@ -187,26 +248,32 @@ impl ActionRunner {
         Ok(())
     }
 
-    fn run_system_command(&self, command: &str) -> Result<(), AppError> {
+    async fn run_system_command(&self, command: &str) -> Result<(), AppError> {
         #[cfg(target_os = "windows")]
-        let mut process = {
-            let mut cmd = Command::new("cmd");
-            cmd.args(["/C", command]);
-            cmd
-        };
+        let status = Command::new("cmd")
+            .args(["/C", command])
+            .status()
+            .await
+            .map_err(|err| AppError::Message(format!(
+                "failed to run system command '{command}': {err}"
+            )))?;
 
         #[cfg(not(target_os = "windows"))]
-        let mut process = {
-            let mut cmd = Command::new("sh");
-            cmd.args(["-c", command]);
-            cmd
-        };
+        let status = Command::new("sh")
+            .args(["-c", command])
+            .status()
+            .await
+            .map_err(|err| AppError::Message(format!(
+                "failed to run system command '{command}': {err}"
+            )))?;
 
-        process.spawn().map_err(|err| {
-            AppError::Message(format!("failed to run system command '{command}': {err}"))
-        })?;
-
-        Ok(())
+        if status.success() {
+            Ok(())
+        } else {
+            Err(AppError::Message(format!(
+                "system command '{command}' exited with status {status}"
+            )))
+        }
     }
 
     fn resolve_relative(&self, value: &str) -> PathBuf {
@@ -218,20 +285,67 @@ impl ActionRunner {
         }
     }
 
-    fn emit_event(
-        &self,
-        event: &str,
-        action: &Action,
-        status: ActionRunStatus,
-        message: Option<String>,
-    ) {
-        let payload = ActionEventPayload {
-            id: action.id.to_string(),
-            name: action.name.clone(),
-            status,
-            message,
+    async fn run_script(&self, language: &str, script: &str) -> Result<(), AppError> {
+        let lang = language.trim().to_ascii_lowercase();
+        let (mut command, label) = match lang.as_str() {
+            "powershell" | "pwsh" => {
+                let shell = if cfg!(target_os = "windows") {
+                    "powershell"
+                } else {
+                    "pwsh"
+                };
+                let mut cmd = Command::new(shell);
+                cmd.args(["-NoLogo", "-NoProfile", "-Command", script]);
+                (cmd, shell.to_string())
+            }
+            "cmd" => {
+                if cfg!(not(target_os = "windows")) {
+                    return Err(AppError::Message(
+                        "cmd scripts are only supported on Windows".to_string(),
+                    ));
+                }
+                let mut cmd = Command::new("cmd");
+                cmd.args(["/C", script]);
+                (cmd, "cmd".to_string())
+            }
+            "bash" | "sh" => {
+                let shell = if lang == "bash" { "bash" } else { "sh" };
+                let mut cmd = Command::new(shell);
+                cmd.args(["-c", script]);
+                (cmd, shell.to_string())
+            }
+            "python" => {
+                let mut cmd = Command::new("python");
+                cmd.args(["-c", script]);
+                (cmd, "python".to_string())
+            }
+            "node" | "javascript" | "js" => {
+                let mut cmd = Command::new("node");
+                cmd.args(["-e", script]);
+                (cmd, "node".to_string())
+            }
+            other => {
+                return Err(AppError::Message(format!(
+                    "unsupported script language '{}'",
+                    other
+                )))
+            }
         };
 
+        let status = command.status().await.map_err(|err| {
+            AppError::Message(format!("failed to run {label} script: {err}"))
+        })?;
+
+        if status.success() {
+            Ok(())
+        } else {
+            Err(AppError::Message(format!(
+                "{label} script exited with status {status}"
+            )))
+        }
+    }
+
+    fn emit_payload_event(&self, event: &str, payload: &ActionEventPayload) {
         if let Err(err) = self.app.emit(event, payload) {
             eprintln!("failed to emit '{event}' event: {err}");
         }
@@ -240,6 +354,12 @@ impl ActionRunner {
     fn log_info(&self, message: &str) -> Result<(), AppError> {
         self.audit
             .log("INFO", message)
+            .map_err(AppError::from)
+    }
+
+    fn log_warn(&self, message: &str) -> Result<(), AppError> {
+        self.audit
+            .log("WARN", message)
             .map_err(AppError::from)
     }
 

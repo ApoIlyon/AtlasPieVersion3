@@ -1,8 +1,9 @@
-use super::{AppError, Result, SystemState};
+use super::{AppError, AppState, Result, SystemState};
 use crate::services::profile_router::{ActiveProfileSnapshot, ProfileRouterState};
 use crate::services::system_status::SystemStatus;
 use std::process::Command;
 use tauri::{AppHandle, Manager, State};
+use tauri_plugin_opener::OpenerExt;
 
 #[tauri::command]
 pub fn run_pie_menu(app: AppHandle, use_ahk: bool) -> Result<()> {
@@ -35,4 +36,23 @@ pub fn get_active_profile(
     state: State<'_, ProfileRouterState>,
 ) -> Result<Option<ActiveProfileSnapshot>> {
     Ok(state.current())
+}
+
+#[tauri::command]
+pub fn get_version(app: AppHandle) -> Result<String> {
+    Ok(super::current_version(&app))
+}
+
+#[tauri::command]
+pub fn open_logs(app: AppHandle, state: State<'_, AppState>) -> Result<()> {
+    let path: String = state
+        .audit()
+        .current_log_path()
+        .map_err(AppError::from)?
+        .to_string_lossy()
+        .into_owned();
+    app.opener()
+        .open_path(path, None::<&str>)
+        .map_err(|err| AppError::Message(format!("failed to open log file: {err}")))?;
+    Ok(())
 }

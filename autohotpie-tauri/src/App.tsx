@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
 import { useSystemStore } from './state/systemStore';
@@ -7,6 +7,11 @@ import { HotkeyConflictDialog } from './components/hotkeys/HotkeyConflictDialog'
 import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistrationPanel';
 import { useHotkeyStore } from './state/hotkeyStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
+import { PieMenu } from './components/pie/PieMenu';
+import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
+import { ActionToast } from './components/feedback/ActionToast';
+import { FullscreenNotice } from './components/pie/FullscreenNotice';
+import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 
 function useVersion() {
   const [version, setVersion] = useState<string | null>(null);
@@ -23,8 +28,34 @@ function useVersion() {
   return version;
 }
 
+function usePlatform() {
+  const [isLinux, setIsLinux] = useState(false);
+
+  useEffect(() => {
+    const detect = () => {
+      if (typeof navigator !== 'undefined' && navigator.userAgent) {
+        if (/linux/i.test(navigator.userAgent)) {
+          return true;
+        }
+      }
+      if (typeof window !== 'undefined') {
+        const platformHint = (window as unknown as { process?: { platform?: string } }).process?.platform;
+        if (platformHint) {
+          return platformHint.toLowerCase() === 'linux';
+        }
+      }
+      return false;
+    };
+
+    setIsLinux(detect());
+  }, []);
+
+  return isLinux;
+}
+
 export function App() {
   const version = useVersion();
+  const isLinux = usePlatform();
   const { settings, isLoading, error } = useAppStore((state) => ({
     settings: state.settings,
     isLoading: state.isLoading,
@@ -40,31 +71,107 @@ export function App() {
     closeDialog: state.closeDialog,
     retryWithOverride: state.retryWithOverride,
   }));
+  const activeProfile = useSystemStore((state) => state.activeProfile);
+  const status = useSystemStore((state) => state.status);
+
+  const pieMenuState = usePieMenuHotkey({
+    hotkeyEvent: 'hotkeys://toggle-preview-menu',
+    autoCloseMs: 2000,
+  });
+  const {
+    isOpen: isPieMenuVisible,
+    activeSliceId,
+    setActiveSlice,
+    handleSelect,
+    lastAction,
+    clearLastAction,
+    lastSafeModeReason,
+    toggle: togglePieMenu,
+    open: openPieMenu,
+    close: closePieMenu,
+  } = pieMenuState;
+
+  const placeholderSlices = useMemo(() => {
+    if (!settings?.app_profiles.length) {
+      return [];
+    }
+    const profile = settings.app_profiles[0];
+    return profile.pie_keys.slice(0, 8).map((slice, index) => ({
+      id: `${profile.name}-${slice.name}-${index}`,
+      label: slice.name || `Slice ${index + 1}`,
+      order: index,
+    }));
+  }, [settings?.app_profiles]);
 
   useEffect(() => {
     void initialize();
     void systemInit();
   }, [initialize, systemInit]);
 
+  useEffect(() => {
+    if (placeholderSlices.length > 0 && isPieMenuVisible && !activeSliceId) {
+      setActiveSlice(placeholderSlices[0].id);
+    }
+  }, [activeSliceId, isPieMenuVisible, placeholderSlices, setActiveSlice]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+    const registerPromise = invoke<string>('register_hotkey', {
+      request: {
+        id: 'preview-pie-menu-toggle',
+        accelerator: 'Ctrl+Alt+Space',
+        event: 'hotkeys://toggle-preview-menu',
+        allowConflicts: true,
+      },
+    }).catch(() => null);
+
+    return () => {
+      void registerPromise;
+    };
+  }, []);
+
+  const openLogViewer = useCallback(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+    void invoke('open_logs');
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background text-text-primary">
+    <div className="relative min-h-screen overflow-hidden bg-[#090a13] text-text-primary">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),transparent_65%)]" />
+        <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-[-30%] left-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(16,185,129,0.16),transparent_70%)] blur-3xl" />
+      </div>
       <HotkeyConflictDialog
         isOpen={dialogOpen}
         status={dialogStatus}
         onClose={closeDialog}
         onRetry={retryWithOverride}
       />
-      <header className="flex items-center justify-between px-8 py-6 border-b border-border">
+      <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-text-muted">AutoHotPie Tauri</p>
-          <h1 className="mt-1 text-3xl font-semibold">Pie Menu Studio</h1>
+          <p className="text-sm uppercase tracking-[0.35em] text-white/40">AutoHotPie Tauri</p>
+          <h1 className="mt-1 text-3xl font-semibold text-white">Pie Menu Studio</h1>
         </div>
-        <div className="rounded-full bg-overlay px-4 py-2 text-sm text-text-secondary shadow-glow-focus">
-          {version ? `App v${version}` : 'Loading version…'}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
+            onClick={openLogViewer}
+          >
+            OPEN LOG
+          </button>
+          <div className="rounded-full bg-white/5 px-4 py-2 text-sm text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
+            {version ? `App v${version}` : 'Loading version…'}
+          </div>
         </div>
       </header>
 
-      <main className="grid gap-6 px-8 py-10 lg:grid-cols-[320px,1fr]">
+      <main className="relative z-10 grid gap-6 px-8 py-10 lg:grid-cols-[320px,1fr]">
         <nav className="space-y-2">
           {[
             { id: 'dashboard', label: 'Dashboard' },
@@ -74,7 +181,7 @@ export function App() {
           ].map((item) => (
             <button
               key={item.id}
-              className="w-full rounded-2xl bg-surface/80 px-4 py-3 text-left text-sm font-medium text-text-secondary transition hover:bg-overlay hover:text-text-primary"
+              className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white/70 transition hover:border-white/10 hover:bg-white/10 hover:text-white"
               type="button"
             >
               {item.label}
@@ -82,9 +189,9 @@ export function App() {
           ))}
         </nav>
 
-        <section className="rounded-3xl bg-surface/90 p-8 shadow-lg shadow-black/30">
-          <h2 className="text-2xl font-semibold text-text-primary">Welcome</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
+        <section className="rounded-3xl border border-white/5 bg-white/10/10 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+          <h2 className="text-2xl font-semibold text-white">Welcome</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
             This is the placeholder UI shell for the AutoHotPie Tauri application. Phase 1
             tasks will flesh out the Tailwind token system, React state containers, and
             routing needed to render the pie menu designer, contextual profile editor, and
@@ -98,10 +205,10 @@ export function App() {
                 <span className="text-red-400">{systemError}</span>
               ) : (
                 <>
-                  <span className="rounded-full bg-overlay px-3 py-1 text-xs uppercase tracking-[0.2em] text-text-muted">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
                     {systemStatus.safeMode ? 'Safe Mode' : 'Normal Mode'} · {systemStatus.storageMode}
                   </span>
-                  <span className="text-text-secondary">
+                  <span className="text-white/60">
                     {systemStatus.connectivity.isOffline ? 'Offline' : 'Online'} · Last check{' '}
                     {systemStatus.connectivity.lastChecked ?? '—'}
                   </span>
@@ -110,20 +217,20 @@ export function App() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-3xl border border-border bg-overlay/70 p-6">
+          <div className="mt-6 rounded-3xl border border-white/5 bg-white/5 p-6">
             {error && (
               <p className="text-sm text-red-400">{error}</p>
             )}
             {!error && (
               <>
-                <p className="text-sm text-text-secondary">
+                <p className="text-sm text-white/70">
                   {isLoading && 'Loading settings…'}
                   {!isLoading && settings &&
                     `Loaded ${settings.app_profiles.length} profile${settings.app_profiles.length === 1 ? '' : 's'}.`}
                   {!isLoading && !settings && 'Settings not loaded yet.'}
                 </p>
                 {!isLoading && settings && (
-                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text-muted">
+                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
                     Global source: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
                   </p>
                 )}
@@ -135,24 +242,76 @@ export function App() {
             <HotkeyRegistrationPanel />
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <article className="rounded-3xl border border-border bg-overlay/70 p-6">
-              <h3 className="text-lg font-semibold">Global Pie Menu</h3>
-              <p className="mt-2 text-sm text-text-secondary">
-                Future iterations will render a live pie-menu preview with interactive
-                segments and hover animations sourced from Tailwind tokens.
+          <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
+            <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+              <h3 className="text-lg font-semibold text-white">Pie Menu Preview</h3>
+              <p className="mt-2 text-sm text-white/70">
+                Press <span className="font-semibold text-text-primary">Ctrl + Alt + Space</span> to
+                toggle a preview of the pie menu. Once contextual routing is connected,
+                the preview will reflect the active profile and slice configuration.
               </p>
-            </article>
-            <article className="rounded-3xl border border-border bg-overlay/70 p-6">
-              <h3 className="text-lg font-semibold">Contextual Profiles</h3>
-              <p className="mt-2 text-sm text-text-secondary">
-                Profiles will react to active processes, window titles, or screen zones —
-                mimicking the contextual behaviour from Kando and the original AutoHotPie.
+
+              <div className="mt-6 flex flex-col items-center gap-4">
+                <PieMenu
+                  slices={placeholderSlices}
+                  visible={isPieMenuVisible && placeholderSlices.length > 0}
+                  activeSliceId={activeSliceId ?? placeholderSlices[0]?.id ?? null}
+                  onHover={setActiveSlice}
+                  onSelect={(sliceId) => handleSelect(sliceId)}
+                  centerContent={
+                    lastSafeModeReason ? (
+                      <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
+                        Safe Mode
+                      </span>
+                    ) : null
+                  }
+                />
+                {placeholderSlices.length === 0 && (
+                  <p className="text-sm text-white/60">Add actions to your first profile to preview the menu.</p>
+                )}
+                {lastAction && (
+                  <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                    <p className="font-semibold text-white">Last action:</p>
+                    <p className="mt-1 text-sm">{lastAction.actionName}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
+                      Status: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
+                    </p>
+                    {lastAction.message && (
+                      <p className="mt-1 text-white/60">{lastAction.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+              <h3 className="text-lg font-semibold text-white">Contextual Profiles</h3>
+              <p className="mt-2 text-sm text-white/70">
+                Active profile will be selected automatically based on context rules. When
+                available, we will display the active profile info here.
               </p>
-            </article>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                <p>Active profile: {activeProfile?.name ?? '—'}</p>
+                <p>Match mode: {activeProfile?.matchKind ?? '—'}</p>
+                <p>Safe mode: {status.safeMode ? 'Enabled' : 'Disabled'}</p>
+              </div>
+            </div>
           </div>
         </section>
       </main>
+
+      <ActionToast action={lastAction} onDismiss={clearLastAction} />
+      <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
+      {isLinux && (
+        <LinuxFallbackPanel
+          isPieMenuOpen={isPieMenuVisible}
+          onTogglePieMenu={togglePieMenu}
+          onOpenPieMenu={openPieMenu}
+          onClosePieMenu={closePieMenu}
+          lastAction={lastAction}
+          lastSafeModeReason={lastSafeModeReason}
+        />
+      )}
     </div>
   );
 }

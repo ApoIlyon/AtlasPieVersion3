@@ -1,7 +1,7 @@
-pub mod actions;
 pub mod settings;
 pub mod system;
 pub mod hotkeys;
+pub mod actions;
 
 use crate::domain::{Action, ActionId};
 use crate::models::Settings;
@@ -52,6 +52,10 @@ impl AppState {
         &self.storage
     }
 
+    pub fn audit(&self) -> &AuditLogger {
+        &self.audit
+    }
+
     pub fn lookup_action(&self, id: &ActionId) -> Option<Action> {
         self.actions
             .lock()
@@ -70,6 +74,11 @@ impl AppState {
             .lock()
             .map(|guard| guard.values().cloned().collect())
             .unwrap_or_default()
+    }
+
+    pub fn request_action<R>(&self, f: impl FnOnce(&mut HashMap<ActionId, Action>) -> R) -> Result<R> {
+        let mut guard = self.actions.lock().map_err(|_| AppError::StatePoisoned)?;
+        Ok(f(&mut guard))
     }
 }
 
@@ -123,6 +132,10 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
     connectivity::start_monitor(handle.clone(), shared_status.clone());
     storage_guard::start_monitor(handle.clone(), storage.clone(), shared_status.clone());
     window_info::start_monitor(handle.clone(), shared_status);
+    #[cfg(not(target_os = "linux"))]
+    if let Err(err) = crate::services::tray::setup_tray(&handle) {
+        eprintln!("failed to set up tray icon: {err}");
+    }
     profile_router::start_router(handle.clone());
 
     Ok(())
@@ -134,4 +147,12 @@ pub fn current_version(app: &AppHandle) -> String {
         .as_deref()
         .unwrap_or("0.0.0")
         .to_string()
+}
+
+fn collect_actions(actions: &[Action]) -> HashMap<ActionId, Action> {
+    let mut map = HashMap::with_capacity(actions.len());
+    for action in actions {
+        map.insert(action.id, action.clone());
+    }
+    map
 }

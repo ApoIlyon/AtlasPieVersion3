@@ -59,6 +59,16 @@ impl AuditLogger {
             eprintln!("failed to write audit log: {e}");
         }
     }
+
+    pub fn current_log_path(&self) -> io::Result<PathBuf> {
+        let guard = self
+            .inner
+            .lock()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "audit logger poisoned"))?;
+        Ok(guard
+            .log_dir
+            .join(log_filename(&guard.current_date)))
+    }
 }
 
 impl AuditLoggerInner {
@@ -75,8 +85,7 @@ impl AuditLoggerInner {
 
 fn open_for_date(dir: &Path, datetime: OffsetDateTime) -> io::Result<(String, File)> {
     let date_str = format_date(datetime)?;
-    let filename = format!("{LOG_FILE_PREFIX}-{date_str}.log");
-    let path = dir.join(filename);
+    let path = dir.join(log_filename(&date_str));
     let file = OpenOptions::new()
         .create(true)
         .append(true)
@@ -94,4 +103,8 @@ fn format_timestamp(datetime: OffsetDateTime) -> io::Result<String> {
     datetime
         .format(TIMESTAMP_FORMAT)
         .map_err(|err| io::Error::new(io::ErrorKind::Other, format!("failed to format timestamp: {err}")))
+}
+
+fn log_filename(date_str: &str) -> String {
+    format!("{LOG_FILE_PREFIX}-{date_str}.log")
 }

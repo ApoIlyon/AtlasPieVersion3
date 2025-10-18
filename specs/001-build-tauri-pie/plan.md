@@ -18,7 +18,7 @@
 **Target Platform**: Windows 10/11 x64, macOS 13+ (Intel/Apple Silicon), Linux (Ubuntu 22.04+, Fedora 38+, KDE Neon)  
 **Project Type**: Desktop (Tauri: общий фронтенд + нативный backend на Rust)  
 **Performance Goals**: Вызов pie-меню < 50 мс, запуск действия < 200 мс, UI > 60 FPS, потребление памяти < 150 МБ при 3 активных профилях  
-**Constraints**: Полностью оффлайн, без внешней телеметрии, работа из трея, совместимость с глобальными хоткеями на всех ОС, dark theme UI, GitHub update-checker  
+**Constraints**: Полностью оффлайн, без внешней телеметрии, работа из трея, совместимость с глобальными хоткеями на всех ОС, dark theme UI, GitHub update-checker (проверка релизов), обязательная поддержка автозапуска Windows/macOS/Linux  
 **Scale/Scope**: До 50 профилей, до 12 сегментов и 3 вложенных уровней, JSON импорт/экспорт до 5 МБ, одиночные пользователи/команды power-users
 
 ## Constitution Check

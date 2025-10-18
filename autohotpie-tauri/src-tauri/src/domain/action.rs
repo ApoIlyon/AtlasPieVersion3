@@ -88,7 +88,7 @@ pub enum ActionPayload {
         actions: Vec<ActionId>,
     },
     Custom {
-        kind: String,
+        handler: String,
         #[serde(default)]
         params: Value,
     },

@@ -3,26 +3,26 @@
 ## Entities
 
 ### Profile
-- **Fields**: `id (UUID)`, `name`, `description`, `hotkey`, `isActive`, `createdAt`, `updatedAt`, `pieMenuId`, `iconId`, `tags[]`
-- **Relationships**: belongs to `PieMenu`; references `HotkeyBinding`; optional icon via `IconAsset`
-- **Constraints**: unique `hotkey` per active profile; at least one profile marked active; max 50 profiles
-- **Lifecycle**: created from template or blank → edited (pie structure/actions) → activated/deactivated → archived (soft delete)
+- **Fields**: `id (Uuid)`, `name`, `isActive`, `hotkey (HotkeyBindingId)`, `context (ContextRuleSetId)`, `rootMenuId (PieMenuId)`, `version (u32)`, `createdAt`, `updatedAt`
+- **Relationships**: owns one root `PieMenu`; references `HotkeyBinding`, `ContextRuleSet`
+- **Constraints**: unique hotkey per active profile; max 50 profiles; version increments on schema change
+- **Lifecycle**: created from template or blank → edited (menus/actions) → activated/deactivated → migrated on load if version mismatch
 
 ### PieMenu
-- **Fields**: `id`, `profileId`, `name`, `layoutVersion`, `segments[]`, `maxDepth`, `themeToken`, `animationPreset`
-- **Relationships**: owned by one `Profile`; composed of `PieSlice` items
-- **Constraints**: `segments` length 2–12; depth ≤ 3; layout version drives rendering migrations
+- **Fields**: `id (PieMenuId)`, `profileId`, `title`, `appearance (PieAppearance)`, `sliceIds[]`, `maxDepth`
+- **Relationships**: owned by one `Profile`; composed of `PieSlice` entries
+- **Constraints**: `sliceIds` length 2–12; depth ≤ 3; appearance tokens drive theming
 
 ### PieSlice
-- **Fields**: `id`, `pieMenuId`, `order`, `label`, `description`, `iconId`, `actionId`, `hotkey`, `childPieMenuId`, `colorToken`
+- **Fields**: `id (PieSliceId)`, `pieMenuId`, `order`, `label`, `iconId (IconAssetId)`, `actionId`, `childMenuId? (PieMenuId)`, `hotkey? (HotkeyBindingId)`, `description?`
 - **Relationships**: references `Action`, optional `IconAsset`, optional child `PieMenu`
-- **Constraints**: `order` unique within menu level; either `actionId` or `childPieMenuId` required; hotkey optional but validated against conflicts
+- **Constraints**: `order` unique per parent menu; either `actionId` or `childMenuId` required; optional hotkey validated per profile scope
 
 ### Action
-- **Fields**: `id`, `type (launch|macro|sequence|system)`, `parameters JSON`, `timeoutMs`, `requiresConfirmation`, `lastRunAt`, `runCount`
-- **Relationships**: referenced by `PieSlice`
-- **Constraints**: schema of `parameters` validated per type; `timeoutMs` default 3000; sequences limited ≤ 20 steps
-- **Lifecycle**: defined → validated → executed (log result) → updated or removed
+- **Fields**: `id (ActionId)`, `kind (launch|macro|sequence|system)`, `payload (ActionPayload)`, `macroStepIds[]`, `timeoutMs`, `lastValidatedAt`, `lastRunAt`, `runCount`
+- **Relationships**: referenced by `PieSlice`; may own `MacroStep` records
+- **Constraints**: payload schema validated per kind; macro steps limited ≤ 20; timeout default 3000 ms
+- **Lifecycle**: defined → validated → executed (audit logged) → migrated if payload schema changes
 
 ### MacroStep
 - **Fields**: `id`, `actionId`, `order`, `kind (key|text|delay|script)`, `payload`, `duration`
@@ -30,9 +30,9 @@
 - **Constraints**: `order` unique per action; delay ≤ 5000 ms; script payload sanitized
 
 ### HotkeyBinding
-- **Fields**: `id`, `scope (profile|global)`, `binding`, `platform`, `isEnabled`, `conflictWith`
-- **Constraints**: no duplicates per platform; conflict detection recorded in `conflictWith`
-- **Lifecycle**: requested → validated (system API) → registered → unregistered
+- **Fields**: `id`, `scope (profile|global)`, `accelerator`, `platform`, `isEnabled`, `conflictWith?` , `registeredAt`
+- **Constraints**: no duplicates per platform; store conflicting binding ids for recovery prompts
+- **Lifecycle**: requested → validated (system API) → registered → auto-retry or disabled on conflict
 
 ### SettingsBundle
 - **Fields**: `id`, `language`, `autostart`, `trayMode`, `themeVariant`, `telemetryLevel`, `dataDir`, `updateChannel`
@@ -44,8 +44,8 @@
 - **Lifecycle**: import → optimize → assign to slices/profiles → prune when unused
 
 ### LocalizationPack
-- **Fields**: `id`, `language`, `version`, `strings JSON`, `missingKeys[]`
-- **Constraints**: version semantic; JSON validated against schema; missing keys drive UI badge
+- **Fields**: `id`, `language`, `version`, `strings JSON`, `missingKeys[]`, `fallbackOf?`
+- **Constraints**: semantic versioning; JSON validated against schema; fallback chain enforced when keys missing
 
 ### PreviewState
 - **Fields**: `profileId`, `layoutCache`, `thumbnailPath`, `lastRenderedAt`
@@ -55,7 +55,7 @@
 ### AuditLogEntry
 - **Fields**: `id`, `timestamp`, `level (info|warn|error)`, `component`, `message`, `context JSON`
 - **Relationships**: references optional `profileId`/`actionId`
-- **Constraints**: immutable append-only; rotated daily with max 50 MB retained
+- **Constraints**: immutable append-only; rotated daily с retention ≤ 50 MB; UI exposes latest file via Log button
 
 ## Data Flows
 - Profiles reference pie menus and slices; slices bind to actions/macros and optional child menus.
