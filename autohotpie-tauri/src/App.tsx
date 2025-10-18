@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
+import { useSystemStore } from './state/systemStore';
+import { OfflineNotice } from './components/feedback/OfflineNotice';
+import { HotkeyConflictDialog } from './components/hotkeys/HotkeyConflictDialog';
+import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistrationPanel';
+import { useHotkeyStore } from './state/hotkeyStore';
+import { isTauriEnvironment } from './utils/tauriEnvironment';
 
 function useVersion() {
   const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isTauriEnvironment()) {
+      setVersion(null);
+      return;
+    }
+
     invoke<string>('get_version').then(setVersion).catch(() => setVersion(null));
   }, []);
 
@@ -20,13 +31,29 @@ export function App() {
     error: state.error,
   }));
   const initialize = useAppStore((state) => state.initialize);
+  const systemInit = useSystemStore((state) => state.init);
+  const systemStatus = useSystemStore((state) => state.status);
+  const systemError = useSystemStore((state) => state.error);
+  const { dialogOpen, dialogStatus, closeDialog, retryWithOverride } = useHotkeyStore((state) => ({
+    dialogOpen: state.dialogOpen,
+    dialogStatus: state.dialogStatus,
+    closeDialog: state.closeDialog,
+    retryWithOverride: state.retryWithOverride,
+  }));
 
   useEffect(() => {
     void initialize();
-  }, [initialize]);
+    void systemInit();
+  }, [initialize, systemInit]);
 
   return (
     <div className="min-h-screen bg-background text-text-primary">
+      <HotkeyConflictDialog
+        isOpen={dialogOpen}
+        status={dialogStatus}
+        onClose={closeDialog}
+        onRetry={retryWithOverride}
+      />
       <header className="flex items-center justify-between px-8 py-6 border-b border-border">
         <div>
           <p className="text-sm uppercase tracking-[0.35em] text-text-muted">AutoHotPie Tauri</p>
@@ -64,6 +91,25 @@ export function App() {
             settings surfaces inspired by <span className="text-accent">kando-2.0.0</span>.
           </p>
 
+          <div className="mt-6 space-y-4">
+            <OfflineNotice />
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              {systemError ? (
+                <span className="text-red-400">{systemError}</span>
+              ) : (
+                <>
+                  <span className="rounded-full bg-overlay px-3 py-1 text-xs uppercase tracking-[0.2em] text-text-muted">
+                    {systemStatus.safeMode ? 'Safe Mode' : 'Normal Mode'} · {systemStatus.storageMode}
+                  </span>
+                  <span className="text-text-secondary">
+                    {systemStatus.connectivity.isOffline ? 'Offline' : 'Online'} · Last check{' '}
+                    {systemStatus.connectivity.lastChecked ?? '—'}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
           <div className="mt-6 rounded-3xl border border-border bg-overlay/70 p-6">
             {error && (
               <p className="text-sm text-red-400">{error}</p>
@@ -83,6 +129,10 @@ export function App() {
                 )}
               </>
             )}
+          </div>
+
+          <div className="mt-8">
+            <HotkeyRegistrationPanel />
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">

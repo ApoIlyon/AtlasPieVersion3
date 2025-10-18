@@ -43,12 +43,7 @@ specs/001-build-tauri-pie/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
+Ниже зафиксирована актуальная структура репозитория для фичи.
 
 ```
 autohotpie-tauri/

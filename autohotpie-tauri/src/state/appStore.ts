@@ -1,5 +1,6 @@
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { create } from 'zustand';
+import { isTauriEnvironment } from '@/utils/tauriEnvironment';
 import type { AppProfile, Settings } from './types';
 
 type AppStore = {
@@ -33,6 +34,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (get().isLoading) {
       return;
     }
+    if (!isTauriEnvironment()) {
+      set({ initialized: true, isLoading: false, error: null });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       const settings = await invoke<Settings>('load_settings');
@@ -48,6 +53,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await get().loadSettings();
   },
   saveSettings: async (settings) => {
+    if (!isTauriEnvironment()) {
+      const message = 'Settings cannot be saved in browser preview mode.';
+      set({ error: message });
+      throw new Error(message);
+    }
     set({ error: null });
     try {
       const updated = await invoke<Settings>('save_settings', { settings });
@@ -59,6 +69,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
   addProfile: async (profile) => {
+    if (!isTauriEnvironment()) {
+      const message = 'Profiles cannot be modified in browser preview mode.';
+      set({ error: message });
+      throw new Error(message);
+    }
     set({ error: null });
     try {
       const updated = await invoke<Settings>('add_profile', { profile });
@@ -70,6 +85,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
   resetSettings: async () => {
+    if (!isTauriEnvironment()) {
+      const message = 'Settings cannot be reset in browser preview mode.';
+      set({ error: message });
+      throw new Error(message);
+    }
     set({ error: null, isLoading: true });
     try {
       const updated = await invoke<Settings>('reset_settings');

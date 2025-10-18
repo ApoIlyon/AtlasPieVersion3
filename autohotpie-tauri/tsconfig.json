@@ -23,6 +23,6 @@
     "jsx": "react-jsx",
     "types": ["vitest", "node"]
   },
-  "include": ["src", "setupTests.ts", "vitest.config.ts"],
+  "include": ["src", "setupTests.ts", "vitest.config.ts", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

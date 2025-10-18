@@ -3,7 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "module": "ESNext",
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "noEmit": false
   },
   "include": ["vite.config.*", "vitest.config.*", "src-tauri"]
 }

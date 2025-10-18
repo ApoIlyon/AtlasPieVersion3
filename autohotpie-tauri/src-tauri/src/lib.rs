@@ -7,13 +7,20 @@ mod storage;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| commands::init(app).map_err(|err| err.into()))
         .invoke_handler(tauri::generate_handler![
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::settings::add_profile,
             commands::settings::reset_settings,
-            commands::system::run_pie_menu
+            commands::hotkeys::register_hotkey,
+            commands::hotkeys::unregister_hotkey,
+            commands::hotkeys::list_hotkeys,
+            commands::hotkeys::check_hotkey,
+            commands::system::run_pie_menu,
+            commands::system::system_get_status,
+            commands::system::get_active_profile
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
