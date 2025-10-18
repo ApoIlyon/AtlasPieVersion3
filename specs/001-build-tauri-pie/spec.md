@@ -73,10 +73,6 @@
 2. **Given** свежая установка приложения, **When** пользователь импортирует ранее сохранённый JSON, **Then** все профили и глобальные настройки восстанавливаются, и автозапуск остаётся включённым.
 3. **Given** пользователь пытается импортировать повреждённый или неподписанный JSON, **When** валидатор обнаруживает ошибки схемы, **Then** процесс импортa прерывается, отображается список ошибок и предлагается восстановление из резервной копии.
 
----
-
-[Add more user stories as needed, each with an assigned priority]
-
 ### Edge Cases
 
 - Что происходит, если глобальный хоткей конфликтует с уже зарегистрированным сочетанием? Приложение должно предложить альтернативу и показать предупреждение.
@@ -137,6 +133,9 @@
 - **PieMenu**: `{ id: PieMenuId, title: string, appearance: PieAppearance, slices: PieSliceId[], maxDepth: u8 }`.
 - **PieSlice**: `{ id: PieSliceId, label: string, icon: IconAssetId, action: ActionId, childMenuId?: PieMenuId, order: u8, hotkey?: HotkeyBinding }`.
 - **Action**: `{ id: ActionId, kind: ActionKind, payload: ActionPayload, macroSteps?: MacroStep[], lastValidatedAt?: DateTime }`.
+- **ContextRuleSet**: `{ id: ContextRuleSetId, priority: u8, rules: ContextRule[], defaultProfileId?: ProfileId }`.
+  - **ContextRule**: `{ kind: 'process' | 'windowTitle' | 'region', pattern: string, matchType: 'equals' | 'contains' | 'regex', caseSensitive: bool }`.
+  - Правила сортируются по `priority` (меньшее значение — выше приоритет). Совпадение любого правила в активном наборе активирует профиль; при коллизии выбирается профиль с наивысшим приоритетом.
 **HotkeyBinding**: Определение глобального или локального сочетания клавиш с проверкой конфликтов.
 **SettingsBundle**: Глобальные настройки приложения (тема, поведение трея, автозапуск, локализация).
 **IconAsset**: Пользовательские и встроенные иконки (источник, путь, размер, лицензия).

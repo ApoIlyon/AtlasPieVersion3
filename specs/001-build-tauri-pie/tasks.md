@@ -75,6 +75,7 @@
 - [ ] T012b [US1] Surface conflict resolution dialog/toast with retry/disable options in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx`
 - [ ] T012c [US1] Select active profile by context rules before showing pie menu in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
 - [ ] T013 [P] [US1] Build action runner service for launches/macros in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [ ] T013a [US1] Publish `actions://executed`/`actions://failed` events and wire frontend invoke path in `autohotpie-tauri/src-tauri/src/services/action_runner.rs` and `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
 - [ ] T014 [US1] Register hotkey and action commands within `autohotpie-tauri/src-tauri/src/main.rs`
 - [ ] T015 [P] [US1] Create animated pie menu renderer in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
 - [ ] T016 [P] [US1] Implement pie menu interaction hook reacting to hotkeys in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
