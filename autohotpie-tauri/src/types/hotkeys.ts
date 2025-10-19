@@ -1,6 +1,11 @@
+export interface HotkeyConflictMeta {
+  conflictingId?: string;
+}
+
 export interface HotkeyConflict {
   code: string;
   message: string;
+  meta?: HotkeyConflictMeta;
 }
 
 export interface HotkeyRegistrationStatus {

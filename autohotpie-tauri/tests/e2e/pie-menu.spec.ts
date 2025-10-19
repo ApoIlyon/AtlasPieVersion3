@@ -8,8 +8,6 @@ function parseHotkey(hotkey: string): string[] {
 
 test.describe('US1 - Pie menu invocation', () => {
   test('global hotkey opens pie menu and runs an action', async ({ page }) => {
-    test.skip(true, 'Pie menu invocation is not yet implemented (US1).');
-
     await page.goto('/');
 
     const modifiers = parseHotkey(HOTKEY);
@@ -37,5 +35,6 @@ test.describe('US1 - Pie menu invocation', () => {
       .getByRole('status', { name: /Action completed/i })
       .or(page.getByText(/Action completed/, { exact: false }));
     await expect(toast).toBeVisible({ timeout: 1_000 });
+    await expect(pieMenu).not.toBeVisible({ timeout: 2_000 });
   });
 });

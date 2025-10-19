@@ -4,8 +4,10 @@ import type { HotkeyConflict, HotkeyRegistrationStatus } from '@/types/hotkeys';
 export interface HotkeyConflictDialogProps {
   isOpen: boolean;
   status: HotkeyRegistrationStatus | null;
+  isSubmitting: boolean;
   onClose: () => void;
   onRetry?: () => Promise<boolean> | Promise<void> | void;
+  onDisable?: (conflictingId: string) => Promise<boolean> | Promise<void> | void;
 }
 
 const conflictCopy: Record<string, { title: string; description: string }> = {
@@ -33,6 +35,11 @@ const conflictCopy: Record<string, { title: string; description: string }> = {
     title: 'Shortcut registration failed',
     description: 'Failed to register the shortcut. Ensure accessibility permissions are granted and retry.',
   },
+  platformDenied: {
+    title: 'Shortcut blocked by platform',
+    description:
+      'The operating system rejected this shortcut. Try disabling the existing binding or pick another key combination.',
+  },
 };
 
 function ConflictItem({ conflict }: { conflict: HotkeyConflict }) {
@@ -49,12 +56,25 @@ function ConflictItem({ conflict }: { conflict: HotkeyConflict }) {
   );
 }
 
-export function HotkeyConflictDialog({ isOpen, status, onClose, onRetry }: HotkeyConflictDialogProps) {
+export function HotkeyConflictDialog({
+  isOpen,
+  status,
+  isSubmitting,
+  onClose,
+  onRetry,
+  onDisable,
+}: HotkeyConflictDialogProps) {
   const conflicts = status?.conflicts ?? [];
   const hasBlockingConflicts = useMemo(
     () => conflicts.some((conflict) => conflict.code !== 'duplicateInternal'),
-    [conflicts]
+    [conflicts],
   );
+  const conflictingInternalId = useMemo(
+    () =>
+      conflicts.find((conflict) => conflict.code === 'duplicateInternal')?.meta?.conflictingId ?? null,
+    [conflicts],
+  );
+  const canDisableExisting = Boolean(onDisable && conflictingInternalId);
 
   if (!isOpen || !status) {
     return null;
@@ -74,10 +94,25 @@ export function HotkeyConflictDialog({ isOpen, status, onClose, onRetry }: Hotke
         </ul>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          {canDisableExisting && (
+            <button
+              type="button"
+              className="flex-1 rounded-2xl border border-border bg-overlay/60 px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-overlay sm:flex-none"
+              onClick={() => {
+                if (onDisable && conflictingInternalId) {
+                  void onDisable(conflictingInternalId);
+                }
+              }}
+              disabled={isSubmitting}
+            >
+              Disable current binding
+            </button>
+          )}
           <button
             type="button"
             className="flex-1 rounded-2xl border border-border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-overlay hover:text-text-primary sm:flex-none"
             onClick={onClose}
+            disabled={isSubmitting}
           >
             Cancel
           </button>
@@ -89,7 +124,7 @@ export function HotkeyConflictDialog({ isOpen, status, onClose, onRetry }: Hotke
                 void onRetry();
               }
             }}
-            disabled={!onRetry || hasBlockingConflicts}
+            disabled={!onRetry || hasBlockingConflicts || isSubmitting}
           >
             {hasBlockingConflicts ? 'Fix issues' : 'Retry with override'}
           </button>

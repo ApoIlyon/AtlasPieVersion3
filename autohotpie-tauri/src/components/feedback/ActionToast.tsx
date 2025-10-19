@@ -40,6 +40,8 @@ export function ActionToast({ action, onDismiss }: ActionToastProps) {
             className={`relative overflow-hidden rounded-3xl border bg-[#0f111a]/95 backdrop-blur-xl ${
               statusStyles[action.status]
             }`}
+            role="status"
+            aria-live="polite"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),transparent_70%)]" />
             <div className="relative px-6 py-5">

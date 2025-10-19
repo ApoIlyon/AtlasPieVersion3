@@ -17,6 +17,7 @@ interface HotkeyStoreState {
   error: string | null;
   registerHotkey: (input: RegisterHotkeyInput) => Promise<boolean>;
   retryWithOverride: () => Promise<boolean>;
+  disableConflictingHotkey: (conflictingId: string) => Promise<boolean>;
   closeDialog: () => void;
   clearError: () => void;
 }
@@ -78,6 +79,36 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
     try {
       const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
         request: { ...pending, allowConflicts: true },
+      });
+
+      if (!status.registered) {
+        set({ dialogOpen: true, dialogStatus: status, pendingRequest: pending });
+        return false;
+      }
+
+      set({ dialogOpen: false, dialogStatus: null, pendingRequest: null });
+      return true;
+    } catch (error) {
+      const message = toErrorMessage(error);
+      set({ error: message });
+      throw new Error(message);
+    } finally {
+      set({ isSubmitting: false });
+    }
+  },
+  disableConflictingHotkey: async (conflictingId) => {
+    const pending = get().pendingRequest;
+    if (!pending) {
+      return false;
+    }
+    set({ isSubmitting: true, error: null });
+    try {
+      await invoke('unregister_hotkey', {
+        request: { id: conflictingId },
+      });
+
+      const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
+        request: { ...pending, allowConflicts: false },
       });
 
       if (!status.registered) {

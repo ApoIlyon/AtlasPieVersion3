@@ -65,14 +65,14 @@
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Author Playwright smoke test for hotkey → pie menu → action flow in `autohotpie-tauri/tests/e2e/pie-menu.spec.ts`
-- [ ] T011a [P] [US1] Add regression test ensuring actions execute immediately without confirmation in `autohotpie-tauri/tests/e2e/action-execution.spec.ts`
+- [x] T011 [P] [US1] Author Playwright smoke test for hotkey → pie menu → action flow in `autohotpie-tauri/tests/e2e/pie-menu.spec.ts`
+- [x] T011a [P] [US1] Add regression test ensuring actions execute immediately without confirmation in `autohotpie-tauri/tests/e2e/action-execution.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Implement global hotkey registration commands in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
-- [ ] T012a [US1] Detect hotkey conflicts across Windows/macOS/Linux (Win32 Accessibility API, macOS Accessibility, X11/Wayland) with graceful fallback in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
-- [ ] T012b [US1] Surface conflict resolution dialog/toast with retry/disable options in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx`
+- [x] T012 [P] [US1] Implement global hotkey registration commands in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
+- [x] T012a [US1] Detect hotkey conflicts across Windows/macOS/Linux (Win32 Accessibility API, macOS Accessibility, X11/Wayland) with graceful fallback in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
+- [x] T012b [US1] Surface conflict resolution dialog/toast with retry/disable options in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx`
 - [ ] T012c [US1] Select active profile by context rules before showing pie menu in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
 - [ ] T013 [P] [US1] Build action runner service for launches/macros in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
 - [ ] T013a [US1] Publish `actions://executed`/`actions://failed` events and wire frontend invoke path in `autohotpie-tauri/src-tauri/src/services/action_runner.rs` and `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`

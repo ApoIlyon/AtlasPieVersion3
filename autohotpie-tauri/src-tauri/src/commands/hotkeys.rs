@@ -17,11 +17,20 @@ pub struct HotkeyEventPayload {
     pub accelerator: String,
 }
 
+#[derive(Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HotkeyConflictMeta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conflicting_id: Option<String>,
+}
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HotkeyConflict {
     pub code: String,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<HotkeyConflictMeta>,
 }
 
 #[derive(Clone, Serialize)]
@@ -114,20 +123,23 @@ pub fn register_hotkey(
         |shortcut, payload, event| register_shortcut(&app, shortcut, event, payload.clone()),
         |accelerator| unregister_shortcut(&app, accelerator),
         |shortcut| Ok(app.global_shortcut().is_registered(shortcut.clone())),
+        |shortcut, accelerator| probe_platform_conflicts(&app, shortcut, accelerator),
     )
 }
 
-fn register_hotkey_impl<FRegister, FUnregister, FIsRegistered>(
+fn register_hotkey_impl<FRegister, FUnregister, FIsRegistered, FPlatformProbe>(
     state: &HotkeyState,
     request: RegisterHotkeyRequest,
     mut register_fn: FRegister,
     mut unregister_fn: FUnregister,
     mut is_registered_fn: FIsRegistered,
+    mut platform_probe: FPlatformProbe,
 ) -> Result<HotkeyRegistrationStatus>
 where
     FRegister: FnMut(Shortcut, HotkeyEventPayload, String) -> Result<()>,
     FUnregister: FnMut(&str) -> Result<()>,
     FIsRegistered: FnMut(&Shortcut) -> Result<bool>,
+    FPlatformProbe: FnMut(Shortcut, &str) -> Result<Vec<HotkeyConflict>>,
 {
     let RegisterHotkeyRequest {
         id,
@@ -136,14 +148,45 @@ where
         allow_conflicts,
     } = request;
 
-    let conflicts = evaluate_conflicts_internal(state, &accelerator, Some(&id), |shortcut| {
+    let mut conflicts = evaluate_conflicts_internal(state, &accelerator, Some(&id), |shortcut| {
         is_registered_fn(shortcut)
     })?;
+
+    if conflicts
+        .iter()
+        .any(|conflict| conflict.code == "invalidAccelerator")
+    {
+        return Ok(HotkeyRegistrationStatus {
+            registered: false,
+            conflicts,
+        });
+    }
+
+    let existing_for_id = state.find_by_id(&id)?;
+    let should_probe_platform = existing_for_id
+        .as_ref()
+        .map(|existing| !existing.accelerator.eq_ignore_ascii_case(&accelerator))
+        .unwrap_or(true)
+        && !conflicts.iter().any(|conflict| {
+            matches!(
+                conflict.code.as_str(),
+                "duplicateInternal" | "alreadyRegistered" | "reservedByPlatform"
+            )
+        });
+
+    let shortcut = Shortcut::from_str(&accelerator).map_err(|err| {
+        AppError::Message(format!("Invalid accelerator: {err}"))
+    })?;
+
+    if should_probe_platform {
+        let mut platform_conflicts = platform_probe(shortcut.clone(), &accelerator)?;
+        conflicts.append(&mut platform_conflicts);
+    }
 
     let has_blocking = conflicts.iter().any(|conflict| {
         matches!(
             conflict.code.as_str(),
-            "invalidAccelerator" | "reservedByPlatform"
+            "invalidAccelerator" | "reservedByPlatform" | "platformDenied"
         )
     });
 
@@ -180,15 +223,11 @@ where
         }
     }
 
-    if let Some(existing) = state.find_by_id(&id)? {
+    if let Some(existing) = existing_for_id {
         if !existing.accelerator.eq_ignore_ascii_case(&accelerator) {
             unregister_fn(&existing.accelerator)?;
         }
     }
-
-    let shortcut = Shortcut::from_str(&accelerator).map_err(|err| {
-        AppError::Message(format!("Invalid accelerator: {err}"))
-    })?;
 
     let payload = HotkeyEventPayload {
         id: id.clone(),
@@ -232,7 +271,30 @@ pub fn check_hotkey(
     state: State<'_, HotkeyState>,
     request: HotkeyCheckRequest,
 ) -> Result<HotkeyRegistrationStatus> {
-    let conflicts = evaluate_conflicts(&app, &state, &request.accelerator, None)?;
+    let mut conflicts = evaluate_conflicts(&app, &state, &request.accelerator, None)?;
+
+    if conflicts
+        .iter()
+        .any(|conflict| conflict.code == "invalidAccelerator")
+    {
+        return Ok(HotkeyRegistrationStatus {
+            registered: false,
+            conflicts,
+        });
+    }
+
+    if !conflicts.iter().any(|conflict| {
+        matches!(
+            conflict.code.as_str(),
+            "duplicateInternal" | "alreadyRegistered" | "reservedByPlatform"
+        )
+    }) {
+        if let Ok(shortcut) = Shortcut::from_str(&request.accelerator) {
+            let mut platform_conflicts = probe_platform_conflicts(&app, shortcut, &request.accelerator)?;
+            conflicts.append(&mut platform_conflicts);
+        }
+    }
+
     Ok(HotkeyRegistrationStatus {
         registered: conflicts.is_empty(),
         conflicts,
@@ -268,6 +330,34 @@ fn unregister_shortcut(app: &AppHandle, accelerator: &str) -> Result<()> {
     Ok(())
 }
 
+fn probe_platform_conflicts(
+    app: &AppHandle,
+    shortcut: Shortcut,
+    accelerator: &str,
+) -> Result<Vec<HotkeyConflict>> {
+    let mut conflicts = Vec::new();
+    match app
+        .global_shortcut()
+        .on_shortcut(shortcut.clone(), |_handle, _shortcut, _event| {})
+    {
+        Ok(_) => {
+            let _ = app.global_shortcut().unregister(shortcut);
+        }
+        Err(err) => {
+            conflicts.push(HotkeyConflict {
+                code: "platformDenied".into(),
+                message: format!(
+                    "Operating system rejected accelerator '{}': {}",
+                    accelerator, err
+                ),
+                meta: None,
+            });
+        }
+    }
+
+    Ok(conflicts)
+}
+
 fn evaluate_conflicts(
     app: &AppHandle,
     state: &State<'_, HotkeyState>,
@@ -299,6 +389,9 @@ where
                     "Accelerator already registered under id '{}'",
                     existing.id
                 ),
+                meta: Some(HotkeyConflictMeta {
+                    conflicting_id: Some(existing.id.clone()),
+                }),
             });
         }
     }
@@ -310,6 +403,7 @@ where
                 "Accelerator '{}' is reserved by the operating system",
                 accelerator
             ),
+            meta: None,
         });
     }
 
@@ -319,6 +413,7 @@ where
             conflicts.push(HotkeyConflict {
                 code: "invalidAccelerator".into(),
                 message: format!("Invalid accelerator: {err}"),
+                meta: None,
             });
             return Ok(conflicts);
         }
@@ -328,6 +423,7 @@ where
         conflicts.push(HotkeyConflict {
             code: "alreadyRegistered".into(),
             message: format!("Accelerator '{}' is already registered", accelerator),
+            meta: None,
         });
     }
 

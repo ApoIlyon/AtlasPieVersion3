@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import clsx from 'clsx';
 
@@ -15,8 +15,8 @@ export interface PieMenuProps {
   slices: PieSliceDefinition[];
   activeSliceId?: string | null;
   visible?: boolean;
-  onSelect?: (sliceId: string) => void;
-  onHover?: (sliceId: string) => void;
+  onSelect?: (sliceId: string, slice: PieSliceDefinition) => void;
+  onHover?: (sliceId: string, slice: PieSliceDefinition) => void;
   radius?: number;
   gapDeg?: number;
   centerContent?: React.ReactNode;
@@ -51,6 +51,7 @@ export function PieMenu({
   }, [sortedSlices.length, gapDeg]);
 
   const controls = useAnimationControls();
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     void controls.start({
@@ -59,6 +60,15 @@ export function PieMenu({
       transition: { type: 'spring', stiffness: 260, damping: 22 },
     });
   }, [controls, visible]);
+
+  useEffect(() => {
+    if (!visible && rootRef.current) {
+      const activeElement = document.activeElement;
+      if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
+        activeElement.blur();
+      }
+    }
+  }, [visible]);
 
   if (sortedSlices.length === 0) {
     return (
@@ -70,9 +80,13 @@ export function PieMenu({
 
   return (
     <motion.div
+      ref={rootRef}
+      data-testid="pie-menu"
+      hidden={!visible}
+      aria-hidden={!visible}
       className={clsx(
-        'relative h-[320px] w-[320px] rounded-full border border-border/60 bg-surface/80 shadow-glow-lg backdrop-blur-xl transition',
-        visible ? 'pointer-events-auto' : 'pointer-events-none',
+        'relative h-[320px] w-[320px] rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
+        visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
       animate={controls}
       initial={{ opacity: 0, scale: 0.92 }}
@@ -102,9 +116,10 @@ export function PieMenu({
               isActive && 'z-10 border-accent/60 bg-accent/10 text-text-primary shadow-glow-focus',
             )}
             style={{ transform: `translate(${x}px, ${y}px)` }}
-            onMouseEnter={() => onHover?.(slice.id)}
-            onFocus={() => onHover?.(slice.id)}
-            onClick={() => !slice.disabled && onSelect?.(slice.id)}
+            aria-label={slice.label}
+            onMouseEnter={() => onHover?.(slice.id, slice)}
+            onFocus={() => onHover?.(slice.id, slice)}
+            onClick={() => !slice.disabled && onSelect?.(slice.id, slice)}
             disabled={slice.disabled}
           >
             <span className="truncate text-xs uppercase tracking-[0.25em] text-text-secondary group-hover:text-text-primary">

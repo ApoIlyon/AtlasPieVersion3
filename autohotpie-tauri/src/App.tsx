@@ -12,6 +12,16 @@ import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
+import type { HotkeyRegistrationStatus } from './types/hotkeys';
+
+const FALLBACK_PLACEHOLDER_SLICES = [
+  { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },
+  { id: 'fallback-open-downloads', label: 'Open Downloads', order: 1 },
+  { id: 'fallback-mute-audio', label: 'Mute Audio', order: 2 },
+  { id: 'fallback-start-record', label: 'Start Screen Record', order: 3 },
+  { id: 'fallback-snap-layout', label: 'Snap Layout', order: 4 },
+  { id: 'fallback-clipboard-history', label: 'Clipboard History', order: 5 },
+];
 
 function useVersion() {
   const [version, setVersion] = useState<string | null>(null);
@@ -65,11 +75,20 @@ export function App() {
   const systemInit = useSystemStore((state) => state.init);
   const systemStatus = useSystemStore((state) => state.status);
   const systemError = useSystemStore((state) => state.error);
-  const { dialogOpen, dialogStatus, closeDialog, retryWithOverride } = useHotkeyStore((state) => ({
+  const {
+    dialogOpen,
+    dialogStatus,
+    closeDialog,
+    retryWithOverride,
+    disableConflictingHotkey,
+    isSubmitting: isHotkeySubmitting,
+  } = useHotkeyStore((state) => ({
     dialogOpen: state.dialogOpen,
     dialogStatus: state.dialogStatus,
     closeDialog: state.closeDialog,
     retryWithOverride: state.retryWithOverride,
+    disableConflictingHotkey: state.disableConflictingHotkey,
+    isSubmitting: state.isSubmitting,
   }));
   const activeProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
@@ -92,16 +111,19 @@ export function App() {
   } = pieMenuState;
 
   const placeholderSlices = useMemo(() => {
-    if (!settings?.app_profiles.length) {
-      return [];
+    if (!settings || !settings.app_profiles.length) {
+      return FALLBACK_PLACEHOLDER_SLICES;
     }
     const profile = settings.app_profiles[0];
+    if (!profile?.pie_keys?.length) {
+      return FALLBACK_PLACEHOLDER_SLICES;
+    }
     return profile.pie_keys.slice(0, 8).map((slice, index) => ({
       id: `${profile.name}-${slice.name}-${index}`,
       label: slice.name || `Slice ${index + 1}`,
       order: index,
     }));
-  }, [settings?.app_profiles]);
+  }, [settings]);
 
   useEffect(() => {
     void initialize();
@@ -118,14 +140,22 @@ export function App() {
     if (!isTauriEnvironment()) {
       return;
     }
-    const registerPromise = invoke<string>('register_hotkey', {
+    const registerPromise = invoke<HotkeyRegistrationStatus>('register_hotkey', {
       request: {
         id: 'preview-pie-menu-toggle',
-        accelerator: 'Ctrl+Alt+Space',
+        accelerator: 'Control+Shift+P',
         event: 'hotkeys://toggle-preview-menu',
         allowConflicts: true,
       },
-    }).catch(() => null);
+    })
+      .then((status) => {
+        if (!status.registered) {
+          console.warn('Preview hotkey registration blocked', status.conflicts);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to register preview hotkey', error);
+      });
 
     return () => {
       void registerPromise;
@@ -149,8 +179,10 @@ export function App() {
       <HotkeyConflictDialog
         isOpen={dialogOpen}
         status={dialogStatus}
+        isSubmitting={isHotkeySubmitting}
         onClose={closeDialog}
         onRetry={retryWithOverride}
+        onDisable={disableConflictingHotkey}
       />
       <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
         <div>
@@ -246,7 +278,7 @@ export function App() {
             <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
               <h3 className="text-lg font-semibold text-white">Pie Menu Preview</h3>
               <p className="mt-2 text-sm text-white/70">
-                Press <span className="font-semibold text-text-primary">Ctrl + Alt + Space</span> to
+                Press <span className="font-semibold text-text-primary">Ctrl + Shift + P</span> to
                 toggle a preview of the pie menu. Once contextual routing is connected,
                 the preview will reflect the active profile and slice configuration.
               </p>
@@ -256,8 +288,8 @@ export function App() {
                   slices={placeholderSlices}
                   visible={isPieMenuVisible && placeholderSlices.length > 0}
                   activeSliceId={activeSliceId ?? placeholderSlices[0]?.id ?? null}
-                  onHover={setActiveSlice}
-                  onSelect={(sliceId) => handleSelect(sliceId)}
+                  onHover={(sliceId) => setActiveSlice(sliceId)}
+                  onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
                   centerContent={
                     lastSafeModeReason ? (
                       <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">

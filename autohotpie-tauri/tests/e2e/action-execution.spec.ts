@@ -8,8 +8,6 @@ function parseHotkey(hotkey: string): string[] {
 
 test.describe('US1 - Action execution flow', () => {
   test('actions trigger immediately without confirmation dialogs', async ({ page }) => {
-    test.skip(true, 'Pie menu invocation is not yet implemented (US1).');
-
     await page.goto('/');
 
     const modifiers = parseHotkey(HOTKEY);
@@ -38,5 +36,6 @@ test.describe('US1 - Action execution flow', () => {
 
     const statusToast = page.getByRole('status').first();
     await expect(statusToast).toBeVisible({ timeout: 1_000 });
+    await expect(pieMenu).not.toBeVisible({ timeout: 2_000 });
   });
 });
