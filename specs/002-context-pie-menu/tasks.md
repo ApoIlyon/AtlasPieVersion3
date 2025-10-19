@@ -123,6 +123,12 @@
 - [ ] T030 [P] Add latency assertion for sequential runner in `autohotpie-tauri/tests/perf/latency.spec.ts`
 - [ ] T031 Update npm script bundle (`test:pie`) covering new suites in `autohotpie-tauri/package.json`
 
+### Additional Tests for Polish
+
+- [ ] T032 [P] Measure hotkey-to-menu latency (<0.5s) in `autohotpie-tauri/tests/perf/menu-latency.spec.ts`
+- [ ] T033 [P] Assert toast SLA (≤1s) by timestamping events in `autohotpie-tauri/tests/e2e/action-execution.spec.ts`
+- [ ] T034 [P] Verify audit entries retrievable within 10s in `autohotpie-tauri/tests/integration/audit-log.spec.ts`
+
 ---
 
 ## Dependencies & Execution Order
