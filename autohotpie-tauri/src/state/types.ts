@@ -1,4 +1,4 @@
-import type { ActionEventStatus } from '../types/actionEvents';
+import type { ActionEventStatus } from '@/types/actionEvents';
 
 export interface Settings {
   global: Record<string, unknown>;

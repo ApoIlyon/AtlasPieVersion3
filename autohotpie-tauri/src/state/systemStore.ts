@@ -1,9 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { create } from 'zustand';
-import { selectMockActiveProfile } from '../mocks/contextProfiles';
-import { isTauriEnvironment } from '../utils/tauriEnvironment';
-import type { ActiveProfileSnapshot, HotkeyConflictSnapshot } from '../types/hotkeys';
+import { selectMockActiveProfile } from '@/mocks/contextProfiles';
+import { isTauriEnvironment } from '@/utils/tauriEnvironment';
+import type { ActiveProfileSnapshot, HotkeyConflictSnapshot } from '@/types/hotkeys';
 import type { ConnectivitySnapshot, StorageMode, SystemStatus, WindowSnapshot } from './types';
 
 type SystemStore = {

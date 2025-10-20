@@ -1,4 +1,4 @@
-import { useSystemStore } from '../../state/systemStore';
+import { useSystemStore } from '@/state/systemStore';
 
 export function OfflineNotice() {
   const { status, error } = useSystemStore((state) => ({

@@ -1,7 +1,6 @@
 //! Hotkey management commands and conflict detection.
 
 use super::{AppError, Result};
-use crate::services::profile_router;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -345,9 +344,6 @@ fn register_shortcut(
     let payload_for_emit = payload.clone();
     app.global_shortcut()
         .on_shortcut(shortcut, move |handle, _shortcut, _event| {
-            if let Err(err) = profile_router::resolve_now(&handle) {
-                eprintln!("failed to resolve active profile on hotkey: {err}");
-            }
             let _ = handle.emit(&event_for_emit, payload_for_emit.clone());
         })
         .map_err(|err| AppError::Message(format!("failed to register global shortcut: {err}")))

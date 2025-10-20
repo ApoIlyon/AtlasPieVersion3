@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { LastActionState } from '../../hooks/usePieMenuHotkey';
+import type { LastActionState } from '@/hooks/usePieMenuHotkey';
 
 interface ActionToastProps {
   action: LastActionState | null;

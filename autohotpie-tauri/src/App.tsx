@@ -13,7 +13,7 @@ import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 import type { HotkeyRegistrationStatus } from './types/hotkeys';
-import { slicesForProfile } from './mocks/contextProfiles';
+import { slicesForProfile } from '@/mocks/contextProfiles';
 
 const FALLBACK_PLACEHOLDER_SLICES = [
   { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },

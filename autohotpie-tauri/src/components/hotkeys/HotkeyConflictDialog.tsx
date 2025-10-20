@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { HotkeyConflict, HotkeyRegistrationStatus } from '../../types/hotkeys';
+import type { HotkeyConflict, HotkeyRegistrationStatus } from '@/types/hotkeys';
 
 export interface HotkeyConflictDialogProps {
   isOpen: boolean;
