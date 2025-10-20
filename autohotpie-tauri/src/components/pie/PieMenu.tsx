@@ -44,17 +44,21 @@ export function PieMenu({
     [slices],
   );
   const containerSize = useMemo(() => Math.round(radius * 2 + 40), [radius]);
-  const sliceArc = useMemo(() => {
+  const sliceAngle = useMemo(() => {
     if (!sortedSlices.length) {
       return 0;
     }
-    return (TAU / sortedSlices.length) - toRadians(gapDeg);
-  }, [sortedSlices.length, gapDeg]);
+    return TAU / sortedSlices.length;
+  }, [sortedSlices.length]);
+  const gapRadians = useMemo(() => toRadians(gapDeg), [gapDeg]);
 
   const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const buttonDistance = useMemo(() => Math.max(radius - 56, radius * 0.6), [radius]);
   const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
+  const buttonDistance = useMemo(() => {
+    const base = radius - innerInset - 24;
+    return Math.max(base, radius * 0.65);
+  }, [radius, innerInset]);
 
   useEffect(() => {
     void controls.start({
@@ -109,12 +113,12 @@ export function PieMenu({
         </div>
       )}
       {sortedSlices.map((slice, index) => {
-        const startAngle = index * ((TAU) / sortedSlices.length) - Math.PI / 2;
-        const arc = sliceArc;
-        const midAngle = startAngle + arc / 2;
+        const angleOffset = -Math.PI / 2;
+        const gapOffset = sortedSlices.length > 1 ? gapRadians / 2 : 0;
+        const effectiveAngle = angleOffset + index * sliceAngle;
         const isActive = slice.id === activeSliceId;
-        const x = Math.cos(midAngle) * buttonDistance;
-        const y = Math.sin(midAngle) * buttonDistance;
+        const x = Math.cos(effectiveAngle) * (buttonDistance - gapOffset * radius * 0.2);
+        const y = Math.sin(effectiveAngle) * (buttonDistance - gapOffset * radius * 0.2);
 
         return (
           <button

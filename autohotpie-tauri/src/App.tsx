@@ -356,7 +356,7 @@ export function App() {
               <div className="mt-6 flex flex-col items-center gap-4">
                 <PieMenu
                   slices={menuSlices}
-                  visible={isPieMenuVisible && menuSlices.length > 0}
+                  visible={menuSlices.length > 0}
                   activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                   onHover={(sliceId) => setActiveSlice(sliceId)}
                   onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
