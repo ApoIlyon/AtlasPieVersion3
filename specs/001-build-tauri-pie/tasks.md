@@ -143,19 +143,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T027 [P] [US3] Implement import/export service with schema validation in `autohotpie-tauri/src-tauri/src/services/import_export.rs`
-- [ ] T028 [US3] Add Tauri commands for import/export workflows in `autohotpie-tauri/src-tauri/src/commands/import_export.rs`
-- [ ] T029 [P] [US3] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
-- [ ] T030 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-- [ ] T030a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
-- [ ] T030b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-- [ ] T031 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T031a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T032 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
-- [ ] T033 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
-- [ ] T034 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
-- [ ] T034a [US3] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
-- [ ] T034b [US3] Add regression tests for import/export failure scenarios in `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
+- [ ] T127 [P] [US3] Implement import/export service with schema validation in `autohotpie-tauri/src-tauri/src/services/import_export.rs`
+- [ ] T128 [US3] Add Tauri commands for import/export workflows in `autohotpie-tauri/src-tauri/src/commands/import_export.rs`
+- [ ] T129 [P] [US3] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
+- [ ] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+- [ ] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
+- [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+- [ ] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [ ] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [ ] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
+- [ ] T133 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
+- [ ] T134 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [ ] T134a [US3] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
+- [ ] T134b [US3] Add regression tests for import/export failure scenarios in `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
 
 **Checkpoint**: Конфигурации мигрируются между машинами, автозапуск работает, обновления и логи доступны из UI.
 
@@ -170,6 +170,7 @@
 - [ ] T037 Execute accessibility & localization sweep plus cross-platform smoke run via `autohotpie-tauri/tests/e2e/`
 - [ ] T037a [P] Benchmark hotkey → action latency and memory footprint per NFRs in `autohotpie-tauri/tests/perf/latency.spec.ts`
 - [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) in `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
+- [ ] T037c [P] Instrument FPS measurement for pie menu rendering to confirm compliance with `NFR-003` in `autohotpie-tauri/tests/perf/fps.spec.ts`
 
 ---
 
