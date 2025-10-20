@@ -1,9 +1,9 @@
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { usePieMenuHotkey } from '../usePieMenuHotkey';
-import { useAppStore } from '@/state/appStore';
+import { useAppStore } from '../../state/appStore';
 
-vi.mock('@/utils/tauriEnvironment', () => ({
+vi.mock('../../utils/tauriEnvironment', () => ({
   isTauriEnvironment: () => false,
 }));
 

@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useHotkeyStore } from '@/state/hotkeyStore';
+import { useHotkeyStore } from '../../state/hotkeyStore';
 
 export function HotkeyRegistrationPanel() {
   const [id, setId] = useState('global-pie');

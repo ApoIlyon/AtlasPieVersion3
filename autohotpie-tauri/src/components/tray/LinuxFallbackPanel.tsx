@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LastActionState } from '@/hooks/usePieMenuHotkey';
+import { LastActionState } from '../../hooks/usePieMenuHotkey';
 
 interface LinuxFallbackPanelProps {
   isPieMenuOpen: boolean;
