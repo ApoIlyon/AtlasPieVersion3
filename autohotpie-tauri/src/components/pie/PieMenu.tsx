@@ -43,6 +43,7 @@ export function PieMenu({
     () => [...slices].sort((a, b) => a.order - b.order),
     [slices],
   );
+  const containerSize = useMemo(() => Math.round(radius * 2 + 40), [radius]);
   const sliceArc = useMemo(() => {
     if (!sortedSlices.length) {
       return 0;
@@ -52,6 +53,8 @@ export function PieMenu({
 
   const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const buttonDistance = useMemo(() => Math.max(radius - 56, radius * 0.6), [radius]);
+  const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
 
   useEffect(() => {
     void controls.start({
@@ -85,16 +88,23 @@ export function PieMenu({
       hidden={!visible}
       aria-hidden={!visible}
       className={clsx(
-        'relative h-[320px] w-[320px] rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
+        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
       animate={controls}
       initial={{ opacity: 0, scale: 0.92 }}
       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      style={{ width: containerSize, height: containerSize }}
     >
-      <div className="absolute inset-6 rounded-full border border-border/40 bg-overlay/60 shadow-inner" />
+      <div
+        className="absolute rounded-full border border-border/40 bg-overlay/60 shadow-inner"
+        style={{ inset: innerInset }}
+      />
       {centerContent && (
-        <div className="absolute inset-14 flex items-center justify-center text-center text-xs uppercase tracking-[0.35em] text-text-secondary">
+        <div
+          className="absolute flex items-center justify-center text-center text-xs uppercase tracking-[0.35em] text-text-secondary"
+          style={{ inset: innerInset * 1.8 }}
+        >
           {centerContent}
         </div>
       )}
@@ -103,8 +113,8 @@ export function PieMenu({
         const arc = sliceArc;
         const midAngle = startAngle + arc / 2;
         const isActive = slice.id === activeSliceId;
-        const x = Math.cos(midAngle) * (radius - 48);
-        const y = Math.sin(midAngle) * (radius - 48);
+        const x = Math.cos(midAngle) * buttonDistance;
+        const y = Math.sin(midAngle) * buttonDistance;
 
         return (
           <button
