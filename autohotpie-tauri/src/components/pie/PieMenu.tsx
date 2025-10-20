@@ -117,19 +117,23 @@ export function PieMenu({
         const gapOffset = sortedSlices.length > 1 ? gapRadians / 2 : 0;
         const effectiveAngle = angleOffset + index * sliceAngle;
         const isActive = slice.id === activeSliceId;
-        const x = Math.cos(effectiveAngle) * (buttonDistance - gapOffset * radius * 0.2);
-        const y = Math.sin(effectiveAngle) * (buttonDistance - gapOffset * radius * 0.2);
+        const x = Math.cos(effectiveAngle) * buttonDistance;
+        const y = Math.sin(effectiveAngle) * buttonDistance;
 
         return (
           <button
             key={slice.id}
             type="button"
             className={clsx(
-              'group absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-transparent bg-overlay/70 text-sm font-medium text-text-secondary transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/80',
+              'group absolute flex h-14 w-14 items-center justify-center rounded-2xl border border-transparent bg-overlay/70 text-sm font-medium text-text-secondary transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/80',
               slice.disabled && 'cursor-not-allowed opacity-40',
               isActive && 'z-10 border-accent/60 bg-accent/10 text-text-primary shadow-glow-focus',
             )}
-            style={{ transform: `translate(${x}px, ${y}px)` }}
+            style={{ 
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+            }}
             aria-label={slice.label}
             onMouseEnter={() => onHover?.(slice.id, slice)}
             onFocus={() => onHover?.(slice.id, slice)}

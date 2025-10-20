@@ -19,6 +19,58 @@
           "payload": {
             "command": "notepad"
           }
+        },
+        {
+          "id": "open-downloads",
+          "label": "Open Downloads",
+          "type": "application",
+          "payload": {
+            "command": "explorer",
+            "args": ["%USERPROFILE%\\Downloads"]
+          }
+        },
+        {
+          "id": "mute-audio",
+          "label": "Mute Audio",
+          "type": "application",
+          "payload": {
+            "command": "nircmd.exe",
+            "args": ["mutesysvolume", "2"]
+          }
+        },
+        {
+          "id": "start-screen-record",
+          "label": "Start Screen Record",
+          "type": "script",
+          "payload": {
+            "command": "scripts/start-screen-record.ps1"
+          }
+        },
+        {
+          "id": "snap-layout",
+          "label": "Snap Layout",
+          "type": "script",
+          "payload": {
+            "command": "scripts/snap-layout.ps1"
+          }
+        },
+        {
+          "id": "clipboard-history",
+          "label": "Clipboard History",
+          "type": "application",
+          "payload": {
+            "command": "cmd",
+            "args": ["/c", "echo Clipboard History"]
+          }
+        },
+        {
+          "id": "task-switcher",
+          "label": "Task Switcher",
+          "type": "application",
+          "payload": {
+            "command": "cmd",
+            "args": ["/c", "echo Task Switcher"]
+          }
         }
       ],
       "contextRules": []

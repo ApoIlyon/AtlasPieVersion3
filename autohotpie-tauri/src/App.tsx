@@ -23,6 +23,8 @@ const FALLBACK_PLACEHOLDER_SLICES = [
   { id: 'fallback-start-record', label: 'Start Screen Record', order: 3 },
   { id: 'fallback-snap-layout', label: 'Snap Layout', order: 4 },
   { id: 'fallback-clipboard-history', label: 'Clipboard History', order: 5 },
+  { id: 'fallback-window-layout', label: 'Window Layout', order: 6 },
+  { id: 'fallback-task-switcher', label: 'Task Switcher', order: 7 },
 ];
 
 function useVersion() {
@@ -357,6 +359,8 @@ export function App() {
                 <PieMenu
                   slices={menuSlices}
                   visible={menuSlices.length > 0}
+                  radius={200}
+                  gapDeg={8}
                   activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                   onHover={(sliceId) => setActiveSlice(sliceId)}
                   onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
