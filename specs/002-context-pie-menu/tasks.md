@@ -27,8 +27,8 @@
 
 ### Implementation for Setup
 
-- [ ] T001 [P] Create contextual profile fixture for tests in `autohotpie-tauri/tests/e2e/fixtures/context-profiles.json`
-- [ ] T002 [P] Load contextual fixture via `autohotpie-tauri/tests/e2e/playwright.config.ts` projects setup
+- [x] T001 [P] Create contextual profile fixture for tests in `autohotpie-tauri/tests/e2e/fixtures/context-profiles.json`
+- [x] T002 [P] Load contextual fixture via `autohotpie-tauri/tests/e2e/playwright.config.ts` projects setup
 
 ---
 
@@ -40,10 +40,10 @@
 
 ### Implementation for Foundational
 
-- [ ] T003 Define `ActiveProfile`, `ContextRuleMatch`, and `ActionEventPayload` structures in `autohotpie-tauri/src-tauri/src/domain/mod.rs`
-- [ ] T004 Extend audit logging pipeline for action outcomes in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
-- [ ] T005 Register action outcome event channel and command wiring in `autohotpie-tauri/src-tauri/src/main.rs` and `autohotpie-tauri/src-tauri/src/commands/mod.rs`
-- [ ] T006 Introduce shared TypeScript typings for action events in `autohotpie-tauri/src/types/actionEvents.ts`
+- [x] T003 Define `ActiveProfile`, `ContextRuleMatch`, and `ActionEventPayload` structures in `autohotpie-tauri/src-tauri/src/domain/mod.rs`
+- [x] T004 Extend audit logging pipeline for action outcomes in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
+- [x] T005 Register action outcome event channel and command wiring in `autohotpie-tauri/src-tauri/src/main.rs` and `autohotpie-tauri/src-tauri/src/commands/mod.rs`
+- [x] T006 Introduce shared TypeScript typings for action events in `autohotpie-tauri/src/types/actionEvents.ts`
 
 ---
 
@@ -55,16 +55,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T007 [P] [US1] Add Rust unit tests covering profile selection precedence in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
-- [ ] T008 [P] [US1] Update Playwright flow in `autohotpie-tauri/tests/e2e/pie-menu.spec.ts` to assert profile-specific menu rendering
+- [x] T007 [P] [US1] Add Rust unit tests covering profile selection precedence in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
+- [x] T008 [P] [US1] Update Playwright flow in `autohotpie-tauri/tests/e2e/pie-menu.spec.ts` to assert profile-specific menu rendering
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement deterministic context evaluation and fallback logging in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
-- [ ] T010 [US1] Expose active profile resolution command in `autohotpie-tauri/src-tauri/src/commands/mod.rs`
-- [ ] T011 [US1] Request active profile before menu render within `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
-- [ ] T012 [US1] Render matched profile segments and disabled states in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
-- [ ] T013 [US1] Reset overlay/menu state on fallback scenarios in `autohotpie-tauri/src/App.tsx`
+- [x] T009 [US1] Implement deterministic context evaluation and fallback logging in `autohotpie-tauri/src-tauri/src/services/profile_router.rs`
+- [x] T010 [US1] Expose active profile resolution command in `autohotpie-tauri/src-tauri/src/commands/mod.rs`
+- [x] T011 [US1] Request active profile before menu render within `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
+- [x] T012 [US1] Render matched profile segments and disabled states in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
+- [x] T013 [US1] Reset overlay/menu state on fallback scenarios in `autohotpie-tauri/src/App.tsx`
 
 ---
 
@@ -76,17 +76,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T014 [P] [US2] Cover sequential queue and payload emission with Rust tests in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T015 [P] [US2] Add vitest coverage for event subscription logic in `autohotpie-tauri/src/hooks/__tests__/usePieMenuHotkey.test.ts`
-- [ ] T016 [P] [US2] Extend Playwright scenario in `autohotpie-tauri/tests/e2e/action-execution.spec.ts` to verify success/error toasts
+- [x] T014 [P] [US2] Cover sequential queue and payload emission with Rust tests in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [x] T015 [P] [US2] Add vitest coverage for event subscription logic in `autohotpie-tauri/src/hooks/__tests__/usePieMenuHotkey.test.ts`
+- [x] T016 [P] [US2] Extend Playwright scenario in `autohotpie-tauri/tests/e2e/action-execution.spec.ts` to verify success/error toasts
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Enforce sequential execution and emit structured events in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T018 [US2] Dispatch `actions://executed` and `actions://failed` via `autohotpie-tauri/src-tauri/src/main.rs`
-- [ ] T019 [US2] Subscribe to action events and manage overlay lifecycle in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
-- [ ] T020 [US2] Surface success/error toasts and retry hints in `autohotpie-tauri/src/components/feedback/ActionToast.tsx`
-- [ ] T021 [US2] Persist action outcome entries with metadata in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
+- [x] T017 [US2] Enforce sequential execution and emit structured events in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [x] T018 [US2] Dispatch `actions://executed` and `actions://failed` via `autohotpie-tauri/src-tauri/src/main.rs`
+- [x] T019 [US2] Subscribe to action events and manage overlay lifecycle in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
+- [x] T020 [US2] Surface success/error toasts and retry hints in `autohotpie-tauri/src/components/feedback/ActionToast.tsx`
+- [x] T021 [US2] Persist action outcome entries with metadata in `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
 
 ---
 
@@ -98,15 +98,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T022 [P] [US3] Author Playwright regression `autohotpie-tauri/tests/e2e/hotkey-conflict.spec.ts` for conflict gating
-- [ ] T023 [P] [US3] Add dialog gating unit tests in `autohotpie-tauri/src/components/hotkeys/__tests__/HotkeyConflictDialog.test.tsx`
+- [x] T022 [P] [US3] Author Playwright regression `autohotpie-tauri/tests/e2e/hotkey-conflict.spec.ts` for conflict gating *(run via `npx playwright test --config tests/e2e/playwright.config.ts tests/e2e/hotkey-conflict.spec.ts --workers=1 --reporter=line` on 2025-10-20)*
+- [x] T023 [P] [US3] Add dialog gating unit tests in `autohotpie-tauri/src/components/hotkeys/__tests__/HotkeyConflictDialog.test.tsx` *(run via `npm run test -- --run HotkeyConflictDialog.test.tsx` on 2025-10-20)*
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Extend conflict telemetry and responses in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
-- [ ] T025 [US3] Track conflict state for overlays in `autohotpie-tauri/src/state/systemStore.ts`
-- [ ] T026 [US3] Block pie menu invocation when conflicts are active inside `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
-- [ ] T027 [US3] Surface retry/disable options with updated copy in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx`
+- [x] T024 [US3] Extend conflict telemetry and responses in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs` *(validated via `npm run test -- --run usePieMenuHotkey.test.ts` and e2e regression on 2025-10-20)*
+- [x] T025 [US3] Track conflict state for overlays in `autohotpie-tauri/src/state/systemStore.ts` *(validated via `npm run test -- --run usePieMenuHotkey.test.ts` and e2e regression on 2025-10-20)*
+- [x] T026 [US3] Block pie menu invocation when conflicts are active inside `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts` *(validated via `npm run test -- --run usePieMenuHotkey.test.ts` and `npx playwright test --config tests/e2e/playwright.config.ts tests/e2e/hotkey-conflict.spec.ts --workers=1 --reporter=line` on 2025-10-20)*
+- [x] T027 [US3] Surface retry/disable options with updated copy in `autohotpie-tauri/src/components/hotkeys/HotkeyConflictDialog.tsx` *(validated via `npm run test -- --run HotkeyConflictDialog.test.tsx` on 2025-10-20)*
 
 ---
 
@@ -118,14 +118,14 @@
 
 ### Implementation for Polish
 
-- [ ] T028 [P] Capture last action outcome metrics in `autohotpie-tauri/src/state/appStore.ts`
-- [ ] T029 [P] Document toast troubleshooting and regression commands in `specs/002-context-pie-menu/quickstart.md`
-- [ ] T030 [P] Add latency assertion for sequential runner in `autohotpie-tauri/tests/perf/latency.spec.ts`
-- [ ] T031 Update npm script bundle (`test:pie`) covering new suites in `autohotpie-tauri/package.json`
+- [x] T028 [P] Capture last action outcome metrics in `autohotpie-tauri/src/state/appStore.ts` *(validated via `npm run test -- --run usePieMenuHotkey.test.ts` on 2025-10-20)*
+- [x] T029 [P] Document toast troubleshooting and regression commands in `specs/002-context-pie-menu/quickstart.md`
+- [x] T030 [P] Add latency assertion for sequential runner in `autohotpie-tauri/tests/perf/latency.spec.ts` *(validated via `npm run test:pie` on 2025-10-20)*
+- [x] T031 Update npm script bundle (`test:pie`) covering new suites in `autohotpie-tauri/package.json` *(validated via `npm run test:pie` on 2025-10-20)*
 
 ### Additional Tests for Polish
 
-- [ ] T032 [P] Measure hotkey-to-menu latency (<0.5s) in `autohotpie-tauri/tests/perf/menu-latency.spec.ts`
+- [x] T032 [P] Measure hotkey-to-menu latency (<0.5s) in `autohotpie-tauri/tests/perf/menu-latency.spec.ts`
 - [ ] T033 [P] Assert toast SLA (≤1s) by timestamping events in `autohotpie-tauri/tests/e2e/action-execution.spec.ts`
 - [ ] T034 [P] Verify audit entries retrievable within 10s in `autohotpie-tauri/tests/integration/audit-log.spec.ts`
 

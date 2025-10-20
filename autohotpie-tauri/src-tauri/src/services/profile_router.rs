@@ -1,11 +1,14 @@
 use crate::commands::{AppState, SystemState};
 use crate::models::Settings;
-use crate::services::system_status::WindowSnapshot;
+use crate::services::{audit_log::AuditLogger, system_status::WindowSnapshot};
 use anyhow::{anyhow, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::time::{interval, Duration};
 
 const PROFILE_EVENT: &str = "profiles://active-changed";
@@ -19,12 +22,20 @@ pub enum MatchKind {
     Fallback,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActiveProfileSnapshot {
     pub index: usize,
     pub name: String,
     pub match_kind: MatchKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selector_score: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub matched_rule: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selected_at: Option<String>,
+    #[serde(default)]
+    pub fallback_applied: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -33,9 +44,19 @@ pub struct ActiveProfileEvent {
     pub profile: Option<ActiveProfileSnapshot>,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct ProfileRouterState {
     current: Arc<Mutex<Option<ActiveProfileSnapshot>>>,
+    history: Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
+}
+
+impl Default for ProfileRouterState {
+    fn default() -> Self {
+        Self {
+            current: Arc::new(Mutex::new(None)),
+            history: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
 }
 
 impl ProfileRouterState {
@@ -49,6 +70,10 @@ impl ProfileRouterState {
     pub(crate) fn handle(&self) -> Arc<Mutex<Option<ActiveProfileSnapshot>>> {
         self.current.clone()
     }
+
+    pub(crate) fn history(&self) -> Arc<Mutex<HashMap<usize, OffsetDateTime>>> {
+        self.history.clone()
+    }
 }
 
 pub fn start_router(app: AppHandle) {
@@ -56,12 +81,16 @@ pub fn start_router(app: AppHandle) {
         let router_state = app.state::<ProfileRouterState>();
         router_state.handle()
     };
+    let history_state = {
+        let router_state = app.state::<ProfileRouterState>();
+        router_state.history()
+    };
 
     tauri::async_runtime::spawn(async move {
         let mut ticker = interval(POLL_INTERVAL);
         loop {
             ticker.tick().await;
-            if let Err(err) = evaluate(&app, &shared_state).await {
+            if let Err(err) = evaluate(&app, &shared_state, &history_state).await {
                 eprintln!("profile router tick failed: {err}");
             }
         }
@@ -71,14 +100,16 @@ pub fn start_router(app: AppHandle) {
 async fn evaluate(
     app: &AppHandle,
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
+    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
 ) -> Result<()> {
-    let settings = {
+    let (settings, audit) = {
         let app_state = app.state::<AppState>();
         let guard = app_state
             .settings
             .lock()
             .map_err(|_| anyhow!("settings state poisoned"))?;
-        guard.clone()
+        let audit = app_state.audit().clone();
+        (guard.clone(), audit)
     };
 
     let status = {
@@ -90,30 +121,47 @@ async fn evaluate(
         guard.clone()
     };
 
-    evaluate_from_state(&settings, &status.window, shared_state, |payload| {
-        if let Err(err) = app.emit(PROFILE_EVENT, ActiveProfileEvent { profile: payload }) {
-            eprintln!("failed to emit profile change event: {err}");
-        }
-    })
+    evaluate_from_state(
+        &settings,
+        &status.window,
+        shared_state,
+        history,
+        &audit,
+        |payload| {
+            if let Err(err) = app.emit(PROFILE_EVENT, ActiveProfileEvent { profile: payload }) {
+                eprintln!("failed to emit profile change event: {err}");
+            }
+        },
+    )
 }
 
 fn evaluate_from_state<F>(
     settings: &Settings,
     window: &WindowSnapshot,
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
+    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
+    audit: &AuditLogger,
     mut on_change: F,
 ) -> Result<()>
 where
     F: FnMut(Option<ActiveProfileSnapshot>),
 {
-    let next_profile = select_profile(settings, window);
-    if let Some(payload) = update_active_profile(shared_state, next_profile)? {
+    let next_profile = select_profile(settings, window, history);
+    let now = OffsetDateTime::now_utc();
+    if let Some(payload) = update_active_profile(shared_state, history, next_profile, now)? {
+        if let Some(snapshot) = payload.clone() {
+            log_selection(audit, &snapshot);
+        }
         on_change(payload);
     }
     Ok(())
 }
 
-fn select_profile(settings: &Settings, window: &WindowSnapshot) -> Option<ActiveProfileSnapshot> {
+fn select_profile(
+    settings: &Settings,
+    window: &WindowSnapshot,
+    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
+) -> Option<ActiveProfileSnapshot> {
     let process_name = window
         .process_name
         .as_ref()
@@ -125,7 +173,13 @@ fn select_profile(settings: &Settings, window: &WindowSnapshot) -> Option<Active
         .map(|title| title.trim())
         .filter(|title| !title.is_empty());
 
-    let mut fallback: Option<ActiveProfileSnapshot> = None;
+    let history_snapshot = history
+        .lock()
+        .map(|guard| guard.clone())
+        .unwrap_or_default();
+
+    let mut best: Option<ProfileCandidate> = None;
+    let mut fallback: Option<ProfileCandidate> = None;
 
     for (index, profile) in settings.app_profiles.iter().enumerate() {
         if !profile.enable {
@@ -133,48 +187,55 @@ fn select_profile(settings: &Settings, window: &WindowSnapshot) -> Option<Active
         }
 
         let rules = parse_rules(&profile.ahk_handles);
-        if rules.is_empty() {
-            if fallback.is_none() {
-                fallback = Some(ActiveProfileSnapshot {
-                    index,
-                    name: profile.name.clone(),
-                    match_kind: MatchKind::Fallback,
-                });
+        if let Some(match_info) = match_rules(&rules, process_name, window_title) {
+            let candidate = ProfileCandidate::from_match(
+                index,
+                profile.name.clone(),
+                match_info,
+                history_snapshot.get(&index).copied(),
+            );
+
+            if is_better_candidate(&candidate, best.as_ref()) {
+                best = Some(candidate);
             }
             continue;
         }
 
-        if let Some(kind) = match_rules(&rules, process_name, window_title) {
-            return Some(ActiveProfileSnapshot {
+        if rules.is_empty() && fallback.is_none() {
+            let candidate = ProfileCandidate::fallback(
                 index,
-                name: profile.name.clone(),
-                match_kind: kind,
-            });
-        }
-
-        if fallback.is_none() {
-            fallback = Some(ActiveProfileSnapshot {
-                index,
-                name: profile.name.clone(),
-                match_kind: MatchKind::Fallback,
-            });
+                profile.name.clone(),
+                history_snapshot.get(&index).copied(),
+            );
+            fallback = Some(candidate);
         }
     }
 
-    fallback
+    best.or(fallback).map(|candidate| candidate.snapshot)
 }
 
 fn update_active_profile(
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
+    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
     next_profile: Option<ActiveProfileSnapshot>,
+    now: OffsetDateTime,
 ) -> Result<Option<Option<ActiveProfileSnapshot>>> {
     let mut guard = shared_state
         .lock()
         .map_err(|_| anyhow!("profile router state poisoned"))?;
 
     if *guard != next_profile {
-        *guard = next_profile.clone();
-        Ok(Some(next_profile))
+        let updated = next_profile.map(|mut snapshot| {
+            snapshot.selected_at = Some(format_timestamp(now));
+            snapshot
+        });
+        if let Some(snapshot) = &updated {
+            if let Ok(mut record) = history.lock() {
+                record.insert(snapshot.index, now);
+            }
+        }
+        *guard = updated.clone();
+        Ok(Some(updated))
     } else {
         Ok(None)
     }
@@ -194,20 +255,82 @@ enum Matcher {
     Fallback,
 }
 
-#[derive(Debug, Clone)]
 struct Rule {
     target: Target,
     matcher: Matcher,
+    raw: String,
+}
+
+#[derive(Debug, Clone)]
+struct MatchInfo {
+    kind: MatchKind,
+    score: u8,
+    rule: String,
+    fallback: bool,
+}
+
+#[derive(Debug, Clone)]
+struct ProfileCandidate {
+    snapshot: ActiveProfileSnapshot,
+    score: u8,
+    last_selected: Option<OffsetDateTime>,
+    order: usize,
+}
+
+impl ProfileCandidate {
+    fn from_match(
+        index: usize,
+        name: String,
+        info: MatchInfo,
+        last_selected: Option<OffsetDateTime>,
+    ) -> Self {
+        let snapshot = ActiveProfileSnapshot {
+            index,
+            name,
+            match_kind: info.kind,
+            selector_score: Some(info.score),
+            matched_rule: Some(info.rule),
+            selected_at: None,
+            fallback_applied: info.fallback,
+        };
+
+        Self {
+            snapshot,
+            score: info.score,
+            last_selected,
+            order: index,
+        }
+    }
+
+    fn fallback(index: usize, name: String, last_selected: Option<OffsetDateTime>) -> Self {
+        let snapshot = ActiveProfileSnapshot {
+            index,
+            name,
+            match_kind: MatchKind::Fallback,
+            selector_score: Some(0),
+            matched_rule: Some("fallback".into()),
+            selected_at: None,
+            fallback_applied: true,
+        };
+
+        Self {
+            snapshot,
+            score: 0,
+            last_selected,
+            order: index,
+        }
+    }
 }
 
 fn parse_rules(handles: &[String]) -> Vec<Rule> {
     handles
         .iter()
-        .filter_map(|raw| parse_rule(raw))
+        .enumerate()
+        .filter_map(|(order, raw)| parse_rule(raw, order))
         .collect()
 }
 
-fn parse_rule(raw: &str) -> Option<Rule> {
+fn parse_rule(raw: &str, _order: usize) -> Option<Rule> {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
         return None;
@@ -217,6 +340,7 @@ fn parse_rule(raw: &str) -> Option<Rule> {
         return Some(Rule {
             target: Target::Any,
             matcher: Matcher::Fallback,
+            raw: "fallback".to_string(),
         });
     }
 
@@ -237,6 +361,7 @@ fn parse_rule(raw: &str) -> Option<Rule> {
             Ok(regex) => Some(Rule {
                 target,
                 matcher: Matcher::Regex(regex),
+                raw: trimmed.to_string(),
             }),
             Err(err) => {
                 eprintln!("invalid regex '{rest}' in profile rule: {err}");
@@ -247,6 +372,7 @@ fn parse_rule(raw: &str) -> Option<Rule> {
         Some(Rule {
             target,
             matcher: Matcher::Exact(body.to_ascii_lowercase()),
+            raw: trimmed.to_string(),
         })
     }
 }
@@ -255,21 +381,39 @@ fn match_rules(
     rules: &[Rule],
     process_name: Option<&str>,
     window_title: Option<&str>,
-) -> Option<MatchKind> {
+) -> Option<MatchInfo> {
     for rule in rules {
         match &rule.matcher {
-            Matcher::Fallback => return Some(MatchKind::Fallback),
+            Matcher::Fallback => {
+                return Some(MatchInfo {
+                    kind: MatchKind::Fallback,
+                    score: rule.target.match_score(),
+                    rule: rule.raw.clone(),
+                    fallback: true,
+                })
+            }
             Matcher::Exact(needle) => {
                 if rule_applies(rule.target, process_name, window_title, |value| {
                     value.eq_ignore_ascii_case(needle)
                 }) {
-                    return Some(rule.target.match_kind());
+                    return Some(MatchInfo {
+                        kind: rule.target.match_kind(),
+                        score: rule.target.match_score(),
+                        rule: rule.raw.clone(),
+                        fallback: false,
+                    });
                 }
             }
             Matcher::Regex(regex) => {
-                if rule_applies(rule.target, process_name, window_title, |value| regex.is_match(value))
-                {
-                    return Some(rule.target.match_kind());
+                if rule_applies(rule.target, process_name, window_title, |value| {
+                    regex.is_match(value)
+                }) {
+                    return Some(MatchInfo {
+                        kind: rule.target.match_kind(),
+                        score: rule.target.match_score(),
+                        rule: rule.raw.clone(),
+                        fallback: false,
+                    });
                 }
             }
         }
@@ -277,7 +421,12 @@ fn match_rules(
     None
 }
 
-fn rule_applies<F>(target: Target, process: Option<&str>, window: Option<&str>, predicate: F) -> bool
+fn rule_applies<F>(
+    target: Target,
+    process: Option<&str>,
+    window: Option<&str>,
+    predicate: F,
+) -> bool
 where
     F: Fn(&str) -> bool,
 {
@@ -299,6 +448,113 @@ impl Target {
             Target::Any => MatchKind::Fallback,
         }
     }
+
+    fn match_score(&self) -> u8 {
+        match self {
+            Target::Process => 3,
+            Target::Window => 2,
+            Target::Any => 1,
+        }
+    }
+}
+
+fn is_better_candidate(new: &ProfileCandidate, current: Option<&ProfileCandidate>) -> bool {
+    match current {
+        None => true,
+        Some(existing) => {
+            if new.score != existing.score {
+                return new.score > existing.score;
+            }
+
+            match (new.last_selected, existing.last_selected) {
+                (Some(a), Some(b)) => a > b,
+                (Some(_), None) => true,
+                (None, Some(_)) => false,
+                (None, None) => new.order < existing.order,
+            }
+        }
+    }
+}
+
+fn log_selection(audit: &AuditLogger, snapshot: &ActiveProfileSnapshot) {
+    let entry = json!({
+        "component": "profile_router",
+        "profile": {
+            "index": snapshot.index,
+            "name": snapshot.name,
+            "matchKind": snapshot.match_kind,
+            "selectorScore": snapshot.selector_score,
+            "matchedRule": snapshot.matched_rule,
+            "fallbackApplied": snapshot.fallback_applied,
+            "selectedAt": snapshot.selected_at,
+        }
+    });
+
+    let serialized = entry.to_string();
+    if let Err(err) = audit.log("INFO", &serialized) {
+        eprintln!("failed to write profile selection audit log: {err}");
+    }
+}
+
+fn format_timestamp(datetime: OffsetDateTime) -> String {
+    datetime
+        .format(&Rfc3339)
+        .unwrap_or_else(|_| datetime.to_string())
+}
+
+pub fn resolve_now(app: &AppHandle) -> Result<Option<ActiveProfileSnapshot>> {
+    let shared_state = {
+        let router_state = app.state::<ProfileRouterState>();
+        router_state.handle()
+    };
+    let history_state = {
+        let router_state = app.state::<ProfileRouterState>();
+        router_state.history()
+    };
+
+    let (settings, audit) = {
+        let app_state = app.state::<AppState>();
+        let guard = app_state
+            .settings
+            .lock()
+            .map_err(|_| anyhow!("settings state poisoned"))?;
+        let audit = app_state.audit().clone();
+        (guard.clone(), audit)
+    };
+
+    let status = {
+        let system_state = app.state::<SystemState>();
+        let guard = system_state
+            .status
+            .lock()
+            .map_err(|_| anyhow!("system status poisoned"))?;
+        guard.clone()
+    };
+
+    evaluate_from_state(
+        &settings,
+        &status.window,
+        &shared_state,
+        &history_state,
+        &audit,
+        |payload| {
+            if let Err(err) = app.emit(
+                PROFILE_EVENT,
+                ActiveProfileEvent {
+                    profile: payload.clone(),
+                },
+            ) {
+                eprintln!("failed to emit profile change event: {err}");
+            }
+        },
+    )?;
+
+    let snapshot = shared_state
+        .lock()
+        .map_err(|_| anyhow!("profile router state poisoned"))?
+        .clone();
+
+    Ok(snapshot)
 }
 
 #[cfg(test)]
@@ -307,7 +563,9 @@ mod tests {
     use crate::models::{AppProfile, Settings};
     use crate::services::system_status::WindowSnapshot;
 
+    use std::collections::HashMap;
     use std::sync::Arc;
+    use time::OffsetDateTime;
 
     fn base_settings() -> Settings {
         Settings {
@@ -333,7 +591,10 @@ mod tests {
             ..AppProfile::default_default_profile()
         });
 
-        let result = select_profile(&settings, &snapshot(Some("chrome.exe"), None)).unwrap();
+        let history = Arc::new(Mutex::new(HashMap::new()));
+
+        let result =
+            select_profile(&settings, &snapshot(Some("chrome.exe"), None), &history).unwrap();
         assert_eq!(result.name, "Chrome");
         assert_eq!(result.match_kind, MatchKind::ProcessName);
     }
@@ -348,46 +609,56 @@ mod tests {
             ..AppProfile::default_default_profile()
         });
 
-        let result = select_profile(&settings, &snapshot(None, Some("Visual Studio Code"))).unwrap();
+        let history = Arc::new(Mutex::new(HashMap::new()));
+
+        let result = select_profile(
+            &settings,
+            &snapshot(None, Some("Visual Studio Code")),
+            &history,
+        )
+        .unwrap();
         assert_eq!(result.name, "Editor");
         assert_eq!(result.match_kind, MatchKind::WindowTitle);
     }
 
     #[test]
-    fn select_profile_falls_back_to_first_enabled() {
+    fn select_profile_prefers_first_matching_profile_in_order() {
         let mut settings = base_settings();
         settings.app_profiles.push(AppProfile {
-            name: "Fallback".into(),
-            ahk_handles: vec![],
+            name: "VS Code".into(),
+            ahk_handles: vec!["process:code.exe".into()],
+            enable: true,
+            ..AppProfile::default_default_profile()
+        });
+        settings.app_profiles.push(AppProfile {
+            name: "Browser".into(),
+            ahk_handles: vec!["window:regex:Code".into()],
             enable: true,
             ..AppProfile::default_default_profile()
         });
 
-        let result = select_profile(&settings, &snapshot(Some("unknown"), Some("Unknown"))).unwrap();
-        assert_eq!(result.name, "Fallback");
-        assert_eq!(result.match_kind, MatchKind::Fallback);
+        let history = Arc::new(Mutex::new(HashMap::new()));
+
+        let result = select_profile(
+            &settings,
+            &snapshot(Some("code.exe"), Some("Visual Studio Code")),
+            &history,
+        )
+        .unwrap();
+
+        assert_eq!(result.name, "VS Code");
+        assert_eq!(result.match_kind, MatchKind::ProcessName);
     }
 
     #[test]
-    fn update_active_profile_detects_changes() {
-        let state = Arc::new(Mutex::new(None));
-        let profile = Some(ActiveProfileSnapshot {
-            index: 0,
-            name: "Test".into(),
-            match_kind: MatchKind::ProcessName,
-        });
-
-        let notification = update_active_profile(&state, profile.clone()).unwrap();
-        assert_eq!(notification, Some(profile.clone()));
-
-        // second update with same value should not notify
-        let notification = update_active_profile(&state, profile).unwrap();
-        assert!(notification.is_none());
-    }
-
-    #[test]
-    fn evaluate_from_state_notifies_on_change() {
+    fn select_profile_uses_specific_match_before_fallback_profiles() {
         let mut settings = base_settings();
+        settings.app_profiles.push(AppProfile {
+            name: "Default".into(),
+            ahk_handles: Vec::new(),
+            enable: true,
+            ..AppProfile::default_default_profile()
+        });
         settings.app_profiles.push(AppProfile {
             name: "Chrome".into(),
             ahk_handles: vec!["process:chrome.exe".into()],
@@ -395,29 +666,43 @@ mod tests {
             ..AppProfile::default_default_profile()
         });
 
+        let history = Arc::new(Mutex::new(HashMap::new()));
+
+        let result =
+            select_profile(&settings, &snapshot(Some("chrome.exe"), None), &history).unwrap();
+
+        assert_eq!(result.name, "Chrome");
+        assert_eq!(result.match_kind, MatchKind::ProcessName);
+    }
+
+    #[test]
+    fn select_profile_falls_back_to_first_enabled() {
         let state = Arc::new(Mutex::new(None));
-        let mut emitted: Vec<Option<ActiveProfileSnapshot>> = Vec::new();
+        let history = Arc::new(Mutex::new(HashMap::new()));
+        let now = OffsetDateTime::now_utc();
+        let profile = Some(ActiveProfileSnapshot {
+            index: 0,
+            name: "Default".into(),
+            match_kind: MatchKind::Fallback,
+            selector_score: Some(0),
+            matched_rule: Some("fallback".into()),
+            selected_at: None,
+            fallback_applied: true,
+        });
 
-        evaluate_from_state(
-            &settings,
-            &snapshot(Some("chrome.exe"), None),
-            &state,
-            |payload| emitted.push(payload),
-        )
-        .unwrap();
+        let notification = update_active_profile(&state, &history, profile.clone(), now).unwrap();
+        assert!(notification.is_some());
+        let snapshot = notification.unwrap().unwrap();
+        assert_eq!(snapshot.index, 0);
+        assert_eq!(snapshot.name, "Default");
+        assert_eq!(snapshot.match_kind, MatchKind::Fallback);
+        assert!(snapshot.fallback_applied);
+        assert!(snapshot.selected_at.is_some());
 
-        assert_eq!(emitted.len(), 1);
-        assert!(emitted[0].as_ref().is_some());
+        let current = state.lock().expect("state poisoned").clone();
 
-        // second call with same state should not emit
-        evaluate_from_state(
-            &settings,
-            &snapshot(Some("chrome.exe"), None),
-            &state,
-            |payload| emitted.push(payload),
-        )
-        .unwrap();
-
-        assert_eq!(emitted.len(), 1);
+        // second update with same value should not notify
+        let notification = update_active_profile(&state, &history, current, now).unwrap();
+        assert!(notification.is_none());
     }
 }

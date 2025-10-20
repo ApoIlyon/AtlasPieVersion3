@@ -1,0 +1,89 @@
+{
+  "profiles": [
+    {
+      "id": "default",
+      "name": "Default Profile",
+      "segments": [
+        {
+          "id": "launch-calculator",
+          "label": "Launch Calculator",
+          "type": "application",
+          "payload": {
+            "command": "calc"
+          }
+        },
+        {
+          "id": "open-notepad",
+          "label": "Open Notepad",
+          "type": "application",
+          "payload": {
+            "command": "notepad"
+          }
+        }
+      ],
+      "contextRules": []
+    },
+    {
+      "id": "vscode",
+      "name": "VS Code Profile",
+      "segments": [
+        {
+          "id": "switch-terminal",
+          "label": "Switch Terminal",
+          "type": "script",
+          "payload": {
+            "command": "scripts/switch-terminal.ps1"
+          }
+        },
+        {
+          "id": "build-project",
+          "label": "Build Project",
+          "type": "script",
+          "payload": {
+            "command": "scripts/build-project.ps1"
+          }
+        }
+      ],
+      "contextRules": [
+        {
+          "mode": "processName",
+          "value": "code.exe",
+          "caseSensitive": false
+        }
+      ]
+    },
+    {
+      "id": "browser",
+      "name": "Browser Profile",
+      "segments": [
+        {
+          "id": "open-devtools",
+          "label": "Open DevTools",
+          "type": "script",
+          "payload": {
+            "command": "scripts/open-devtools.ps1"
+          }
+        },
+        {
+          "id": "refresh-tab",
+          "label": "Refresh Tab",
+          "type": "application",
+          "payload": {
+            "command": "Refresh"
+          }
+        }
+      ],
+      "contextRules": [
+        {
+          "mode": "processName",
+          "value": "chrome.exe",
+          "caseSensitive": false
+        },
+        {
+          "mode": "windowTitle",
+          "value": "Mozilla Firefox"
+        }
+      ]
+    }
+  ]
+}

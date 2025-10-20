@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
 import { useSystemStore } from './state/systemStore';
@@ -7,12 +7,13 @@ import { HotkeyConflictDialog } from './components/hotkeys/HotkeyConflictDialog'
 import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistrationPanel';
 import { useHotkeyStore } from './state/hotkeyStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
-import { PieMenu } from './components/pie/PieMenu';
+import { PieMenu, type PieSliceDefinition } from './components/pie/PieMenu';
 import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 import type { HotkeyRegistrationStatus } from './types/hotkeys';
+import { slicesForProfile } from '@/mocks/contextProfiles';
 
 const FALLBACK_PLACEHOLDER_SLICES = [
   { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },
@@ -90,11 +91,11 @@ export function App() {
     disableConflictingHotkey: state.disableConflictingHotkey,
     isSubmitting: state.isSubmitting,
   }));
-  const activeProfile = useSystemStore((state) => state.activeProfile);
+  const systemActiveProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
 
   const pieMenuState = usePieMenuHotkey({
-    hotkeyEvent: 'hotkeys://toggle-preview-menu',
+    hotkeyEvent: 'hotkeys://trigger',
     autoCloseMs: 2000,
   });
   const {
@@ -105,25 +106,77 @@ export function App() {
     lastAction,
     clearLastAction,
     lastSafeModeReason,
+    activeProfile: pieMenuActiveProfile,
     toggle: togglePieMenu,
     open: openPieMenu,
     close: closePieMenu,
   } = pieMenuState;
 
-  const placeholderSlices = useMemo(() => {
+  const menuSlices = useMemo<PieSliceDefinition[]>(() => {
+    const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
+    const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
+
+    if (!isTauriEnvironment()) {
+      if (activeSnapshot) {
+        const mockSlices = slicesForProfile(activeSnapshot.index);
+        if (mockSlices.length) {
+          return mockSlices;
+        }
+      }
+      const fallbackMock = slicesForProfile(0);
+      return fallbackMock.length ? fallbackMock : fallbackSlices;
+    }
+
     if (!settings || !settings.app_profiles.length) {
-      return FALLBACK_PLACEHOLDER_SLICES;
+      return fallbackSlices;
     }
-    const profile = settings.app_profiles[0];
-    if (!profile?.pie_keys?.length) {
-      return FALLBACK_PLACEHOLDER_SLICES;
+
+    const targetIndex = Math.min(
+      Math.max(activeSnapshot?.index ?? 0, 0),
+      settings.app_profiles.length - 1,
+    );
+    const profile = settings.app_profiles[targetIndex];
+    if (!profile) {
+      return fallbackSlices;
     }
-    return profile.pie_keys.slice(0, 8).map((slice, index) => ({
-      id: `${profile.name}-${slice.name}-${index}`,
-      label: slice.name || `Slice ${index + 1}`,
-      order: index,
-    }));
-  }, [settings]);
+
+    const pieKey = profile.pie_keys?.find((key) => key.enable && key.pie_menus?.length);
+    const pieMenu = pieKey?.pie_menus?.find((menu) => menu.functions?.length);
+    if (!pieMenu) {
+      return fallbackSlices;
+    }
+
+    const derivedSlices = (pieMenu.functions ?? [])
+      .map<PieSliceDefinition | null>((fn, order) => {
+        if (!fn) {
+          return null;
+        }
+        const label = fn.label?.toString() || fn.function?.toString() || `Slice ${order + 1}`;
+        const idBase = fn.hotkey?.toString()?.trim() || fn.function?.toString()?.trim() || label;
+        return {
+          id: `${profile.name}-${idBase}-${order}`,
+          label,
+          order,
+          disabled: fn.clickable === false,
+        };
+      })
+      .filter((slice): slice is PieSliceDefinition => slice !== null);
+
+    return derivedSlices.length ? derivedSlices : fallbackSlices;
+  }, [pieMenuActiveProfile, systemActiveProfile, settings]);
+
+  const previousMatchKindRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const currentKind = pieMenuActiveProfile?.matchKind ?? null;
+    const previousKind = previousMatchKindRef.current;
+    if (currentKind === 'fallback' && previousKind !== 'fallback') {
+      setActiveSlice(null);
+      clearLastAction();
+      closePieMenu();
+    }
+    previousMatchKindRef.current = currentKind;
+  }, [pieMenuActiveProfile, clearLastAction, closePieMenu, setActiveSlice]);
 
   useEffect(() => {
     void initialize();
@@ -131,10 +184,10 @@ export function App() {
   }, [initialize, systemInit]);
 
   useEffect(() => {
-    if (placeholderSlices.length > 0 && isPieMenuVisible && !activeSliceId) {
-      setActiveSlice(placeholderSlices[0].id);
+    if (menuSlices.length > 0 && isPieMenuVisible && !activeSliceId) {
+      setActiveSlice(menuSlices[0].id);
     }
-  }, [activeSliceId, isPieMenuVisible, placeholderSlices, setActiveSlice]);
+  }, [activeSliceId, isPieMenuVisible, menuSlices, setActiveSlice]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -144,7 +197,7 @@ export function App() {
       request: {
         id: 'preview-pie-menu-toggle',
         accelerator: 'Control+Shift+P',
-        event: 'hotkeys://toggle-preview-menu',
+        event: 'hotkeys://trigger',
         allowConflicts: true,
       },
     })
@@ -285,9 +338,9 @@ export function App() {
 
               <div className="mt-6 flex flex-col items-center gap-4">
                 <PieMenu
-                  slices={placeholderSlices}
-                  visible={isPieMenuVisible && placeholderSlices.length > 0}
-                  activeSliceId={activeSliceId ?? placeholderSlices[0]?.id ?? null}
+                  slices={menuSlices}
+                  visible={isPieMenuVisible && menuSlices.length > 0}
+                  activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                   onHover={(sliceId) => setActiveSlice(sliceId)}
                   onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
                   centerContent={
@@ -298,7 +351,7 @@ export function App() {
                     ) : null
                   }
                 />
-                {placeholderSlices.length === 0 && (
+                {menuSlices.length === 0 && (
                   <p className="text-sm text-white/60">Add actions to your first profile to preview the menu.</p>
                 )}
                 {lastAction && (
@@ -323,8 +376,8 @@ export function App() {
                 available, we will display the active profile info here.
               </p>
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                <p>Active profile: {activeProfile?.name ?? '—'}</p>
-                <p>Match mode: {activeProfile?.matchKind ?? '—'}</p>
+                <p>Active profile: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
+                <p>Match mode: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
                 <p>Safe mode: {status.safeMode ? 'Enabled' : 'Disabled'}</p>
               </div>
             </div>

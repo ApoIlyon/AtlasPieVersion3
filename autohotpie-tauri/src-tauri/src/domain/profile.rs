@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::pie_menu::PieMenuId;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

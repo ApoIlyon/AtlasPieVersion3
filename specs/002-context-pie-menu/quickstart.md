@@ -38,13 +38,20 @@ npm run tauri dev
 cargo nextest run --manifest-path autohotpie-tauri/src-tauri/Cargo.toml --package action_runner
 
 # Frontend hook/component tests
-npm run test -- usePieMenuHotkey
+npm run test -- --run usePieMenuHotkey.test.ts
 
 # Playwright flow verifying hotkey → menu → action
 npx playwright test tests/e2e/pie-menu.spec.ts
+
+# Regression: action feedback toasts + conflict gating
+npx playwright test --config tests/e2e/playwright.config.ts tests/e2e/action-execution.spec.ts --workers=1 --reporter=line
+npx playwright test --config tests/e2e/playwright.config.ts tests/e2e/hotkey-conflict.spec.ts --workers=1 --reporter=line
 ```
 
 ## Troubleshooting
 - Pie menu not appearing: ensure window info service returns data (`profile_router` logs should show matches); fallback profile indicates no rule matches.
-- Toasts absent: check `usePieMenuHotkey.ts` subscription to event bus; ensure ActionRunner emits events.
+- Toasts absent
+  - Confirm `usePieMenuHotkey.ts` receives `actions://executed` / `actions://failed` events and forwards them to `useAppStore().recordActionMetric()`.
+  - Inspect `useAppStore().lastActionSummary` and `actionOutcomeCounts` values (DevTools console: `window.__APP_STORE__?.getState()` if exposed) to verify metrics update.
+  - Re-run `npm run test -- --run usePieMenuHotkey.test.ts` for unit coverage and `npx playwright test --config tests/e2e/playwright.config.ts tests/e2e/action-execution.spec.ts --workers=1 --reporter=line` for end-to-end validation.
 - Slow feedback: profile evaluation and ActionRunner execution should complete < 1 s—check for long-running scripts or heavy process detection.

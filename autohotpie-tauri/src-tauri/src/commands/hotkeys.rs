@@ -35,6 +35,15 @@ pub struct HotkeyConflict {
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HotkeyConflictSnapshot {
+    pub id: String,
+    pub accelerator: String,
+    pub registered: bool,
+    pub conflicts: Vec<HotkeyConflict>,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct HotkeyRegistrationStatus {
     pub registered: bool,
     pub conflicts: Vec<HotkeyConflict>,
@@ -118,6 +127,7 @@ pub fn register_hotkey(
     request: RegisterHotkeyRequest,
 ) -> Result<HotkeyRegistrationStatus> {
     register_hotkey_impl(
+        &app,
         state.inner(),
         request,
         |shortcut, payload, event| register_shortcut(&app, shortcut, event, payload.clone()),
@@ -128,6 +138,7 @@ pub fn register_hotkey(
 }
 
 fn register_hotkey_impl<FRegister, FUnregister, FIsRegistered, FPlatformProbe>(
+    app: &AppHandle,
     state: &HotkeyState,
     request: RegisterHotkeyRequest,
     mut register_fn: FRegister,
@@ -152,14 +163,32 @@ where
         is_registered_fn(shortcut)
     })?;
 
+    let mut publish_status = |status: &HotkeyRegistrationStatus| {
+        broadcast_conflicts(
+            &app,
+            &HotkeyConflictSnapshot {
+                id: id.clone(),
+                accelerator: accelerator.clone(),
+                registered: status.registered,
+                conflicts: status.conflicts.clone(),
+            },
+        );
+    };
+
+    let mut finalize = |registered: bool, conflicts: Vec<HotkeyConflict>| {
+        let status = HotkeyRegistrationStatus {
+            registered,
+            conflicts,
+        };
+        publish_status(&status);
+        status
+    };
+
     if conflicts
         .iter()
         .any(|conflict| conflict.code == "invalidAccelerator")
     {
-        return Ok(HotkeyRegistrationStatus {
-            registered: false,
-            conflicts,
-        });
+        return Ok(finalize(false, conflicts));
     }
 
     let existing_for_id = state.find_by_id(&id)?;
@@ -174,9 +203,8 @@ where
             )
         });
 
-    let shortcut = Shortcut::from_str(&accelerator).map_err(|err| {
-        AppError::Message(format!("Invalid accelerator: {err}"))
-    })?;
+    let shortcut = Shortcut::from_str(&accelerator)
+        .map_err(|err| AppError::Message(format!("Invalid accelerator: {err}")))?;
 
     if should_probe_platform {
         let mut platform_conflicts = platform_probe(shortcut.clone(), &accelerator)?;
@@ -191,17 +219,11 @@ where
     });
 
     if has_blocking {
-        return Ok(HotkeyRegistrationStatus {
-            registered: false,
-            conflicts,
-        });
+        return Ok(finalize(false, conflicts));
     }
 
     if !conflicts.is_empty() && !allow_conflicts {
-        return Ok(HotkeyRegistrationStatus {
-            registered: false,
-            conflicts,
-        });
+        return Ok(finalize(false, conflicts));
     }
 
     if allow_conflicts {
@@ -237,15 +259,12 @@ where
     register_fn(shortcut, payload, event.clone())?;
 
     state.upsert(RegisteredHotkey {
-        id,
-        accelerator,
-        event,
+        id: id.clone(),
+        accelerator: accelerator.clone(),
+        event: event.clone(),
     })?;
 
-    Ok(HotkeyRegistrationStatus {
-        registered: true,
-        conflicts: Vec::new(),
-    })
+    Ok(finalize(true, Vec::new()))
 }
 
 #[tauri::command]
@@ -290,15 +309,29 @@ pub fn check_hotkey(
         )
     }) {
         if let Ok(shortcut) = Shortcut::from_str(&request.accelerator) {
-            let mut platform_conflicts = probe_platform_conflicts(&app, shortcut, &request.accelerator)?;
+            let mut platform_conflicts =
+                probe_platform_conflicts(&app, shortcut, &request.accelerator)?;
             conflicts.append(&mut platform_conflicts);
         }
     }
 
-    Ok(HotkeyRegistrationStatus {
+    let accelerator = request.accelerator;
+    let status = HotkeyRegistrationStatus {
         registered: conflicts.is_empty(),
         conflicts,
-    })
+    };
+
+    broadcast_conflicts(
+        &app,
+        &HotkeyConflictSnapshot {
+            id: "check".into(),
+            accelerator,
+            registered: status.registered,
+            conflicts: status.conflicts.clone(),
+        },
+    );
+
+    Ok(status)
 }
 
 fn register_shortcut(
@@ -319,11 +352,9 @@ fn register_shortcut(
 fn unregister_shortcut(app: &AppHandle, accelerator: &str) -> Result<()> {
     if let Ok(shortcut) = Shortcut::from_str(accelerator) {
         if app.global_shortcut().is_registered(shortcut.clone()) {
-            app.global_shortcut()
-                .unregister(shortcut)
-                .map_err(|err| AppError::Message(format!(
-                    "failed to unregister global shortcut: {err}"
-                )))?;
+            app.global_shortcut().unregister(shortcut).map_err(|err| {
+                AppError::Message(format!("failed to unregister global shortcut: {err}"))
+            })?;
         }
     }
 
@@ -358,6 +389,10 @@ fn probe_platform_conflicts(
     Ok(conflicts)
 }
 
+fn broadcast_conflicts(app: &AppHandle, snapshot: &HotkeyConflictSnapshot) {
+    let _ = app.emit("hotkeys://conflicts", snapshot);
+}
+
 fn evaluate_conflicts(
     app: &AppHandle,
     state: &State<'_, HotkeyState>,
@@ -385,10 +420,7 @@ where
         if !is_same {
             conflicts.push(HotkeyConflict {
                 code: "duplicateInternal".into(),
-                message: format!(
-                    "Accelerator already registered under id '{}'",
-                    existing.id
-                ),
+                message: format!("Accelerator already registered under id '{}'", existing.id),
                 meta: Some(HotkeyConflictMeta {
                     conflicting_id: Some(existing.id.clone()),
                 }),
@@ -434,26 +466,11 @@ fn is_reserved_platform_shortcut(accelerator: &str) -> bool {
     let normalized = accelerator.to_ascii_uppercase();
 
     #[cfg(target_os = "windows")]
-    const RESERVED: &[&str] = &[
-        "ALT+TAB",
-        "CTRL+ALT+DEL",
-        "ALT+F4",
-        "WIN+L",
-        "WIN+D",
-    ];
+    const RESERVED: &[&str] = &["ALT+TAB", "CTRL+ALT+DEL", "ALT+F4", "WIN+L", "WIN+D"];
     #[cfg(target_os = "macos")]
-    const RESERVED: &[&str] = &[
-        "CMD+TAB",
-        "CMD+OPTION+ESC",
-        "CTRL+CMD+Q",
-    ];
+    const RESERVED: &[&str] = &["CMD+TAB", "CMD+OPTION+ESC", "CTRL+CMD+Q"];
     #[cfg(target_os = "linux")]
-    const RESERVED: &[&str] = &[
-        "CTRL+ALT+F1",
-        "CTRL+ALT+F2",
-        "CTRL+ALT+F3",
-        "CTRL+ALT+F4",
-    ];
+    const RESERVED: &[&str] = &["CTRL+ALT+F1", "CTRL+ALT+F2", "CTRL+ALT+F3", "CTRL+ALT+F4"];
     #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
     const RESERVED: &[&str] = &[];
 

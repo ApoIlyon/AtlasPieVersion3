@@ -1,12 +1,18 @@
+#![allow(dead_code)]
+
+pub mod actions;
+pub mod hotkeys;
 pub mod settings;
 pub mod system;
-pub mod hotkeys;
-pub mod actions;
 
+use self::hotkeys::HotkeyState;
 use crate::domain::{Action, ActionId};
 use crate::models::Settings;
+use crate::services::action_runner::{
+    ActionProvider, ActionRunner, ACTION_EXECUTED_EVENT, ACTION_FAILED_EVENT,
+};
 use crate::services::{
-    action_runner::ActionRunner,
+    action_events::ActionEventsChannel,
     audit_log::AuditLogger,
     connectivity,
     profile_router::{self, ProfileRouterState},
@@ -15,11 +21,10 @@ use crate::services::{
     window_info,
 };
 use crate::storage::StorageManager;
-use crate::services::action_runner::ActionProvider;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::{ipc::InvokeError, App, AppHandle, Manager};
-use self::hotkeys::HotkeyState;
+use tauri::{ipc::InvokeError, App, AppHandle, Emitter, Manager};
+use tokio::sync::broadcast::error::RecvError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
@@ -44,6 +49,7 @@ pub struct AppState {
     pub audit: AuditLogger,
     pub settings: Mutex<Settings>,
     pub action_runner: ActionRunner,
+    pub action_events: ActionEventsChannel,
     actions: Mutex<HashMap<ActionId, Action>>,
 }
 
@@ -76,7 +82,14 @@ impl AppState {
             .unwrap_or_default()
     }
 
-    pub fn request_action<R>(&self, f: impl FnOnce(&mut HashMap<ActionId, Action>) -> R) -> Result<R> {
+    pub fn action_events_channel(&self) -> ActionEventsChannel {
+        self.action_events.clone()
+    }
+
+    pub fn request_action<R>(
+        &self,
+        f: impl FnOnce(&mut HashMap<ActionId, Action>) -> R,
+    ) -> Result<R> {
         let mut guard = self.actions.lock().map_err(|_| AppError::StatePoisoned)?;
         Ok(f(&mut guard))
     }
@@ -101,6 +114,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
         storage.save_with_backup(&settings)?;
     }
     let audit = AuditLogger::from_storage(&storage)?;
+    let action_events = ActionEventsChannel::default();
 
     let storage_mode = storage_guard::detect_mode(&storage);
     let shared_status = Arc::new(Mutex::new(SystemStatus::new(storage_mode)));
@@ -109,9 +123,9 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
     let actions_map = collect_actions(&actions);
 
     let action_runner = ActionRunner::new(
-        handle.clone(),
         storage.base_dir().to_path_buf(),
         audit.clone(),
+        action_events.clone(),
     );
 
     app.manage(AppState {
@@ -119,7 +133,34 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
         audit,
         settings: Mutex::new(settings),
         action_runner,
+        action_events,
         actions: Mutex::new(actions_map),
+    });
+
+    let dispatch_handle = handle.clone();
+    let dispatch_events = app.state::<AppState>().action_events_channel();
+    tauri::async_runtime::spawn(async move {
+        let mut rx = dispatch_events.subscribe();
+        loop {
+            match rx.recv().await {
+                Ok(payload) => {
+                    let event_name = match payload.status {
+                        crate::domain::ActionEventStatus::Success
+                        | crate::domain::ActionEventStatus::Skipped => ACTION_EXECUTED_EVENT,
+                        crate::domain::ActionEventStatus::Failure => ACTION_FAILED_EVENT,
+                    };
+                    let cloned = payload.clone();
+                    if let Err(err) = dispatch_handle.emit(event_name, cloned) {
+                        eprintln!("failed to emit {event_name}: {err}");
+                    }
+                    if let Err(err) = dispatch_handle.emit("actions://event", payload) {
+                        eprintln!("failed to emit actions://event: {err}");
+                    }
+                }
+                Err(RecvError::Closed) => break,
+                Err(RecvError::Lagged(_)) => continue,
+            }
+        }
     });
 
     app.manage(SystemState {
@@ -155,4 +196,11 @@ fn collect_actions(actions: &[Action]) -> HashMap<ActionId, Action> {
         map.insert(action.id, action.clone());
     }
     map
+}
+
+#[tauri::command]
+pub fn resolve_active_profile(
+    app: AppHandle,
+) -> Result<Option<profile_router::ActiveProfileSnapshot>> {
+    profile_router::resolve_now(&app).map_err(|err| AppError::Message(err.to_string()))
 }

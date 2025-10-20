@@ -1,4 +1,4 @@
-use super::{Action, ActionId, PieMenu, PieMenuId, PieSlice, PieSliceId, Profile, ProfileId};
+use super::{Action, ActionId, PieMenu, PieMenuId, PieSliceId, Profile, ProfileId};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
@@ -38,8 +38,7 @@ pub fn validate_profile(
         });
     }
 
-    let menu_map: HashMap<PieMenuId, &PieMenu> =
-        menus.iter().map(|menu| (menu.id, menu)).collect();
+    let menu_map: HashMap<PieMenuId, &PieMenu> = menus.iter().map(|menu| (menu.id, menu)).collect();
     let action_map: HashMap<ActionId, &Action> =
         actions.iter().map(|action| (action.id, action)).collect();
 
@@ -108,6 +107,8 @@ fn validate_menu(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::pie_menu::{PieAppearance, PieSlice};
+    use crate::domain::ActionPayload;
 
     fn sample_action() -> Action {
         Action::new(

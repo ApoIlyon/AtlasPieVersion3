@@ -36,6 +36,24 @@ test.describe('US1 - Action execution flow', () => {
 
     const statusToast = page.getByRole('status').first();
     await expect(statusToast).toBeVisible({ timeout: 1_000 });
+    await expect(statusToast).toContainText(/SUCCESS/i);
     await expect(pieMenu).not.toBeVisible({ timeout: 2_000 });
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new CustomEvent('pie-menu:action', {
+          detail: {
+            id: 'action-error',
+            name: 'Failing Action',
+            status: 'failure',
+            message: 'Execution failed',
+          },
+        }),
+      );
+    });
+
+    const errorToast = page.getByRole('status').first();
+    await expect(errorToast).toBeVisible({ timeout: 1_000 });
+    await expect(errorToast).toContainText(/ERROR/i);
   });
 });

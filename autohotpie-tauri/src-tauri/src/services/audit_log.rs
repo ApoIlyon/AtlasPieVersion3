@@ -1,4 +1,6 @@
+use crate::domain::ActionEventPayload;
 use crate::storage::StorageManager;
+use serde_json::json;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -60,14 +62,26 @@ impl AuditLogger {
         }
     }
 
+    pub fn log_action_outcome(&self, payload: &ActionEventPayload) -> io::Result<()> {
+        let entry = json!({
+            "component": "action_runner",
+            "event": payload,
+        });
+        let serialized = serde_json::to_string(&entry).map_err(|err| {
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!("failed to serialize action event: {err}"),
+            )
+        })?;
+        self.log("ACTION", &serialized)
+    }
+
     pub fn current_log_path(&self) -> io::Result<PathBuf> {
         let guard = self
             .inner
             .lock()
             .map_err(|_| io::Error::new(io::ErrorKind::Other, "audit logger poisoned"))?;
-        Ok(guard
-            .log_dir
-            .join(log_filename(&guard.current_date)))
+        Ok(guard.log_dir.join(log_filename(&guard.current_date)))
     }
 }
 
@@ -86,23 +100,26 @@ impl AuditLoggerInner {
 fn open_for_date(dir: &Path, datetime: OffsetDateTime) -> io::Result<(String, File)> {
     let date_str = format_date(datetime)?;
     let path = dir.join(log_filename(&date_str));
-    let file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)?;
+    let file = OpenOptions::new().create(true).append(true).open(path)?;
     Ok((date_str, file))
 }
 
 fn format_date(datetime: OffsetDateTime) -> io::Result<String> {
-    datetime
-        .format(DATE_FORMAT)
-        .map_err(|err| io::Error::new(io::ErrorKind::Other, format!("failed to format date: {err}")))
+    datetime.format(DATE_FORMAT).map_err(|err| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("failed to format date: {err}"),
+        )
+    })
 }
 
 fn format_timestamp(datetime: OffsetDateTime) -> io::Result<String> {
-    datetime
-        .format(TIMESTAMP_FORMAT)
-        .map_err(|err| io::Error::new(io::ErrorKind::Other, format!("failed to format timestamp: {err}")))
+    datetime.format(TIMESTAMP_FORMAT).map_err(|err| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("failed to format timestamp: {err}"),
+        )
+    })
 }
 
 fn log_filename(date_str: &str) -> String {

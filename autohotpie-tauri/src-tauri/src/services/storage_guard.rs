@@ -12,11 +12,7 @@ const CHECK_INTERVAL: Duration = Duration::from_secs(30);
 
 pub fn detect_mode(storage: &StorageManager) -> StorageMode {
     let test_path = storage.base_dir().join(".write-test");
-    match OpenOptions::new()
-        .create(true)
-        .write(true)
-        .open(&test_path)
-    {
+    match OpenOptions::new().create(true).write(true).open(&test_path) {
         Ok(mut file) => {
             let _ = file.write_all(b"ok");
             let _ = std::fs::remove_file(&test_path);

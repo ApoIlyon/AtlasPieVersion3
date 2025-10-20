@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use regex::{Regex, RegexBuilder};
 use serde::{Deserialize, Serialize};
 
@@ -71,9 +73,12 @@ impl ContextRule {
             MatchMode::ScreenArea => snapshot
                 .screen_area
                 .as_ref()
-                .map(|area| self
-                    .pattern
-                    .matches(&format!("{}x{}:{}x{}", area.x, area.y, area.width, area.height)))
+                .map(|area| {
+                    self.pattern.matches(&format!(
+                        "{}x{}:{}x{}",
+                        area.x, area.y, area.width, area.height
+                    ))
+                })
                 .unwrap_or(false),
         }
     }

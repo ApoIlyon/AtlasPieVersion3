@@ -1,18 +1,35 @@
 import { invoke } from '@tauri-apps/api/core';
 import { create } from 'zustand';
 import { isTauriEnvironment } from '@/utils/tauriEnvironment';
-import type { AppProfile, Settings } from './types';
+import type {
+  ActionOutcomeCounts,
+  ActionOutcomeMetricInput,
+  ActionOutcomeSummary,
+  AppProfile,
+  Settings,
+} from './types';
+
+const defaultActionOutcomeCounts = (): ActionOutcomeCounts => ({
+  total: 0,
+  success: 0,
+  failure: 0,
+  skipped: 0,
+});
 
 type AppStore = {
   settings: Settings | null;
   isLoading: boolean;
   error: string | null;
   initialized: boolean;
+  lastActionSummary: ActionOutcomeSummary | null;
+  actionOutcomeCounts: ActionOutcomeCounts;
   loadSettings: () => Promise<void>;
   initialize: () => Promise<void>;
   saveSettings: (settings: Settings) => Promise<void>;
   addProfile: (profile: AppProfile) => Promise<void>;
   resetSettings: () => Promise<void>;
+  recordActionMetric: (input: ActionOutcomeMetricInput) => void;
+  resetActionMetrics: () => void;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -30,6 +47,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   isLoading: false,
   error: null,
   initialized: false,
+  lastActionSummary: null,
+  actionOutcomeCounts: defaultActionOutcomeCounts(),
   loadSettings: async () => {
     if (get().isLoading) {
       return;
@@ -99,5 +118,37 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ error: message, isLoading: false });
       throw new Error(message);
     }
+  },
+  recordActionMetric: (input) => {
+    set((state) => {
+      const summary: ActionOutcomeSummary = {
+        actionId: input.actionId,
+        actionName: input.actionName,
+        status: input.status,
+        message: input.message ?? null,
+        timestamp: input.timestamp ?? new Date().toISOString(),
+        durationMs: input.durationMs ?? null,
+        invocationId: input.invocationId ?? null,
+      };
+
+      const currentCounts = state.actionOutcomeCounts ?? defaultActionOutcomeCounts();
+      const nextCounts: ActionOutcomeCounts = {
+        total: currentCounts.total + 1,
+        success: currentCounts.success + (input.status === 'success' ? 1 : 0),
+        failure: currentCounts.failure + (input.status === 'failure' ? 1 : 0),
+        skipped: currentCounts.skipped + (input.status === 'skipped' ? 1 : 0),
+      };
+
+      return {
+        lastActionSummary: summary,
+        actionOutcomeCounts: nextCounts,
+      };
+    });
+  },
+  resetActionMetrics: () => {
+    set({
+      lastActionSummary: null,
+      actionOutcomeCounts: defaultActionOutcomeCounts(),
+    });
   },
 }));

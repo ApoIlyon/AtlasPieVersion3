@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { LastActionState } from '@/hooks/usePieMenuHotkey';
 
@@ -25,6 +26,26 @@ const statusBadge: Record<LastActionState['status'], string> = {
 };
 
 export function ActionToast({ action, onDismiss }: ActionToastProps) {
+  useEffect(() => {
+    if (!action || !onDismiss) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      onDismiss();
+    }, 5000);
+
+    return () => window.clearTimeout(timeout);
+  }, [action, onDismiss]);
+
+  const helperMessage = action
+    ? action.status === 'failure'
+      ? 'Try launching the action again or review the audit log for details.'
+      : action.status === 'skipped'
+        ? 'This action was skipped. Adjust its configuration if you expected it to run.'
+        : 'Action completed successfully.'
+    : '';
+
   return (
     <AnimatePresence>
       {action && (
@@ -65,6 +86,10 @@ export function ActionToast({ action, onDismiss }: ActionToastProps) {
                   {action.message}
                 </p>
               )}
+
+              <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-white/50">
+                {helperMessage}
+              </p>
 
               <p className="mt-4 text-[11px] uppercase tracking-[0.35em] text-white/30">
                 {new Date(action.timestamp).toLocaleTimeString()}
