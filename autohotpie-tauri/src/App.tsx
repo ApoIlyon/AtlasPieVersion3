@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
 import { useSystemStore } from './state/systemStore';
@@ -65,6 +66,22 @@ function usePlatform() {
 }
 
 export function App() {
+  useEffect(() => {
+    if (isTauriEnvironment()) {
+      const tauriWindow = window as typeof window & {
+        __TAURI__?: {
+          window?: {
+            appWindow?: {
+              openDevtools?: () => Promise<void>;
+            };
+          };
+        };
+      };
+
+      void tauriWindow.__TAURI__?.window?.appWindow?.openDevtools?.();
+    }
+  }, []);
+
   const version = useVersion();
   const isLinux = usePlatform();
   const { settings, isLoading, error } = useAppStore((state) => ({
@@ -96,7 +113,7 @@ export function App() {
 
   const pieMenuState = usePieMenuHotkey({
     hotkeyEvent: 'hotkeys://trigger',
-    autoCloseMs: 2000,
+    autoCloseMs: 0,
   });
   const {
     isOpen: isPieMenuVisible,
@@ -127,7 +144,7 @@ export function App() {
       return fallbackMock.length ? fallbackMock : fallbackSlices;
     }
 
-    if (!settings || !settings.app_profiles.length) {
+    if (!settings || !settings.app_profiles || !settings.app_profiles.length) {
       return fallbackSlices;
     }
 
@@ -170,7 +187,7 @@ export function App() {
   useEffect(() => {
     const currentKind = pieMenuActiveProfile?.matchKind ?? null;
     const previousKind = previousMatchKindRef.current;
-    if (currentKind === 'fallback' && previousKind !== 'fallback') {
+    if (previousKind && currentKind === 'fallback' && previousKind !== 'fallback') {
       setActiveSlice(null);
       clearLastAction();
       closePieMenu();
@@ -310,7 +327,7 @@ export function App() {
               <>
                 <p className="text-sm text-white/70">
                   {isLoading && 'Loading settings…'}
-                  {!isLoading && settings &&
+                  {!isLoading && settings && settings.app_profiles &&
                     `Loaded ${settings.app_profiles.length} profile${settings.app_profiles.length === 1 ? '' : 's'}.`}
                   {!isLoading && !settings && 'Settings not loaded yet.'}
                 </p>
@@ -384,6 +401,55 @@ export function App() {
           </div>
         </section>
       </main>
+
+      <AnimatePresence>
+        {isPieMenuVisible && (
+          <motion.div
+            key="pie-menu-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm"
+            onClick={closePieMenu}
+          >
+            <div
+              className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {menuSlices.length > 0 ? (
+                <>
+                  <div className="scale-110 transform-gpu">
+                    <PieMenu
+                      slices={menuSlices}
+                      visible
+                      activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
+                      onHover={(sliceId) => setActiveSlice(sliceId)}
+                      onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+                    />
+                  </div>
+                  <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
+                    {menuSlices.find((slice) => slice.id === (activeSliceId ?? menuSlices[0]?.id ?? null))?.label ?? ''}
+                  </div>
+                  <p className="text-sm text-white/70">
+                    Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть.
+                  </p>
+                </>
+              ) : (
+                <div className="rounded-3xl border border-white/10 bg-white/10 p-10 text-white">
+                  <h2 className="text-2xl font-semibold">No slices available</h2>
+                  <p className="mt-3 text-sm text-white/80">
+                    Добавь функции в текущий профиль, чтобы увидеть pie-меню.
+                  </p>
+                  <p className="mt-5 text-xs uppercase tracking-[0.35em] text-white/60">
+                    Alt + Q — закрыть
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ActionToast action={lastAction} onDismiss={clearLastAction} />
       <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />

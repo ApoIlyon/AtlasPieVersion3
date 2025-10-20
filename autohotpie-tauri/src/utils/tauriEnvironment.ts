@@ -5,7 +5,10 @@ export function isTauriEnvironment(): boolean {
 
   const tauriWindow = window as Window & {
     __TAURI_IPC__?: (message: any) => void;
+    __TAURI__?: any;
   };
 
-  return typeof tauriWindow.__TAURI_IPC__ === 'function';
+  const hasIPC = typeof tauriWindow.__TAURI_IPC__ === 'function';
+  const hasTauri = typeof tauriWindow.__TAURI__ !== 'undefined';
+  return hasIPC || hasTauri;
 }

@@ -135,7 +135,7 @@ export interface LastActionState {
 export interface UsePieMenuHotkeyOptions {
   hotkeyEvent?: string;
   autoCloseMs?: number;
-  fallbackHotkey?: string;
+  fallbackHotkey?: string | string[];
 }
 
 export interface PieMenuHotkeyState {
@@ -165,7 +165,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const {
     hotkeyEvent = 'hotkeys://trigger',
     autoCloseMs = 0,
-    fallbackHotkey = 'Control+Shift+P',
+    fallbackHotkey = 'Control+Alt+Space',
   } = options;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
@@ -241,15 +241,22 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     [clearTimer],
   );
 
+  const fallbackHotkeys = useMemo(() => {
+    if (!fallbackHotkey) {
+      return [] as string[];
+    }
+    return Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
+  }, [fallbackHotkey]);
+
   useEffect(() => {
     if (!isTauriEnvironment()) {
-      const matchHotkey = createHotkeyMatcher(fallbackHotkey);
+      const matchers = fallbackHotkeys.map((hotkey) => createHotkeyMatcher(hotkey));
 
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.repeat) {
           return;
         }
-        if (matchHotkey(event)) {
+        if (matchers.some((match) => match(event))) {
           event.preventDefault();
           setIsOpen((prev) => {
             if (hasConflictDialogOpen || hasHotkeyConflicts) {
@@ -339,13 +346,9 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         window.removeEventListener('pie-menu:action', actionEvent as EventListener);
       };
     }
-  }, [clearTimer, fallbackHotkey, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
+  }, [clearTimer, fallbackHotkeys, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
 
   useEffect(() => {
-    if (!isTauriEnvironment()) {
-      return;
-    }
-
     let isMounted = true;
     let hotkeyUnlisten: (() => void) | undefined;
     let executedUnlisten: (() => void) | undefined;
@@ -355,6 +358,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     let profileUnlisten: (() => void) | undefined;
 
     const setup = async () => {
+      // Wait for Tauri API to be available
+      const maxWaitTime = 5000;
+      const startTime = Date.now();
+      
+      while (!isTauriEnvironment() && Date.now() - startTime < maxWaitTime) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      if (!isTauriEnvironment()) {
+        return;
+      }
+      
       const { listen } = await import('@tauri-apps/api/event');
 
       if (!isMounted) {

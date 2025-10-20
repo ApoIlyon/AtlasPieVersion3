@@ -5,7 +5,7 @@ pub mod hotkeys;
 pub mod settings;
 pub mod system;
 
-use self::hotkeys::HotkeyState;
+use self::hotkeys::{HotkeyState, HotkeyRegistrationStatus, RegisterHotkeyRequest};
 use crate::domain::{Action, ActionId};
 use crate::models::Settings;
 use crate::services::action_runner::{
@@ -25,6 +25,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{ipc::InvokeError, App, AppHandle, Emitter, Manager};
 use tokio::sync::broadcast::error::RecvError;
+
+const DEFAULT_PIE_HOTKEY_ID: &str = "global-pie";
+const DEFAULT_PIE_ACCELERATOR: &str = "Alt+Q";
+const DEFAULT_PIE_EVENT: &str = "hotkeys://trigger";
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
@@ -178,6 +182,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
         eprintln!("failed to set up tray icon: {err}");
     }
     profile_router::start_router(handle.clone());
+    initialize_default_hotkey(&handle);
 
     Ok(())
 }
@@ -196,6 +201,48 @@ fn collect_actions(actions: &[Action]) -> HashMap<ActionId, Action> {
         map.insert(action.id, action.clone());
     }
     map
+}
+
+fn initialize_default_hotkey(handle: &AppHandle) {
+    let state = handle.state::<HotkeyState>();
+    let request = RegisterHotkeyRequest {
+        id: DEFAULT_PIE_HOTKEY_ID.to_string(),
+        accelerator: DEFAULT_PIE_ACCELERATOR.to_string(),
+        event: DEFAULT_PIE_EVENT.to_string(),
+        allow_conflicts: false,
+    };
+
+    match hotkeys::register_hotkey(handle.clone(), state, request) {
+        Ok(status) => log_registration_status(status),
+        Err(err) => {
+            eprintln!(
+                "failed to register default pie hotkey '{}': {}",
+                DEFAULT_PIE_ACCELERATOR,
+                err
+            );
+        }
+    }
+}
+
+fn log_registration_status(status: HotkeyRegistrationStatus) {
+    if status.registered {
+        return;
+    }
+
+    if status.conflicts.is_empty() {
+        eprintln!(
+            "default pie hotkey '{}' not registered and no conflict info available",
+            DEFAULT_PIE_ACCELERATOR
+        );
+        return;
+    }
+
+    for conflict in status.conflicts {
+        eprintln!(
+            "default pie hotkey '{}' conflict: {} - {}",
+            DEFAULT_PIE_ACCELERATOR, conflict.code, conflict.message
+        );
+    }
 }
 
 #[tauri::command]
