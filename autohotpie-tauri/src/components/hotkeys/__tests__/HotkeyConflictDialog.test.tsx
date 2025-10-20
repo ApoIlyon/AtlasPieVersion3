@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 import { HotkeyConflictDialog } from '../HotkeyConflictDialog';
 import type { HotkeyConflictDialogProps } from '../HotkeyConflictDialog';
-import type { HotkeyRegistrationStatus } from '@/types/hotkeys';
+import type { HotkeyRegistrationStatus } from '../../../types/hotkeys';
 
 describe('HotkeyConflictDialog', () => {
   function renderDialog(overrides: Partial<HotkeyConflictDialogProps> = {}) {

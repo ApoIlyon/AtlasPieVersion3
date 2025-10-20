@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { isTauriEnvironment } from '@/utils/tauriEnvironment';
-import type { PieSliceDefinition } from '@/components/pie/PieMenu';
-import type { ActionEventPayload, ActionEventStatus } from '@/types/actionEvents';
-import type { ActiveProfileSnapshot } from '@/types/hotkeys';
-import { useHotkeyStore } from '@/state/hotkeyStore';
-import { useSystemStore } from '@/state/systemStore';
-import { useAppStore } from '@/state/appStore';
+import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import type { PieSliceDefinition } from '../components/pie/PieMenu';
+import type { ActionEventPayload, ActionEventStatus } from '../types/actionEvents';
+import type { ActiveProfileSnapshot } from '../types/hotkeys';
+import { useHotkeyStore } from '../state/hotkeyStore';
+import { useSystemStore } from '../state/systemStore';
+import { useAppStore } from '../state/appStore';
 
 type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<any>;
 

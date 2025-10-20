@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import { isTauriEnvironment } from '@/utils/tauriEnvironment';
-import type { HotkeyRegistrationStatus } from '@/types/hotkeys';
+import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import type { HotkeyRegistrationStatus } from '../types/hotkeys';
 
 interface RegisterHotkeyInput {
   id: string;
