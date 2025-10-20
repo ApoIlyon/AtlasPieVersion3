@@ -1,8 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { create } from 'zustand';
+import { selectMockActiveProfile } from '@/mocks/contextProfiles';
 import { isTauriEnvironment } from '@/utils/tauriEnvironment';
-import type { ActiveProfileSnapshot } from '@/types/hotkeys';
+import type { ActiveProfileSnapshot, HotkeyConflictSnapshot } from '@/types/hotkeys';
 import type { ConnectivitySnapshot, StorageMode, SystemStatus, WindowSnapshot } from './types';
 
 type SystemStore = {
@@ -11,11 +12,13 @@ type SystemStore = {
   error: string | null;
   lastEventAt: string | null;
   activeProfile: ActiveProfileSnapshot | null;
+  hotkeyStatus: HotkeyConflictSnapshot | null;
   init: () => Promise<void>;
   setOffline: (isOffline: boolean, timestamp?: string) => void;
   setWindowSnapshot: (snapshot: WindowSnapshot) => void;
   setStorageMode: (mode: StorageMode) => void;
   setActiveProfile: (profile: ActiveProfileSnapshot | null) => void;
+  setHotkeyStatus: (status: HotkeyConflictSnapshot | null) => void;
 };
 
 function defaultConnectivity(): ConnectivitySnapshot {
@@ -48,12 +51,38 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
   error: null,
   lastEventAt: null,
   activeProfile: null,
+  hotkeyStatus: null,
   init: async () => {
     if (get().initialized) {
       return;
     }
     if (!isTauriEnvironment()) {
-      set({ initialized: true, error: null, lastEventAt: new Date().toISOString() });
+      const url = new URL(window.location.href);
+      const mockProcess = url.searchParams.get('mockProcess');
+      const mockWindow = url.searchParams.get('mockWindow');
+      const mockSelection = selectMockActiveProfile(mockProcess, mockWindow);
+
+      set({
+        initialized: true,
+        error: null,
+        lastEventAt: new Date().toISOString(),
+        status: {
+          ...defaultStatus,
+          window: {
+            ...defaultStatus.window,
+            processName: mockProcess ?? null,
+            windowTitle: mockWindow ?? null,
+          },
+        },
+        activeProfile: mockSelection
+          ? {
+              index: mockSelection.index,
+              name: mockSelection.name,
+              matchKind: mockSelection.matchKind,
+            }
+          : null,
+        hotkeyStatus: null,
+      });
       return;
     }
     try {
@@ -93,6 +122,10 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     listen<{ profile: ActiveProfileSnapshot | null }>('profiles://active-changed', (event) => {
       get().setActiveProfile(event.payload.profile);
     });
+
+    listen<HotkeyConflictSnapshot>('hotkeys://conflicts', (event) => {
+      get().setHotkeyStatus(event.payload);
+    });
   },
   setOffline: (isOffline, timestamp) => {
     set((state) => ({
@@ -107,13 +140,30 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     }));
   },
   setWindowSnapshot: (snapshot) => {
-    set((state) => ({
-      status: {
+    set((state) => {
+      const nextStatus = {
         ...state.status,
         window: snapshot,
-      },
-      lastEventAt: new Date().toISOString(),
-    }));
+      };
+
+      let nextActive = state.activeProfile;
+      if (!isTauriEnvironment()) {
+        const selection = selectMockActiveProfile(snapshot.processName, snapshot.windowTitle);
+        nextActive = selection
+          ? {
+              index: selection.index,
+              name: selection.name,
+              matchKind: selection.matchKind,
+            }
+          : null;
+      }
+
+      return {
+        status: nextStatus,
+        activeProfile: nextActive,
+        lastEventAt: new Date().toISOString(),
+      };
+    });
   },
   setStorageMode: (mode) => {
     set((state) => ({
@@ -127,5 +177,8 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
   },
   setActiveProfile: (profile) => {
     set({ activeProfile: profile, lastEventAt: new Date().toISOString() });
+  },
+  setHotkeyStatus: (status) => {
+    set({ hotkeyStatus: status, lastEventAt: new Date().toISOString() });
   },
 }));

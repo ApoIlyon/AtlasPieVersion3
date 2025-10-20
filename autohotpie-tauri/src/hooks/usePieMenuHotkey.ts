@@ -1,6 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { isTauriEnvironment } from '@/utils/tauriEnvironment';
 import type { PieSliceDefinition } from '@/components/pie/PieMenu';
+import type { ActionEventPayload, ActionEventStatus } from '@/types/actionEvents';
+import type { ActiveProfileSnapshot } from '@/types/hotkeys';
+import { useHotkeyStore } from '@/state/hotkeyStore';
+import { useSystemStore } from '@/state/systemStore';
+import { useAppStore } from '@/state/appStore';
+
+type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<any>;
+
+function getTauriInvoke(): TauriInvoke | null {
+  if (!isTauriEnvironment()) {
+    return null;
+  }
+
+  const tauriWindow = window as unknown as {
+    __TAURI__?: {
+      invoke?: TauriInvoke;
+      core?: {
+        invoke?: TauriInvoke;
+      };
+    };
+  };
+
+  return tauriWindow.__TAURI__?.core?.invoke ?? tauriWindow.__TAURI__?.invoke ?? null;
+}
 
 type ModifierFlags = {
   ctrl: boolean;
@@ -29,6 +54,7 @@ function createHotkeyMatcher(hotkey: string) {
       modifiers.ctrl = true;
       continue;
     }
+
     if (part === 'shift') {
       modifiers.shift = true;
       continue;
@@ -91,24 +117,19 @@ function createHotkeyMatcher(hotkey: string) {
   };
 }
 
-interface ActionEventPayload {
-  id: string;
-  name: string;
-  status: 'success' | 'failure' | 'skipped';
-  message?: string | null;
-}
-
 interface WindowEventPayload {
   isFullscreen: boolean;
   storageMode: 'readWrite' | 'readOnly' | string;
 }
 
 export interface LastActionState {
-  status: ActionEventPayload['status'];
+  status: ActionEventStatus;
   message: string | null;
   actionId: string;
   actionName: string;
   timestamp: string;
+  durationMs: number | null;
+  invocationId: string | null;
 }
 
 export interface UsePieMenuHotkeyOptions {
@@ -122,6 +143,7 @@ export interface PieMenuHotkeyState {
   activeSliceId: string | null;
   lastAction: LastActionState | null;
   lastSafeModeReason: string | null;
+  activeProfile: ActiveProfileSnapshot | null;
   toggle: () => void;
   open: () => void;
   close: () => void;
@@ -131,8 +153,11 @@ export interface PieMenuHotkeyState {
   recordActionOutcome: (payload: {
     id: string;
     name: string;
-    status: ActionEventPayload['status'];
+    status: ActionEventStatus;
     message?: string | null;
+    timestamp?: string;
+    durationMs?: number | null;
+    invocationId?: string | null;
   }) => void;
 }
 
@@ -146,7 +171,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<LastActionState | null>(null);
   const [lastSafeModeReason, setLastSafeModeReason] = useState<string | null>(null);
+  const [activeProfile, setActiveProfile] = useState<ActiveProfileSnapshot | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasConflictDialogOpen = useHotkeyStore((state) => state.dialogOpen);
+  const hotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
+  const hasHotkeyConflicts = Boolean(hotkeyStatus && !hotkeyStatus.registered);
 
   const clearTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -171,15 +200,35 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     (payload: {
       id: string;
       name: string;
-      status: ActionEventPayload['status'];
+      status: ActionEventStatus;
       message?: string | null;
+      timestamp?: string;
+      durationMs?: number | null;
+      invocationId?: string | null;
     }) => {
+      const timestamp = payload.timestamp ?? new Date().toISOString();
+      const durationMs = payload.durationMs ?? null;
+      const invocationId = payload.invocationId ?? null;
+
       setLastAction({
         status: payload.status,
         message: payload.message ?? null,
         actionId: payload.id,
         actionName: payload.name,
-        timestamp: new Date().toISOString(),
+        timestamp,
+        durationMs,
+        invocationId,
+      });
+
+      const recordAppMetric = useAppStore.getState().recordActionMetric;
+      recordAppMetric({
+        actionId: payload.id,
+        actionName: payload.name,
+        status: payload.status,
+        message: payload.message ?? null,
+        timestamp,
+        durationMs,
+        invocationId,
       });
       if (payload.status === 'success') {
         setIsOpen(false);
@@ -203,6 +252,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         if (matchHotkey(event)) {
           event.preventDefault();
           setIsOpen((prev) => {
+            if (hasConflictDialogOpen || hasHotkeyConflicts) {
+              clearTimer();
+              return false;
+            }
+
             const next = !prev;
             if (next) {
               scheduleAutoClose();
@@ -221,6 +275,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
       const toggleEvent = () => {
         setIsOpen((prev) => {
+          if (hasConflictDialogOpen || hasHotkeyConflicts) {
+            clearTimer();
+            return false;
+          }
+
           const next = !prev;
           if (next) {
             scheduleAutoClose();
@@ -232,6 +291,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       };
 
       const openEvent = () => {
+        if (hasConflictDialogOpen || hasHotkeyConflicts) {
+          clearTimer();
+          setIsOpen(false);
+          return;
+        }
         setIsOpen(true);
         scheduleAutoClose();
       };
@@ -245,7 +309,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         const detail = (event as CustomEvent<{
           id?: string;
           name?: string;
-          status?: ActionEventPayload['status'];
+          status?: ActionEventStatus;
           message?: string | null;
         }>).detail;
         if (!detail?.id || !detail.name || !detail.status) {
@@ -256,6 +320,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           name: detail.name,
           status: detail.status,
           message: detail.message ?? null,
+          durationMs: null,
+          invocationId: null,
         });
       };
 
@@ -273,7 +339,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         window.removeEventListener('pie-menu:action', actionEvent as EventListener);
       };
     }
-  }, [clearTimer, fallbackHotkey, recordActionOutcome, scheduleAutoClose]);
+  }, [clearTimer, fallbackHotkey, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -284,7 +350,9 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     let hotkeyUnlisten: (() => void) | undefined;
     let executedUnlisten: (() => void) | undefined;
     let failedUnlisten: (() => void) | undefined;
+    let aggregatedUnlisten: (() => void) | undefined;
     let windowUnlisten: (() => void) | undefined;
+    let profileUnlisten: (() => void) | undefined;
 
     const setup = async () => {
       const { listen } = await import('@tauri-apps/api/event');
@@ -293,8 +361,66 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         return;
       }
 
+      const handleActionEvent = (payload: ActionEventPayload) => {
+        recordActionOutcome({
+          id: payload.id,
+          name: payload.name,
+          status: payload.status,
+          message: payload.message ?? null,
+          timestamp: payload.timestamp,
+          durationMs: payload.durationMs,
+          invocationId: payload.invocationId ?? null,
+        });
+      };
+
+      let aggregatorReady = false;
+      const invokeFn = getTauriInvoke();
+      if (invokeFn) {
+        try {
+          await invokeFn('subscribe_action_events');
+          const result = (await invokeFn('recent_action_events')) as ActionEventPayload[] | undefined;
+          const history = result ?? [];
+          const last = history.at(-1);
+          if (last) {
+            recordActionOutcome({
+              id: last.id,
+              name: last.name,
+              status: last.status,
+              message: last.message ?? null,
+              timestamp: last.timestamp,
+              durationMs: last.durationMs,
+              invocationId: last.invocationId ?? null,
+            });
+          }
+          aggregatedUnlisten = await listen<ActionEventPayload>('actions://event', (event) => {
+            handleActionEvent(event.payload);
+          });
+          aggregatorReady = true;
+        } catch (error) {
+          console.error('Failed to initialize action events channel', error);
+        }
+      }
+
+      try {
+        const initialProfile = (await invoke('resolve_active_profile')) as ActiveProfileSnapshot | null;
+        if (isMounted) {
+          setActiveProfile(initialProfile ?? null);
+        }
+      } catch (error) {
+        console.error('Failed to resolve active profile', error);
+      }
+
+      profileUnlisten = await listen<{ profile: ActiveProfileSnapshot | null }>('profiles://active-changed', (event) => {
+        setActiveProfile(event.payload.profile ?? null);
+      });
+
       hotkeyUnlisten = await listen(hotkeyEvent, () => {
         setIsOpen((prev) => {
+          if (hasConflictDialogOpen) {
+            clearTimer();
+            return false;
+          }
+
           const next = !prev;
           if (next) {
             scheduleAutoClose();
@@ -305,25 +431,15 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         });
       });
 
-      executedUnlisten = await listen<ActionEventPayload>('actions://executed', (event) => {
-        const payload = event.payload;
-        recordActionOutcome({
-          id: payload.id,
-          name: payload.name,
-          status: payload.status,
-          message: payload.message ?? null,
+      if (!aggregatorReady) {
+        executedUnlisten = await listen<ActionEventPayload>('actions://executed', (event) => {
+          handleActionEvent(event.payload);
         });
-      });
 
-      failedUnlisten = await listen<ActionEventPayload>('actions://failed', (event) => {
-        const payload = event.payload;
-        recordActionOutcome({
-          id: payload.id,
-          name: payload.name,
-          status: 'failure',
-          message: payload.message ?? null,
+        failedUnlisten = await listen<ActionEventPayload>('actions://failed', (event) => {
+          handleActionEvent(event.payload);
         });
-      });
+      }
 
       windowUnlisten = await listen<WindowEventPayload>('system://window-info', (event) => {
         const { isFullscreen, storageMode } = event.payload;
@@ -346,13 +462,36 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       clearTimer();
       hotkeyUnlisten?.();
       executedUnlisten?.();
-      failedUnlisten?.();
+      aggregatedUnlisten?.();
       windowUnlisten?.();
+      profileUnlisten?.();
     };
-  }, [clearTimer, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
+  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment() || !isOpen) {
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const snapshot = (await invoke('resolve_active_profile')) as ActiveProfileSnapshot | null;
+        setActiveProfile(snapshot ?? null);
+      } catch (error) {
+        console.error('Failed to resolve active profile on open', error);
+      }
+    };
+
+    void fetchProfile();
+  }, [isOpen]);
 
   const toggle = useCallback(() => {
     setIsOpen((prev) => {
+      if (hasConflictDialogOpen || hasHotkeyConflicts) {
+        clearTimer();
+        return false;
+      }
+
       const next = !prev;
       if (next) {
         scheduleAutoClose();
@@ -361,12 +500,17 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       }
       return next;
     });
-  }, [clearTimer, scheduleAutoClose]);
+  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, scheduleAutoClose]);
 
   const open = useCallback(() => {
+    if (hasConflictDialogOpen || hasHotkeyConflicts) {
+      clearTimer();
+      setIsOpen(false);
+      return;
+    }
     setIsOpen(true);
     scheduleAutoClose();
-  }, [scheduleAutoClose]);
+  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, scheduleAutoClose]);
 
   const close = useCallback(() => {
     setIsOpen(false);
@@ -406,10 +550,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       activeSliceId,
       lastAction,
       lastSafeModeReason,
+      activeProfile,
       toggle,
       open,
       close,
-      setActiveSlice,
+      setActiveSlice: setActiveSliceId,
       handleSelect,
       clearLastAction,
       recordActionOutcome,

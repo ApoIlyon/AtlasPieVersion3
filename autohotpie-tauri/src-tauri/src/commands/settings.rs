@@ -2,11 +2,10 @@ use super::{current_version, AppError, AppState, Result};
 use crate::models::{AppProfile, Settings};
 use tauri::{AppHandle, State};
 
-fn lock_settings<'a>(state: &'a State<'_, AppState>) -> Result<std::sync::MutexGuard<'a, Settings>> {
-    state
-        .settings
-        .lock()
-        .map_err(|_| AppError::StatePoisoned)
+fn lock_settings<'a>(
+    state: &'a State<'_, AppState>,
+) -> Result<std::sync::MutexGuard<'a, Settings>> {
+    state.settings.lock().map_err(|_| AppError::StatePoisoned)
 }
 
 #[tauri::command]
@@ -16,7 +15,11 @@ pub fn load_settings(state: State<'_, AppState>) -> Result<Settings> {
 }
 
 #[tauri::command]
-pub fn save_settings(app: AppHandle, state: State<'_, AppState>, mut settings: Settings) -> Result<Settings> {
+pub fn save_settings(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    mut settings: Settings,
+) -> Result<Settings> {
     let version = current_version(&app);
     settings.set_app_version(&version);
     state.storage.save_with_backup(&settings)?;

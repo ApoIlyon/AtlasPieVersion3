@@ -1,3 +1,5 @@
+import type { ActionEventStatus } from '@/types/actionEvents';
+
 export interface Settings {
   global: Record<string, unknown>;
   app_profiles: AppProfile[];
@@ -96,4 +98,31 @@ export interface SystemStatus {
   window: WindowSnapshot;
   safeMode: boolean;
   storageMode: StorageMode;
+}
+
+export interface ActionOutcomeSummary {
+  actionId: string;
+  actionName: string;
+  status: ActionEventStatus;
+  message: string | null;
+  timestamp: string;
+  durationMs: number | null;
+  invocationId: string | null;
+}
+
+export interface ActionOutcomeCounts {
+  total: number;
+  success: number;
+  failure: number;
+  skipped: number;
+}
+
+export interface ActionOutcomeMetricInput {
+  actionId: string;
+  actionName: string;
+  status: ActionEventStatus;
+  message?: string | null;
+  timestamp?: string;
+  durationMs?: number | null;
+  invocationId?: string | null;
 }

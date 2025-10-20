@@ -18,9 +18,7 @@ impl ConnectivitySnapshot {
 
     pub fn update(&mut self, is_offline: bool) {
         self.is_offline = is_offline;
-        self.last_checked = OffsetDateTime::now_utc()
-            .format(&Rfc3339)
-            .ok();
+        self.last_checked = OffsetDateTime::now_utc().format(&Rfc3339).ok();
     }
 }
 

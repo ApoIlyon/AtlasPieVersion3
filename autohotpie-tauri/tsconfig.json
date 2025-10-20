@@ -21,7 +21,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vitest", "node"]
+    "types": ["vitest", "node", "@tauri-apps/api"]
   },
   "include": ["src", "setupTests.ts", "vitest.config.ts", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]

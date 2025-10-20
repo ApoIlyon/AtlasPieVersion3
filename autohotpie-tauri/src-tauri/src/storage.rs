@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Runtime};
 use time::{macros::format_description, OffsetDateTime};
 
 pub const SETTINGS_FILE_NAME: &str = "AHPSettings.json";
@@ -17,7 +17,7 @@ fn other_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, message.into())
 }
 
-pub fn settings_dir(app: &AppHandle) -> io::Result<PathBuf> {
+pub fn settings_dir<R: Runtime>(app: &AppHandle<R>) -> io::Result<PathBuf> {
     let mut dir = app
         .path()
         .app_config_dir()
@@ -26,7 +26,7 @@ pub fn settings_dir(app: &AppHandle) -> io::Result<PathBuf> {
     Ok(dir)
 }
 
-pub fn ensure_settings_dir(app: &AppHandle) -> io::Result<PathBuf> {
+pub fn ensure_settings_dir<R: Runtime>(app: &AppHandle<R>) -> io::Result<PathBuf> {
     let dir = settings_dir(app)?;
     if !dir.exists() {
         fs::create_dir_all(&dir)?;
@@ -59,7 +59,7 @@ struct StoredSettings {
 }
 
 impl StorageManager {
-    pub fn new(app: AppHandle) -> io::Result<Self> {
+    pub fn new<R: Runtime>(app: AppHandle<R>) -> io::Result<Self> {
         let base_dir = ensure_settings_dir(&app)?;
         let settings_path = base_dir.join(SETTINGS_FILE_NAME);
         let backups_path = base_dir.join(BACKUP_DIR_NAME);
@@ -158,7 +158,9 @@ impl StorageManager {
             return Ok(());
         }
         let timestamp = OffsetDateTime::now_utc()
-            .format(&format_description!("[year][month][day]-[hour][minute][second]"))
+            .format(&format_description!(
+                "[year][month][day]-[hour][minute][second]"
+            ))
             .map_err(|err| other_error(format!("failed to format backup timestamp: {err}")))?;
         let backup_name = format!("AHPSettings-{timestamp}.json");
         let backup_path = self.backups_path.join(backup_name);

@@ -13,6 +13,13 @@ export interface HotkeyRegistrationStatus {
   conflicts: HotkeyConflict[];
 }
 
+export interface HotkeyConflictSnapshot {
+  id: string;
+  accelerator: string;
+  registered: boolean;
+  conflicts: HotkeyConflict[];
+}
+
 export type MatchKind = 'processName' | 'windowTitle' | 'fallback';
 
 export interface ActiveProfileSnapshot {

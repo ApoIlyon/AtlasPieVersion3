@@ -71,7 +71,8 @@ fn current_process_name(app: &AppHandle) -> Option<String> {
         }
     }
 
-    std::env::current_exe()
-        .ok()
-        .and_then(|path| path.file_name().map(|name| name.to_string_lossy().into_owned()))
+    std::env::current_exe().ok().and_then(|path| {
+        path.file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+    })
 }

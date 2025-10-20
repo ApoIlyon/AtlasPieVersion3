@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::action::ActionId;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

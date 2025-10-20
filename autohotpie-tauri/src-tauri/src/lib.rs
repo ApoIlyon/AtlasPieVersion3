@@ -12,6 +12,7 @@ pub fn run() {
         .setup(|app| commands::init(app).map_err(|err| err.into()))
         .invoke_handler(tauri::generate_handler![
             commands::actions::list_actions,
+            commands::actions::recent_action_events,
             commands::actions::save_actions,
             commands::actions::run_action,
             commands::actions::test_action,
@@ -26,6 +27,8 @@ pub fn run() {
             commands::system::run_pie_menu,
             commands::system::system_get_status,
             commands::system::get_active_profile,
+            commands::resolve_active_profile,
+            commands::system::subscribe_action_events,
             commands::system::get_version,
             commands::system::open_logs
         ])

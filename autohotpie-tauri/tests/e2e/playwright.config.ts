@@ -1,7 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const contextProfiles = JSON.parse(
+  readFileSync(new URL('./fixtures/context-profiles.json', import.meta.url), 'utf-8')
+);
 
 export default defineConfig({
-  testDir: './',
+  testDir: '../',
   timeout: 30_000,
   expect: {
     timeout: 5_000,
@@ -17,14 +22,23 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      metadata: {
+        contextProfiles,
+      },
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      metadata: {
+        contextProfiles,
+      },
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      metadata: {
+        contextProfiles,
+      },
     },
   ],
   webServer: {
