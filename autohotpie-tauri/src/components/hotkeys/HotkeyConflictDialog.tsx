@@ -96,6 +96,10 @@ export function HotkeyConflictDialog({
   const canDisableExisting = Boolean(onDisable && conflictingInternalId);
   const disableButtonLabel = conflictingInternalId ? 'Disable conflicting binding' : 'Disable current binding';
   const primaryActionLabel = hasBlockingConflicts ? 'Fix issues to continue' : 'Apply override & register';
+  const hasRetryAction = typeof onRetry === 'function';
+  const profileResolutionHint = hasRetryAction
+    ? null
+    : 'Adjust the profile hotkey in the Profiles dashboard to resolve this conflict.';
   const disableHint = hasBlockingConflicts
     ? 'Resolve non-removable conflicts before disabling AutoHotPie bindings.'
     : 'Disable the existing AutoHotPie shortcut to free this accelerator.';
@@ -152,18 +156,26 @@ export function HotkeyConflictDialog({
           >
             Cancel
           </button>
-          <button
-            type="button"
-            className="flex-1 rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-            onClick={() => {
-              if (onRetry) {
-                void onRetry();
-              }
-            }}
-            disabled={!onRetry || hasBlockingConflicts || isSubmitting}
-          >
-            {primaryActionLabel}
-          </button>
+          {hasRetryAction ? (
+            <button
+              type="button"
+              className="flex-1 rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+              onClick={() => {
+                if (onRetry) {
+                  void onRetry();
+                }
+              }}
+              disabled={!onRetry || hasBlockingConflicts || isSubmitting}
+            >
+              {primaryActionLabel}
+            </button>
+          ) : (
+            profileResolutionHint && (
+              <p className="text-[11px] uppercase tracking-[0.25em] text-text-tertiary sm:flex-1 sm:self-center">
+                {profileResolutionHint}
+              </p>
+            )
+          )}
         </div>
       </div>
     </div>

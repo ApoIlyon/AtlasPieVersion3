@@ -5,6 +5,7 @@ import { selectMockActiveProfile } from '../mocks/contextProfiles';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import type { ActiveProfileSnapshot, HotkeyConflictSnapshot } from '../types/hotkeys';
 import type { ConnectivitySnapshot, StorageMode, SystemStatus, WindowSnapshot } from './types';
+import { useProfileStore, type ProfileRecord } from './profileStore';
 
 type SystemStore = {
   status: SystemStatus;
@@ -86,18 +87,29 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
       return;
     }
     try {
-      const [status, profile] = await Promise.all([
-        invoke<SystemStatus>('system_get_status'),
-        invoke<ActiveProfileSnapshot | null>('get_active_profile')
-          .catch(() => null),
-      ]);
+      const status = await invoke<SystemStatus>('system_get_status');
       set({
         status,
-        activeProfile: profile,
         initialized: true,
         error: null,
         lastEventAt: new Date().toISOString(),
       });
+      const profileStore = useProfileStore.getState();
+      if (!profileStore.initialized) {
+        await profileStore.loadProfiles();
+      }
+      const activeProfileId = profileStore.activeProfileId;
+      const activeRecord =
+        (activeProfileId && profileStore.getProfileById(activeProfileId)) ?? profileStore.profiles[0];
+      if (activeRecord) {
+        set({
+          activeProfile: {
+            index: profileStore.profiles.findIndex((entry: ProfileRecord) => entry.profile.id === activeRecord.profile.id),
+            name: activeRecord.profile.name,
+            matchKind: 'fallback',
+          },
+        });
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : String(error),

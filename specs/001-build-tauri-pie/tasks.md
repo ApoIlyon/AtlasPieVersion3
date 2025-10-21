@@ -77,13 +77,13 @@
 - [x] T013 [P] [US1] Build action runner service for launches/macros in `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
 - [x] T013a [US1] Publish `actions://executed`/`actions://failed` events and wire frontend invoke path in `autohotpie-tauri/src-tauri/src/services/action_runner.rs` and `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
 - [x] T014 [US1] Register hotkey and action commands within `autohotpie-tauri/src-tauri/src/main.rs`
-- [ ] T015 [P] [US1] Create animated pie menu renderer in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
-- [ ] T016 [P] [US1] Implement pie menu interaction hook reacting to hotkeys in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
-- [ ] T017 [US1] Compose overlay presentation and dark theme visuals in `autohotpie-tauri/src/App.tsx`
-- [ ] T018 [US1] Log action outcomes and surface toasts in `autohotpie-tauri/src/components/feedback/ActionToast.tsx` and `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
-- [ ] T018a [US1] Show fullscreen safe-mode notification and prevent overlay when flag set in `autohotpie-tauri/src/components/pie/FullscreenNotice.tsx`
-- [ ] T018b [P] [US1] Implement macOS menu bar integration with pie toggle in `autohotpie-tauri/src-tauri/src/services/tray.rs` and `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
-- [ ] T018c [US1] Provide Linux tray-less fallback overlay in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx`
+- [x] T015 [P] [US1] Create animated pie menu renderer in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
+- [x] T016 [P] [US1] Implement pie menu interaction hook reacting to hotkeys in `autohotpie-tauri/src/hooks/usePieMenuHotkey.ts`
+- [x] T017 [US1] Compose overlay presentation and dark theme visuals in `autohotpie-tauri/src/App.tsx`
+- [x] T018 [US1] Log action outcomes and surface toasts in `autohotpie-tauri/src/components/feedback/ActionToast.tsx` and `autohotpie-tauri/src-tauri/src/services/audit_log.rs`
+- [x] T018a [US1] Show fullscreen safe-mode notification and prevent overlay when flag set in `autohotpie-tauri/src/components/pie/FullscreenNotice.tsx`
+- [x] T018b [P] [US1] Implement macOS menu bar integration with pie toggle in `autohotpie-tauri/src-tauri/src/services/tray.rs` and `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+- [x] T018c [US1] Provide Linux tray-less fallback overlay in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx`
 
 **Checkpoint**: Pie menu can be invoked and actions execute with visual confirmation.
 
@@ -100,8 +100,10 @@
 - [ ] T019 [P] [US2] Implement profile repository with migrations in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 - [ ] T019a [US2] Validate profile JSON parse errors and show recovery prompt in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 - [ ] T020 [P] [US2] Expose profile CRUD and activation commands in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
-- [ ] T021 [US2] Manage active profile state and selectors in `autohotpie-tauri/src/state/profileStore.ts`
-- [ ] T021a [P] [US2] Persist per-profile hotkey bindings and conflict flags in `autohotpie-tauri/src/state/profileStore.ts`
+- [x] T021 [US2] Manage active profile state and selectors in `autohotpie-tauri/src/state/profileStore.ts`
+  - Added `selectProfileHotkeyStatus`/`clearHotkeyStatus()` selectors, unified HotkeyConflictDialog + registration panel with new profile store events.
+- [x] T021a [P] [US2] Persist per-profile hotkey bindings and conflict flags in `autohotpie-tauri/src/state/profileStore.ts`
+  - Hotkey registration now updates `profileStore.lastHotkeyStatus`; UI shows profile-only conflicts with guidance.
 - [ ] T022 [P] [US2] Build profiles dashboard grid view in `autohotpie-tauri/src/screens/ProfilesDashboard.tsx`
 - [ ] T023 [P] [US2] Implement nested pie editor UI with breadcrumbs in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T023a [US2] Add profile hotkey editor with validation hints in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`

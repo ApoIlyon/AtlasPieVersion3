@@ -3,7 +3,16 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
+#[cfg(target_os = "macos")]
+use tauri::menu::{MenuBuilder, MenuItemBuilder};
+
+#[cfg(target_os = "macos")]
+const MENU_TOGGLE_ID: &str = "menu.toggle-pie";
+
 pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    #[cfg(target_os = "macos")]
+    setup_menu_bar(app)?;
+
     let mut builder = TrayIconBuilder::with_id("main")
         .tooltip("AutoHotPie Tauri")
         .icon_as_template(true)
@@ -34,4 +43,25 @@ fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
         let _ = window.show();
         let _ = window.set_focus();
     }
+}
+
+#[cfg(target_os = "macos")]
+fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    let toggle_item = MenuItemBuilder::new("Toggle Pie Menu")
+        .id(MENU_TOGGLE_ID)
+        .accelerator("Command+Shift+P")?
+        .build(app)?;
+
+    let menu = MenuBuilder::new(app)
+        .item(&toggle_item)?
+        .build()?;
+
+    app.set_menu(menu)?;
+    app.on_menu_event(|handle, event| {
+        if event.id().as_ref() == MENU_TOGGLE_ID {
+            let _ = handle.emit("hotkeys://trigger", ());
+        }
+    });
+
+    Ok(())
 }

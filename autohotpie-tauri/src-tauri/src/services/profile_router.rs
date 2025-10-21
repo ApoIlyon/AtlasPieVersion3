@@ -1,5 +1,5 @@
 use crate::commands::{AppState, SystemState};
-use crate::models::Settings;
+use crate::storage::profile_repository::ProfileStore;
 use crate::services::{audit_log::AuditLogger, system_status::WindowSnapshot};
 use anyhow::{anyhow, Result};
 use regex::Regex;
@@ -102,12 +102,12 @@ async fn evaluate(
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
     history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
 ) -> Result<()> {
-    let (settings, audit) = {
+    let (store, audit) = {
         let app_state = app.state::<AppState>();
         let guard = app_state
-            .settings
+            .profiles
             .lock()
-            .map_err(|_| anyhow!("settings state poisoned"))?;
+            .map_err(|_| anyhow!("profile store state poisoned"))?;
         let audit = app_state.audit().clone();
         (guard.clone(), audit)
     };
@@ -122,7 +122,7 @@ async fn evaluate(
     };
 
     evaluate_from_state(
-        &settings,
+        &store,
         &status.window,
         shared_state,
         history,
@@ -136,7 +136,7 @@ async fn evaluate(
 }
 
 fn evaluate_from_state<F>(
-    settings: &Settings,
+    store: &ProfileStore,
     window: &WindowSnapshot,
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
     history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
@@ -146,7 +146,7 @@ fn evaluate_from_state<F>(
 where
     F: FnMut(Option<ActiveProfileSnapshot>),
 {
-    let next_profile = select_profile(settings, window, history);
+    let next_profile = select_profile(store, window, history);
     let now = OffsetDateTime::now_utc();
     if let Some(payload) = update_active_profile(shared_state, history, next_profile, now)? {
         if let Some(snapshot) = payload.clone() {
@@ -158,7 +158,7 @@ where
 }
 
 fn select_profile(
-    settings: &Settings,
+    store: &ProfileStore,
     window: &WindowSnapshot,
     history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
 ) -> Option<ActiveProfileSnapshot> {
@@ -181,16 +181,16 @@ fn select_profile(
     let mut best: Option<ProfileCandidate> = None;
     let mut fallback: Option<ProfileCandidate> = None;
 
-    for (index, profile) in settings.app_profiles.iter().enumerate() {
-        if !profile.enable {
+    for (index, record) in store.profiles.iter().enumerate() {
+        if !record.profile.enabled {
             continue;
         }
 
-        let rules = parse_rules(&profile.ahk_handles);
+        let rules = parse_rules(&record.profile.activation_rules);
         if let Some(match_info) = match_rules(&rules, process_name, window_title) {
             let candidate = ProfileCandidate::from_match(
                 index,
-                profile.name.clone(),
+                record.profile.name.clone(),
                 match_info,
                 history_snapshot.get(&index).copied(),
             );
@@ -204,14 +204,37 @@ fn select_profile(
         if rules.is_empty() && fallback.is_none() {
             let candidate = ProfileCandidate::fallback(
                 index,
-                profile.name.clone(),
+                record.profile.name.clone(),
                 history_snapshot.get(&index).copied(),
             );
             fallback = Some(candidate);
         }
     }
 
-    best.or(fallback).map(|candidate| candidate.snapshot)
+    let mut result = best.or(fallback).map(|candidate| candidate.snapshot);
+
+    if result.is_none() {
+        if let Some(active) = store.active_profile_id {
+            if let Some((index, record)) = store
+                .profiles
+                .iter()
+                .enumerate()
+                .find(|(_, entry)| entry.profile.id == active && entry.profile.enabled)
+            {
+                result = Some(ActiveProfileSnapshot {
+                    index,
+                    name: record.profile.name.clone(),
+                    match_kind: MatchKind::Fallback,
+                    selector_score: Some(0),
+                    matched_rule: Some("manual".into()),
+                    selected_at: None,
+                    fallback_applied: true,
+                });
+            }
+        }
+    }
+
+    result
 }
 
 fn update_active_profile(
@@ -322,58 +345,59 @@ impl ProfileCandidate {
     }
 }
 
-fn parse_rules(handles: &[String]) -> Vec<Rule> {
+fn parse_rules(handles: &[crate::domain::profile::ActivationRule]) -> Vec<Rule> {
     handles
         .iter()
-        .enumerate()
-        .filter_map(|(order, raw)| parse_rule(raw, order))
+        .filter_map(parse_rule)
         .collect()
 }
 
-fn parse_rule(raw: &str, _order: usize) -> Option<Rule> {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return None;
-    }
-
-    if trimmed.eq_ignore_ascii_case("fallback") || trimmed == "*" {
-        return Some(Rule {
+fn parse_rule(rule: &crate::domain::profile::ActivationRule) -> Option<Rule> {
+    match rule.mode {
+        crate::domain::profile::ActivationMatchMode::Always => Some(Rule {
             target: Target::Any,
             matcher: Matcher::Fallback,
             raw: "fallback".to_string(),
-        });
-    }
-
-    let (target, body) = if let Some(rest) = trimmed.strip_prefix("process:") {
-        (Target::Process, rest.trim())
-    } else if let Some(rest) = trimmed.strip_prefix("window:") {
-        (Target::Window, rest.trim())
-    } else {
-        (Target::Any, trimmed)
-    };
-
-    if body.is_empty() {
-        return None;
-    }
-
-    if let Some(rest) = body.strip_prefix("regex:") {
-        match Regex::new(rest.trim()) {
-            Ok(regex) => Some(Rule {
-                target,
-                matcher: Matcher::Regex(regex),
-                raw: trimmed.to_string(),
-            }),
-            Err(err) => {
-                eprintln!("invalid regex '{rest}' in profile rule: {err}");
+        }),
+        crate::domain::profile::ActivationMatchMode::ProcessName => rule.value.as_ref().map(|value| Rule {
+            target: Target::Process,
+            matcher: Matcher::Exact(value.to_ascii_lowercase()),
+            raw: value.clone(),
+        }),
+        crate::domain::profile::ActivationMatchMode::WindowTitle => rule.value.as_ref().map(|value| Rule {
+            target: Target::Window,
+            matcher: Matcher::Exact(value.to_ascii_lowercase()),
+            raw: value.clone(),
+        }),
+        crate::domain::profile::ActivationMatchMode::WindowClass => rule.value.as_ref().map(|value| Rule {
+            target: Target::Any,
+            matcher: Matcher::Exact(value.to_ascii_lowercase()),
+            raw: value.clone(),
+        }),
+        crate::domain::profile::ActivationMatchMode::Custom => rule.value.as_ref().and_then(|value| {
+            let trimmed = value.trim();
+            if let Some(rest) = trimmed.strip_prefix("regex:") {
+                match Regex::new(rest.trim()) {
+                    Ok(regex) => Some(Rule {
+                        target: Target::Any,
+                        matcher: Matcher::Regex(regex),
+                        raw: trimmed.to_string(),
+                    }),
+                    Err(err) => {
+                        eprintln!("invalid regex '{rest}' in profile rule: {err}");
+                        None
+                    }
+                }
+            } else if trimmed.is_empty() {
                 None
+            } else {
+                Some(Rule {
+                    target: Target::Any,
+                    matcher: Matcher::Exact(trimmed.to_ascii_lowercase()),
+                    raw: trimmed.to_string(),
+                })
             }
-        }
-    } else {
-        Some(Rule {
-            target,
-            matcher: Matcher::Exact(body.to_ascii_lowercase()),
-            raw: trimmed.to_string(),
-        })
+        }),
     }
 }
 
@@ -512,12 +536,12 @@ pub fn resolve_now(app: &AppHandle) -> Result<Option<ActiveProfileSnapshot>> {
         router_state.history()
     };
 
-    let (settings, audit) = {
+    let (profiles, audit) = {
         let app_state = app.state::<AppState>();
         let guard = app_state
-            .settings
+            .profiles
             .lock()
-            .map_err(|_| anyhow!("settings state poisoned"))?;
+            .map_err(|_| anyhow!("profile store state poisoned"))?;
         let audit = app_state.audit().clone();
         (guard.clone(), audit)
     };
@@ -532,7 +556,7 @@ pub fn resolve_now(app: &AppHandle) -> Result<Option<ActiveProfileSnapshot>> {
     };
 
     evaluate_from_state(
-        &settings,
+        &profiles,
         &status.window,
         &shared_state,
         &history_state,

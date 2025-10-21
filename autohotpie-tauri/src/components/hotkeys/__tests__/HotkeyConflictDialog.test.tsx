@@ -54,8 +54,10 @@ describe('HotkeyConflictDialog', () => {
     expect(screen.getByRole('dialog', { name: /shortcut conflict detected/i })).toBeVisible();
     expect(screen.getByText(/shortcut already registered elsewhere/i)).toBeVisible();
 
-    const retryButton = screen.getByRole('button', { name: /fix issues to continue/i });
-    expect(retryButton).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /fix issues to continue/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Adjust the profile hotkey in the Profiles dashboard to resolve this conflict./i),
+    ).toBeVisible();
 
     const disableButton = screen.getByRole('button', { name: /disable conflicting binding/i });
     expect(disableButton).toBeDisabled();

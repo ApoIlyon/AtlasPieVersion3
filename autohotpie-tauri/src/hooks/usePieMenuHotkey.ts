@@ -7,6 +7,7 @@ import type { ActiveProfileSnapshot } from '../types/hotkeys';
 import { useHotkeyStore } from '../state/hotkeyStore';
 import { useSystemStore } from '../state/systemStore';
 import { useAppStore } from '../state/appStore';
+import { useProfileStore } from '../state/profileStore';
 
 type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<any>;
 
@@ -176,6 +177,10 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const hasConflictDialogOpen = useHotkeyStore((state) => state.dialogOpen);
   const hotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
   const hasHotkeyConflicts = Boolean(hotkeyStatus && !hotkeyStatus.registered);
+  const profileStoreState = useProfileStore((state) => ({
+    profiles: state.profiles,
+    activeProfileId: state.activeProfileId,
+  }));
 
   const clearTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -484,21 +489,21 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
 
   useEffect(() => {
-    if (!isTauriEnvironment() || !isOpen) {
+    if (!isTauriEnvironment()) {
       return;
     }
-
-    const fetchProfile = async () => {
-      try {
-        const snapshot = (await invoke('resolve_active_profile')) as ActiveProfileSnapshot | null;
-        setActiveProfile(snapshot ?? null);
-      } catch (error) {
-        console.error('Failed to resolve active profile on open', error);
-      }
-    };
-
-    void fetchProfile();
-  }, [isOpen]);
+    const index = profileStoreState.activeProfileId
+      ? profileStoreState.profiles.findIndex((entry) => entry.profile.id === profileStoreState.activeProfileId)
+      : profileStoreState.profiles.length ? 0 : -1;
+    if (index >= 0) {
+      const record = profileStoreState.profiles[index];
+      setActiveProfile({
+        index,
+        name: record.profile.name,
+        matchKind: 'fallback',
+      });
+    }
+  }, [profileStoreState.activeProfileId, profileStoreState.profiles]);
 
   const toggle = useCallback(() => {
     setIsOpen((prev) => {

@@ -1,6 +1,17 @@
+pub mod profile_repository;
+
+use crate::domain::profile::ProfileId;
 use crate::domain::Action;
 use crate::models::{AppProfile, Settings};
+use crate::storage::profile_repository::{
+    legacy_settings_file,
+    read_legacy_settings,
+    ProfileRepository,
+    ProfileStore,
+    PROFILES_SCHEMA_VERSION,
+};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -49,6 +60,7 @@ pub struct StorageManager {
     backups_path: PathBuf,
     cache_path: PathBuf,
     actions_path: PathBuf,
+    profiles_repo: ProfileRepository,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -68,12 +80,14 @@ impl StorageManager {
         }
         let cache_path = base_dir.join("settings.cache.json");
         let actions_path = base_dir.join(ACTIONS_FILE_NAME);
+        let profiles_repo = ProfileRepository::new(&base_dir, &backups_path);
         Ok(Self {
             base_dir,
             settings_path,
             backups_path,
             cache_path,
             actions_path,
+            profiles_repo,
         })
     }
 
@@ -122,6 +136,10 @@ impl StorageManager {
 
     pub fn base_dir(&self) -> &Path {
         &self.base_dir
+    }
+
+    pub fn profiles_repo(&self) -> &ProfileRepository {
+        &self.profiles_repo
     }
 
     pub fn load_actions(&self) -> io::Result<Vec<Action>> {
@@ -214,5 +232,91 @@ impl StorageManager {
             .map_err(|err| other_error(format!("failed to serialize cache: {err}")))?;
         fs::write(&self.cache_path, serialized)?;
         Ok(())
+    }
+
+    pub fn load_profiles_or_migrate(&self, settings: &Settings) -> io::Result<ProfileStore> {
+        let mut store = match self.profiles_repo.load() {
+            Ok(store) if !store.profiles.is_empty() => store,
+            Ok(_) => {
+                let legacy_file = legacy_settings_file(&self.base_dir);
+                let legacy_profiles = read_legacy_settings(&legacy_file)?
+                    .unwrap_or_else(|| settings.app_profiles.clone());
+                if legacy_profiles.is_empty() {
+                    ProfileStore::default()
+                } else if let Some(store) = self.profiles_repo.migrate_from_legacy(&legacy_profiles)? {
+                    store
+                } else {
+                    ProfileStore::default()
+                }
+            }
+            Err(err) => return Err(err),
+        };
+
+        self.normalize_profile_store(store)
+    }
+
+    pub fn save_profiles(&self, store: &ProfileStore) -> io::Result<()> {
+        self.profiles_repo.save(store)
+    }
+
+    fn normalize_profile_store(&self, mut store: ProfileStore) -> io::Result<ProfileStore> {
+        let mut changed = false;
+
+        if store.schema_version != PROFILES_SCHEMA_VERSION {
+            store.schema_version = PROFILES_SCHEMA_VERSION;
+            changed = true;
+        }
+
+        store.profiles.retain(|record| {
+            let has_root = record
+                .menus
+                .iter()
+                .any(|menu| menu.id == record.profile.root_menu);
+            if !has_root {
+                changed = true;
+            }
+            has_root
+        });
+
+        for record in &mut store.profiles {
+            if let Some(pos) = record
+                .menus
+                .iter()
+                .position(|menu| menu.id == record.profile.root_menu)
+            {
+                if pos != 0 {
+                    let root_menu = record.menus.remove(pos);
+                    record.menus.insert(0, root_menu);
+                    changed = true;
+                }
+            }
+        }
+
+        let valid_ids: HashSet<ProfileId> = store
+            .profiles
+            .iter()
+            .map(|record| record.profile.id)
+            .collect();
+
+        if let Some(active) = store.active_profile_id {
+            if !valid_ids.contains(&active) {
+                store.active_profile_id = store.profiles.first().map(|record| record.profile.id);
+                changed = true;
+            }
+        } else if let Some(first) = store.profiles.first() {
+            store.active_profile_id = Some(first.profile.id);
+            changed = true;
+        }
+
+        if store.profiles.is_empty() && store.active_profile_id.is_some() {
+            store.active_profile_id = None;
+            changed = true;
+        }
+
+        if changed {
+            self.save_profiles(&store)?;
+        }
+
+        Ok(store)
     }
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import type { HotkeyRegistrationStatus } from '../types/hotkeys';
+import { useProfileStore } from './profileStore';
 
 interface RegisterHotkeyInput {
   id: string;
@@ -51,6 +52,10 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
         request: { ...input, allowConflicts: false },
       });
 
+      if (input.id.startsWith('profile:')) {
+        useProfileStore.setState({ lastHotkeyStatus: status });
+      }
+
       if (!status.registered) {
         set({
           dialogOpen: true,
@@ -81,6 +86,10 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
         request: { ...pending, allowConflicts: true },
       });
 
+      if (pending.id.startsWith('profile:')) {
+        useProfileStore.setState({ lastHotkeyStatus: status });
+      }
+
       if (!status.registered) {
         set({ dialogOpen: true, dialogStatus: status, pendingRequest: pending });
         return false;
@@ -110,6 +119,10 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
       const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
         request: { ...pending, allowConflicts: false },
       });
+
+      if (pending.id.startsWith('profile:')) {
+        useProfileStore.setState({ lastHotkeyStatus: status });
+      }
 
       if (!status.registered) {
         set({ dialogOpen: true, dialogStatus: status, pendingRequest: pending });

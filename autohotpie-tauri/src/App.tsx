@@ -7,12 +7,14 @@ import { OfflineNotice } from './components/feedback/OfflineNotice';
 import { HotkeyConflictDialog } from './components/hotkeys/HotkeyConflictDialog';
 import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistrationPanel';
 import { useHotkeyStore } from './state/hotkeyStore';
+import { useProfileStore, selectProfileHotkeyStatus } from './state/profileStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
 import { PieMenu, type PieSliceDefinition } from './components/pie/PieMenu';
 import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
+import { MenuBarToggle } from './components/tray/MenuBarToggle';
 import type { HotkeyRegistrationStatus } from './types/hotkeys';
 import { slicesForProfile } from './mocks/contextProfiles';
 
@@ -44,27 +46,33 @@ function useVersion() {
 
 function usePlatform() {
   const [isLinux, setIsLinux] = useState(false);
+  const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
     const detect = () => {
+      let linux = false;
+      let mac = false;
       if (typeof navigator !== 'undefined' && navigator.userAgent) {
-        if (/linux/i.test(navigator.userAgent)) {
-          return true;
-        }
+        linux = /linux/i.test(navigator.userAgent);
+        mac = /macintosh|mac os x/i.test(navigator.userAgent);
       }
       if (typeof window !== 'undefined') {
         const platformHint = (window as unknown as { process?: { platform?: string } }).process?.platform;
         if (platformHint) {
-          return platformHint.toLowerCase() === 'linux';
+          const normalized = platformHint.toLowerCase();
+          linux = linux || normalized === 'linux';
+          mac = mac || normalized === 'darwin';
         }
       }
-      return false;
+      return { linux, mac };
     };
 
-    setIsLinux(detect());
+    const result = detect();
+    setIsLinux(result.linux);
+    setIsMac(result.mac);
   }, []);
 
-  return isLinux;
+  return { isLinux, isMac };
 }
 
 export function App() {
@@ -85,9 +93,24 @@ export function App() {
   }, []);
 
   const version = useVersion();
-  const isLinux = usePlatform();
+  const { isLinux, isMac } = usePlatform();
   const { settings, isLoading, error } = useAppStore((state) => ({
     settings: state.settings,
+    isLoading: state.isLoading,
+    error: state.error,
+  }));
+  const {
+    profiles,
+    activeProfileId,
+    loadProfiles,
+    initialized: profilesInitialized,
+    isLoading: profilesLoading,
+    error: profilesError,
+  } = useProfileStore((state) => ({
+    profiles: state.profiles,
+    activeProfileId: state.activeProfileId,
+    loadProfiles: state.loadProfiles,
+    initialized: state.initialized,
     isLoading: state.isLoading,
     error: state.error,
   }));
@@ -110,8 +133,15 @@ export function App() {
     disableConflictingHotkey: state.disableConflictingHotkey,
     isSubmitting: state.isSubmitting,
   }));
+  const profileHotkeyStatus = useProfileStore(selectProfileHotkeyStatus);
+  const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const systemActiveProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
+  useEffect(() => {
+    if (!profilesInitialized) {
+      void loadProfiles();
+    }
+  }, [loadProfiles, profilesInitialized]);
 
   const pieMenuState = usePieMenuHotkey({
     hotkeyEvent: 'hotkeys://trigger',
@@ -146,45 +176,61 @@ export function App() {
       return fallbackMock.length ? fallbackMock : fallbackSlices;
     }
 
-    if (!settings || !settings.app_profiles || !settings.app_profiles.length) {
+    if (!profiles.length) {
       return fallbackSlices;
     }
 
-    const targetIndex = Math.min(
-      Math.max(activeSnapshot?.index ?? 0, 0),
-      settings.app_profiles.length - 1,
-    );
-    const profile = settings.app_profiles[targetIndex];
-    if (!profile) {
+    let activeRecord =
+      (activeSnapshot?.index != null ? profiles[activeSnapshot.index] : undefined) ??
+      (activeProfileId ? profiles.find((record) => record.profile.id === activeProfileId) : undefined) ??
+      profiles[0];
+
+    if (!activeRecord) {
       return fallbackSlices;
     }
 
-    const pieKey = profile.pie_keys?.find((key) => key.enable && key.pie_menus?.length);
-    const pieMenu = pieKey?.pie_menus?.find((menu) => menu.functions?.length);
-    if (!pieMenu) {
+    const rootMenu =
+      activeRecord.menus.find((menu) => menu.id === activeRecord.profile.rootMenu) ??
+      activeRecord.menus[0];
+
+    if (!rootMenu) {
       return fallbackSlices;
     }
 
-    const derivedSlices = (pieMenu.functions ?? [])
-      .map<PieSliceDefinition | null>((fn, order) => {
-        if (!fn) {
-          return null;
-        }
-        const label = fn.label?.toString() || fn.function?.toString() || `Slice ${order + 1}`;
-        const idBase = fn.hotkey?.toString()?.trim() || fn.function?.toString()?.trim() || label;
-        return {
-          id: `${profile.name}-${idBase}-${order}`,
-          label,
-          order,
-          disabled: fn.clickable === false,
-        };
-      })
-      .filter((slice): slice is PieSliceDefinition => slice !== null);
+    const derivedSlices = [...rootMenu.slices]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map<PieSliceDefinition>((slice, order) => ({
+        id: slice.id,
+        label: slice.label || `Slice ${order + 1}`,
+        order: slice.order ?? order,
+      }));
 
     return derivedSlices.length ? derivedSlices : fallbackSlices;
-  }, [pieMenuActiveProfile, systemActiveProfile, settings]);
+  }, [activeProfileId, pieMenuActiveProfile, profiles, systemActiveProfile]);
 
   const previousMatchKindRef = useRef<string | null>(null);
+
+  const isProfileConflictOnly = useMemo(
+    () => Boolean(!dialogStatus && profileHotkeyStatus && !profileHotkeyStatus.registered),
+    [dialogStatus, profileHotkeyStatus],
+  );
+
+  const combinedHotkeyStatus = useMemo(
+    () =>
+      dialogStatus ??
+      (profileHotkeyStatus && !profileHotkeyStatus.registered ? profileHotkeyStatus : null),
+    [dialogStatus, profileHotkeyStatus],
+  );
+
+  const isConflictDialogOpen = useMemo(
+    () => dialogOpen || (!!profileHotkeyStatus && !profileHotkeyStatus.registered),
+    [dialogOpen, profileHotkeyStatus],
+  );
+
+  const handleHotkeyDialogClose = useCallback(() => {
+    closeDialog();
+    clearProfileHotkeyStatus();
+  }, [clearProfileHotkeyStatus, closeDialog]);
 
   useEffect(() => {
     const currentKind = pieMenuActiveProfile?.matchKind ?? null;
@@ -243,18 +289,28 @@ export function App() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090a13] text-text-primary">
+      {isMac && (
+        <MenuBarToggle
+          isPieMenuOpen={isPieMenuVisible}
+          onTogglePieMenu={togglePieMenu}
+          onOpenPieMenu={openPieMenu}
+          onClosePieMenu={closePieMenu}
+          lastAction={lastAction}
+          lastSafeModeReason={lastSafeModeReason}
+        />
+      )}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),transparent_65%)]" />
         <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
         <div className="absolute bottom-[-30%] left-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(16,185,129,0.16),transparent_70%)] blur-3xl" />
       </div>
       <HotkeyConflictDialog
-        isOpen={dialogOpen}
-        status={dialogStatus}
+        isOpen={isConflictDialogOpen}
+        status={combinedHotkeyStatus}
         isSubmitting={isHotkeySubmitting}
-        onClose={closeDialog}
-        onRetry={retryWithOverride}
-        onDisable={disableConflictingHotkey}
+        onClose={handleHotkeyDialogClose}
+        onRetry={isProfileConflictOnly ? undefined : retryWithOverride}
+        onDisable={isProfileConflictOnly ? undefined : disableConflictingHotkey}
       />
       <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
         <div>
@@ -329,14 +385,18 @@ export function App() {
               <>
                 <p className="text-sm text-white/70">
                   {isLoading && 'Loading settings…'}
-                  {!isLoading && settings && settings.app_profiles &&
-                    `Loaded ${settings.app_profiles.length} profile${settings.app_profiles.length === 1 ? '' : 's'}.`}
                   {!isLoading && !settings && 'Settings not loaded yet.'}
+                  {profilesLoading && ' Loading profiles…'}
+                  {!profilesLoading && profilesInitialized &&
+                    ` Loaded ${profiles.length} profile${profiles.length === 1 ? '' : 's'}.`}
                 </p>
-                {!isLoading && settings && (
+                {settings && (
                   <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
                     Global source: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
                   </p>
+                )}
+                {profilesError && (
+                  <p className="mt-2 text-sm text-red-400">{profilesError}</p>
                 )}
               </>
             )}

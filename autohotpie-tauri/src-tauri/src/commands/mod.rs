@@ -2,6 +2,7 @@
 
 pub mod actions;
 pub mod hotkeys;
+pub mod profiles;
 pub mod settings;
 pub mod system;
 
@@ -20,6 +21,7 @@ use crate::services::{
     system_status::SystemStatus,
     window_info,
 };
+use crate::storage::profile_repository::ProfileStore;
 use crate::storage::StorageManager;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -54,6 +56,7 @@ pub struct AppState {
     pub settings: Mutex<Settings>,
     pub action_runner: ActionRunner,
     pub action_events: ActionEventsChannel,
+    pub profiles: Mutex<ProfileStore>,
     actions: Mutex<HashMap<ActionId, Action>>,
 }
 
@@ -90,6 +93,26 @@ impl AppState {
         self.action_events.clone()
     }
 
+    pub fn with_profiles_mut<R>(
+        &self,
+        f: impl FnOnce(&mut ProfileStore) -> Result<R>,
+    ) -> Result<R> {
+        let mut guard = self
+            .profiles
+            .lock()
+            .map_err(|_| AppError::StatePoisoned)?;
+        let output = f(&mut guard)?;
+        self.storage.save_profiles(&guard).map_err(AppError::from)?;
+        Ok(output)
+    }
+
+    pub fn profiles_snapshot(&self) -> Result<ProfileStore> {
+        self.profiles
+            .lock()
+            .map_err(|_| AppError::StatePoisoned)
+            .map(|guard| guard.clone())
+    }
+
     pub fn request_action<R>(
         &self,
         f: impl FnOnce(&mut HashMap<ActionId, Action>) -> R,
@@ -117,6 +140,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
     if settings.set_app_version(&version) {
         storage.save_with_backup(&settings)?;
     }
+    let profiles = storage.load_profiles_or_migrate(&settings)?;
     let audit = AuditLogger::from_storage(&storage)?;
     let action_events = ActionEventsChannel::default();
 
@@ -138,6 +162,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
         settings: Mutex::new(settings),
         action_runner,
         action_events,
+        profiles: Mutex::new(profiles),
         actions: Mutex::new(actions_map),
     });
 

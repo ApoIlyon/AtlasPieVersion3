@@ -1,13 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { create } from 'zustand';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
-import type {
-  ActionOutcomeCounts,
-  ActionOutcomeMetricInput,
-  ActionOutcomeSummary,
-  AppProfile,
-  Settings,
-} from './types';
+import type { ActionOutcomeCounts, ActionOutcomeMetricInput, ActionOutcomeSummary, Settings } from './types';
 
 const defaultActionOutcomeCounts = (): ActionOutcomeCounts => ({
   total: 0,
@@ -26,7 +20,6 @@ type AppStore = {
   loadSettings: () => Promise<void>;
   initialize: () => Promise<void>;
   saveSettings: (settings: Settings) => Promise<void>;
-  addProfile: (profile: AppProfile) => Promise<void>;
   resetSettings: () => Promise<void>;
   recordActionMetric: (input: ActionOutcomeMetricInput) => void;
   resetActionMetrics: () => void;
@@ -80,22 +73,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ error: null });
     try {
       const updated = await invoke<Settings>('save_settings', { settings });
-      set({ settings: updated, initialized: true });
-    } catch (error) {
-      const message = toErrorMessage(error);
-      set({ error: message });
-      throw new Error(message);
-    }
-  },
-  addProfile: async (profile) => {
-    if (!isTauriEnvironment()) {
-      const message = 'Profiles cannot be modified in browser preview mode.';
-      set({ error: message });
-      throw new Error(message);
-    }
-    set({ error: null });
-    try {
-      const updated = await invoke<Settings>('add_profile', { profile });
       set({ settings: updated, initialized: true });
     } catch (error) {
       const message = toErrorMessage(error);

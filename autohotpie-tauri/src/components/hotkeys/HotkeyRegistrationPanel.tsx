@@ -1,5 +1,6 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useHotkeyStore } from '../../state/hotkeyStore';
+import { useProfileStore, selectProfileHotkeyStatus } from '../../state/profileStore';
 
 export function HotkeyRegistrationPanel() {
   const [id, setId] = useState('global-pie');
@@ -11,6 +12,13 @@ export function HotkeyRegistrationPanel() {
     error: state.error,
     clearError: state.clearError,
   }));
+  const profileHotkeyStatus = useProfileStore(selectProfileHotkeyStatus);
+  const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
+
+  const profileConflicts = useMemo(
+    () => profileHotkeyStatus?.conflicts ?? [],
+    [profileHotkeyStatus?.conflicts],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,6 +78,35 @@ export function HotkeyRegistrationPanel() {
 
         {error && (
           <p className="text-sm text-red-400">{error}</p>
+        )}
+
+        {profileHotkeyStatus && !profileHotkeyStatus.registered && (
+          <div className="rounded-2xl border border-border/60 bg-overlay/60 p-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-text-primary">Profile hotkey conflicts</h4>
+              <button
+                type="button"
+                className="text-xs uppercase tracking-[0.25em] text-text-tertiary transition hover:text-text-secondary"
+                onClick={clearProfileHotkeyStatus}
+              >
+                Clear
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-text-secondary">
+              Resolve the conflicts below in the Profiles dashboard before re-registering this shortcut.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {profileConflicts.map((conflict, index) => (
+                <li
+                  key={`${conflict.code}-${conflict.message}-${index}`}
+                  className="rounded-xl border border-border/40 bg-background/40 px-3 py-2 text-xs text-text-secondary"
+                >
+                  <span className="font-semibold text-text-primary">{conflict.code}</span>
+                  {conflict.message ? ` — ${conflict.message}` : null}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </form>
     </section>
