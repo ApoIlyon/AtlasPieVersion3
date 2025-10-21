@@ -104,8 +104,8 @@
   - Added `selectProfileHotkeyStatus`/`clearHotkeyStatus()` selectors, unified HotkeyConflictDialog + registration panel with new profile store events.
 - [x] T021a [P] [US2] Persist per-profile hotkey bindings and conflict flags in `autohotpie-tauri/src/state/profileStore.ts`
   - Hotkey registration now updates `profileStore.lastHotkeyStatus`; UI shows profile-only conflicts with guidance.
-- [ ] T022 [P] [US2] Build profiles dashboard grid view in `autohotpie-tauri/src/screens/ProfilesDashboard.tsx`
-- [ ] T023 [P] [US2] Implement nested pie editor UI with breadcrumbs in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T022 [P] [US2] Build profiles dashboard grid view in `autohotpie-tauri/src/screens/ProfilesDashboard.tsx`
+- [x] T023 [P] [US2] Implement nested pie editor UI with breadcrumbs in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T023a [US2] Add profile hotkey editor with validation hints in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T023b [US2] Enforce slice count/depth limits with validation and tests in `autohotpie-tauri/src-tauri/src/domain/validation.rs` & `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T024 [P] [US2] Create icon manager gallery aligned with kando style in `autohotpie-tauri/src/components/icons/IconManager.tsx`

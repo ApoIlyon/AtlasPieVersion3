@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
 import { useSystemStore } from './state/systemStore';
@@ -17,6 +18,10 @@ import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 import { MenuBarToggle } from './components/tray/MenuBarToggle';
 import type { HotkeyRegistrationStatus } from './types/hotkeys';
 import { slicesForProfile } from './mocks/contextProfiles';
+import { ProfilesDashboard } from './screens/ProfilesDashboard';
+import { ProfileEditor } from './components/profile-editor/ProfileEditor';
+
+type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
 const FALLBACK_PLACEHOLDER_SLICES = [
   { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },
@@ -106,6 +111,7 @@ export function App() {
     initialized: profilesInitialized,
     isLoading: profilesLoading,
     error: profilesError,
+    activateProfile,
   } = useProfileStore((state) => ({
     profiles: state.profiles,
     activeProfileId: state.activeProfileId,
@@ -113,6 +119,7 @@ export function App() {
     initialized: state.initialized,
     isLoading: state.isLoading,
     error: state.error,
+    activateProfile: state.activateProfile,
   }));
   const initialize = useAppStore((state) => state.initialize);
   const systemInit = useSystemStore((state) => state.init);
@@ -137,11 +144,33 @@ export function App() {
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const systemActiveProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
+  const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   useEffect(() => {
     if (!profilesInitialized) {
       void loadProfiles();
     }
   }, [loadProfiles, profilesInitialized]);
+
+  useEffect(() => {
+    if (activeSection !== 'profiles') {
+      return;
+    }
+    if (selectedProfileId) {
+      return;
+    }
+    const defaultProfileId = activeProfileId ?? profiles[0]?.profile.id ?? null;
+    if (defaultProfileId) {
+      setSelectedProfileId(defaultProfileId);
+    }
+  }, [activeSection, activeProfileId, profiles, selectedProfileId]);
+
+  const activeProfileRecord = useMemo(() => {
+    if (!selectedProfileId) {
+      return null;
+    }
+    return profiles.find((record) => record.profile.id === selectedProfileId) ?? null;
+  }, [profiles, selectedProfileId]);
 
   const pieMenuState = usePieMenuHotkey({
     hotkeyEvent: 'hotkeys://trigger',
@@ -333,16 +362,29 @@ export function App() {
 
       <main className="relative z-10 grid gap-6 px-8 py-10 lg:grid-cols-[320px,1fr]">
         <nav className="space-y-2">
-          {[
-            { id: 'dashboard', label: 'Dashboard' },
-            { id: 'profiles', label: 'Profiles' },
-            { id: 'actions', label: 'Actions' },
-            { id: 'settings', label: 'Settings' },
-          ].map((item) => (
+          {(
+            [
+              { id: 'dashboard', label: 'Dashboard' },
+              { id: 'profiles', label: 'Profiles' },
+              { id: 'actions', label: 'Actions' },
+              { id: 'settings', label: 'Settings' },
+            ] as { id: AppSection; label: string }[]
+          ).map((item) => (
             <button
               key={item.id}
-              className="w-full rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white/70 transition hover:border-white/10 hover:bg-white/10 hover:text-white"
+              className={clsx(
+                'w-full rounded-2xl border px-4 py-3 text-left text-sm font-medium transition',
+                activeSection === item.id
+                  ? 'border-white/15 bg-white/15 text-white'
+                  : 'border-white/5 bg-white/5 text-white/70 hover:border-white/10 hover:bg-white/10 hover:text-white',
+              )}
               type="button"
+              onClick={() => {
+                setActiveSection(item.id);
+                if (item.id !== 'profiles') {
+                  setSelectedProfileId(null);
+                }
+              }}
             >
               {item.label}
             </button>
@@ -350,119 +392,161 @@ export function App() {
         </nav>
 
         <section className="rounded-3xl border border-white/5 bg-white/10/10 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
-          <h2 className="text-2xl font-semibold text-white">Welcome</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-            This is the placeholder UI shell for the AutoHotPie Tauri application. Phase 1
-            tasks will flesh out the Tailwind token system, React state containers, and
-            routing needed to render the pie menu designer, contextual profile editor, and
-            settings surfaces inspired by <span className="text-accent">kando-2.0.0</span>.
-          </p>
-
-          <div className="mt-6 space-y-4">
-            <OfflineNotice />
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              {systemError ? (
-                <span className="text-red-400">{systemError}</span>
-              ) : (
-                <>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
-                    {systemStatus.safeMode ? 'Safe Mode' : 'Normal Mode'} · {systemStatus.storageMode}
-                  </span>
-                  <span className="text-white/60">
-                    {systemStatus.connectivity.isOffline ? 'Offline' : 'Online'} · Last check{' '}
-                    {systemStatus.connectivity.lastChecked ?? '—'}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-3xl border border-white/5 bg-white/5 p-6">
-            {error && (
-              <p className="text-sm text-red-400">{error}</p>
-            )}
-            {!error && (
-              <>
-                <p className="text-sm text-white/70">
-                  {isLoading && 'Loading settings…'}
-                  {!isLoading && !settings && 'Settings not loaded yet.'}
-                  {profilesLoading && ' Loading profiles…'}
-                  {!profilesLoading && profilesInitialized &&
-                    ` Loaded ${profiles.length} profile${profiles.length === 1 ? '' : 's'}.`}
-                </p>
-                {settings && (
-                  <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
-                    Global source: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
-                  </p>
-                )}
-                {profilesError && (
-                  <p className="mt-2 text-sm text-red-400">{profilesError}</p>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <HotkeyRegistrationPanel />
-          </div>
-
-          <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
-            <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-              <h3 className="text-lg font-semibold text-white">Pie Menu Preview</h3>
-              <p className="mt-2 text-sm text-white/70">
-                Press <span className="font-semibold text-text-primary">Ctrl + Shift + P</span> to
-                toggle a preview of the pie menu. Once contextual routing is connected,
-                the preview will reflect the active profile and slice configuration.
+          {activeSection === 'dashboard' && (
+            <>
+              <h2 className="text-2xl font-semibold text-white">Welcome</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
+                This is the placeholder UI shell for the AutoHotPie Tauri application. Phase 1
+                tasks will flesh out the Tailwind token system, React state containers, and
+                routing needed to render the pie menu designer, contextual profile editor, and
+                settings surfaces inspired by <span className="text-accent">kando-2.0.0</span>.
               </p>
 
-              <div className="mt-6 flex flex-col items-center gap-4">
-                <PieMenu
-                  slices={menuSlices}
-                  visible={menuSlices.length > 0}
-                  radius={200}
-                  gapDeg={8}
-                  activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
-                  onHover={(sliceId) => setActiveSlice(sliceId)}
-                  onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                  centerContent={
-                    lastSafeModeReason ? (
-                      <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
-                        Safe Mode
+              <div className="mt-6 space-y-4">
+                <OfflineNotice />
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  {systemError ? (
+                    <span className="text-red-400">{systemError}</span>
+                  ) : (
+                    <>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
+                        {systemStatus.safeMode ? 'Safe Mode' : 'Normal Mode'} · {systemStatus.storageMode}
                       </span>
-                    ) : null
-                  }
-                />
-                {menuSlices.length === 0 && (
-                  <p className="text-sm text-white/60">Add actions to your first profile to preview the menu.</p>
-                )}
-                {lastAction && (
-                  <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                    <p className="font-semibold text-white">Last action:</p>
-                    <p className="mt-1 text-sm">{lastAction.actionName}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                      Status: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
-                    </p>
-                    {lastAction.message && (
-                      <p className="mt-1 text-white/60">{lastAction.message}</p>
-                    )}
-                  </div>
-                )}
+                      <span className="text-white/60">
+                        {systemStatus.connectivity.isOffline ? 'Offline' : 'Online'} · Last check{' '}
+                        {systemStatus.connectivity.lastChecked ?? '—'}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-              <h3 className="text-lg font-semibold text-white">Contextual Profiles</h3>
-              <p className="mt-2 text-sm text-white/70">
-                Active profile will be selected automatically based on context rules. When
-                available, we will display the active profile info here.
-              </p>
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                <p>Active profile: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
-                <p>Match mode: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
-                <p>Safe mode: {status.safeMode ? 'Enabled' : 'Disabled'}</p>
+              <div className="mt-6 rounded-3xl border border-white/5 bg-white/5 p-6">
+                {error && (
+                  <p className="text-sm text-red-400">{error}</p>
+                )}
+                {!error && (
+                  <>
+                    <p className="text-sm text-white/70">
+                      {isLoading && 'Loading settings…'}
+                      {!isLoading && !settings && 'Settings not loaded yet.'}
+                      {profilesLoading && ' Loading profiles…'}
+                      {!profilesLoading && profilesInitialized &&
+                        ` Loaded ${profiles.length} profile${profiles.length === 1 ? '' : 's'}.`}
+                    </p>
+                    {settings && (
+                      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
+                        Global source: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
+                      </p>
+                    )}
+                    {profilesError && (
+                      <p className="mt-2 text-sm text-red-400">{profilesError}</p>
+                    )}
+                  </>
+                )}
+
+                <div className="mt-8">
+                  <HotkeyRegistrationPanel />
+                </div>
+
+                <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
+                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+                    <h3 className="text-lg font-semibold text-white">Pie Menu Preview</h3>
+                    <p className="mt-2 text-sm text-white/70">
+                      Press <span className="font-semibold text-text-primary">Ctrl + Shift + P</span> to
+                      toggle a preview of the pie menu. Once contextual routing is connected,
+                      the preview will reflect the active profile and slice configuration.
+                    </p>
+
+                    <div className="mt-6 flex flex-col items-center gap-4">
+                      <PieMenu
+                        slices={menuSlices}
+                        visible={menuSlices.length > 0}
+                        radius={200}
+                        gapDeg={8}
+                        activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
+                        onHover={(sliceId) => setActiveSlice(sliceId)}
+                        onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+                        centerContent={
+                          lastSafeModeReason ? (
+                            <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
+                              Safe Mode
+                            </span>
+                          ) : null
+                        }
+                      />
+                      {menuSlices.length === 0 && (
+                        <p className="text-sm text-white/60">Add actions to your first profile to preview the menu.</p>
+                      )}
+                      {lastAction && (
+                        <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                          <p className="font-semibold text-white">Last action:</p>
+                          <p className="mt-1 text-sm">{lastAction.actionName}</p>
+                          <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
+                            Status: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
+                          </p>
+                          {lastAction.message && (
+                            <p className="mt-1 text-white/60">{lastAction.message}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+                    <h3 className="text-lg font-semibold text-white">Contextual Profiles</h3>
+                    <p className="mt-2 text-sm text-white/70">
+                      Active profile will be selected automatically based on context rules. When
+                      available, we will display the active profile info here.
+                    </p>
+                    <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                      <p>Active profile: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
+                      <p>Match mode: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
+                      <p>Safe mode: {status.safeMode ? 'Enabled' : 'Disabled'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </>
+          )}
+
+          {activeSection === 'profiles' && (
+            <div className="space-y-10">
+              <ProfilesDashboard
+                profiles={profiles}
+                activeProfileId={activeProfileId}
+                isLoading={profilesLoading}
+                error={profilesError}
+                onCreateProfile={() => {
+                  setSelectedProfileId(null);
+                }}
+                onOpenEditor={(profileId) => {
+                  setSelectedProfileId(profileId);
+                }}
+                onActivateProfile={(profileId) => {
+                  void activateProfile(profileId);
+                }}
+              />
+
+              <ProfileEditor
+                profile={activeProfileRecord}
+                mode={activeProfileRecord ? 'view' : 'create'}
+                onClose={() => setSelectedProfileId(null)}
+              />
             </div>
-          </div>
+          )}
+
+          {activeSection === 'actions' && (
+            <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
+              Actions workspace coming soon.
+            </div>
+          )}
+
+          {activeSection === 'settings' && (
+            <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
+              Settings panel under construction.
+            </div>
+          )}
         </section>
       </main>
 
