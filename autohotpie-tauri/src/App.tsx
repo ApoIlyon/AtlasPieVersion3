@@ -480,6 +480,7 @@ export function App() {
                         activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                         onHover={(sliceId) => setActiveSlice(sliceId)}
                         onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+                        dataTestId="pie-menu-preview"
                         centerContent={
                           lastSafeModeReason ? (
                             <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
@@ -588,6 +589,7 @@ export function App() {
                     activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                     onHover={(sliceId) => setActiveSlice(sliceId)}
                     onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+                    dataTestId="pie-menu"
                   />
                   <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
                     {menuSlices.find((slice) => slice.id === (activeSliceId ?? menuSlices[0]?.id ?? null))?.label ?? ''}

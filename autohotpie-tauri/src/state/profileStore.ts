@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import mockContextProfilesJson from '../mocks/context-profiles.json';
 import type { HotkeyRegistrationStatus } from '../types/hotkeys';
 
 export type ActivationMatchMode =
@@ -70,6 +71,7 @@ interface ProfileStoreState {
   activeProfileId: string | null;
   isLoading: boolean;
   error: string | null;
+  validationErrors: string[];
   initialized: boolean;
   lastHotkeyStatus: HotkeyRegistrationStatus | null;
   lastHotkeyAttempt: HotkeyAttemptSnapshot | null;
@@ -83,6 +85,7 @@ interface ProfileStoreState {
   setProfiles: (payload: ProfileStorePayload) => void;
   getProfileById: (profileId: string) => ProfileRecord | undefined;
   getProfileByIndex: (index: number) => ProfileRecord | undefined;
+  clearValidationErrors: () => void;
   clearHotkeyStatus: () => void;
   retryProfileHotkeyWithOverride: () => Promise<HotkeyRegistrationStatus | null>;
 }
@@ -91,6 +94,37 @@ const eventBindings: {
   storeChanged?: UnlistenFn;
   activeChanged?: UnlistenFn;
 } = {};
+
+interface MockContextProfilesFile {
+  profiles: ProfileRecord[];
+}
+
+function cloneMockProfiles(records: ProfileRecord[]): ProfileRecord[] {
+  return records.map((record) => ({
+    profile: { ...record.profile },
+    menus: (record.menus ?? []).map((menu) => ({
+      ...menu,
+      appearance: { ...menu.appearance },
+      slices: (menu.slices ?? []).map((slice) => ({ ...slice })),
+    })),
+    createdAt: record.createdAt ?? null,
+    updatedAt: record.updatedAt ?? null,
+  }));
+}
+
+function loadMockProfiles(): ProfileRecord[] {
+  const payload = mockContextProfilesJson as MockContextProfilesFile | undefined;
+  if (!payload?.profiles?.length) {
+    return [];
+  }
+  return cloneMockProfiles(payload.profiles);
+}
+
+function markProfilesReady(ready: boolean) {
+  if (typeof window !== 'undefined') {
+    (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ = ready;
+  }
+}
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -282,6 +316,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   activeProfileId: null,
   isLoading: false,
   error: null,
+  validationErrors: [],
   initialized: false,
   lastHotkeyStatus: null,
   lastHotkeyAttempt: null,
@@ -292,8 +327,18 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       return;
     }
 
+    markProfilesReady(false);
     if (!isTauriEnvironment()) {
-      set({ initialized: true, isLoading: false });
+      const profiles = loadMockProfiles();
+      set({
+        profiles,
+        activeProfileId: profiles[0]?.profile.id ?? null,
+        initialized: true,
+        isLoading: false,
+        error: null,
+        validationErrors: [],
+      });
+      markProfilesReady(true);
       return;
     }
 
@@ -311,10 +356,22 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       set({ error: toErrorMessage(error) });
     } finally {
       set({ isLoading: false, initialized: true });
+      markProfilesReady(true);
     }
   },
   async refreshProfiles() {
+    markProfilesReady(false);
     if (!isTauriEnvironment()) {
+      const profiles = loadMockProfiles();
+      set({
+        profiles,
+        activeProfileId: profiles[0]?.profile.id ?? null,
+        initialized: true,
+        isLoading: false,
+        error: null,
+        validationErrors: [],
+      });
+      markProfilesReady(true);
       return;
     }
     try {
@@ -322,6 +379,8 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       get().setProfiles(payload);
     } catch (error) {
       set({ error: toErrorMessage(error) });
+    } finally {
+      markProfilesReady(true);
     }
   },
   async saveProfile(record) {
@@ -331,11 +390,24 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     }
     try {
       const saved = await invoke<ProfileRecord>('save_profile', { record });
-      set({ suppressHotkeyConflicts: false });
+      set({ suppressHotkeyConflicts: false, validationErrors: [] });
       await get().refreshProfiles();
       return saved;
     } catch (error) {
-      set({ error: toErrorMessage(error) });
+      const message = toErrorMessage(error);
+      if (message.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(message) as { kind?: string; errors?: string[] };
+          if (parsed.kind === 'profile-validation' && Array.isArray(parsed.errors)) {
+            set({ validationErrors: parsed.errors, error: null });
+            return null;
+          }
+        } catch (parseError) {
+          console.error('Failed to parse validation payload', parseError);
+        }
+      } else {
+        set({ error: message, validationErrors: [] });
+      }
       return null;
     }
   },
@@ -374,7 +446,9 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       initialized: true,
       isLoading: false,
       error: null,
+      validationErrors: [],
     });
+    markProfilesReady(true);
   },
   getProfileById(profileId) {
     if (!profileId) {
@@ -394,6 +468,9 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       suppressHotkeyConflicts: true,
       lastHotkeyAttempt: state.lastHotkeyAttempt,
     }));
+  },
+  clearValidationErrors() {
+    set({ validationErrors: [] });
   },
   async retryProfileHotkeyWithOverride() {
     const attempt = get().lastHotkeyAttempt;

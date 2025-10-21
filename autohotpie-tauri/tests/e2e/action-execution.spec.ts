@@ -10,6 +10,11 @@ test.describe('US1 - Action execution flow', () => {
   test('actions trigger immediately without confirmation dialogs', async ({ page }) => {
     await page.goto('/');
 
+    await page.waitForFunction(
+      () => (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ === true,
+      { timeout: 2_000 },
+    );
+
     const modifiers = parseHotkey(HOTKEY);
     const mainKey = modifiers.pop();
     if (!mainKey) {

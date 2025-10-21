@@ -1,7 +1,9 @@
 use super::{AppError, AppState, Result};
 use crate::domain::profile::ProfileId;
+use crate::domain::validation::validate_profile;
 use crate::services::profile_router;
 use crate::storage::profile_repository::{ProfileRecord, ProfileStore};
+use serde_json::json;
 use tauri::{AppHandle, Emitter, Manager, State};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
@@ -30,6 +32,14 @@ pub fn save_profile(
     mut record: ProfileRecord,
 ) -> Result<ProfileRecord> {
     record = normalize_record(record)?;
+    let actions = state.actions_snapshot();
+    if let Err(errors) = validate_profile(&record.profile, &record.menus, &actions) {
+        let payload = json!({
+            "kind": "profile-validation",
+            "errors": errors.into_iter().map(|err| err.to_string()).collect::<Vec<_>>(),
+        });
+        return Err(AppError::Message(payload.to_string()));
+    }
     let updated = state.with_profiles_mut(|store| {
         upsert_record(store, record.clone())?;
         Ok(record.clone())

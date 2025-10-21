@@ -26,6 +26,11 @@ test.describe('US2 - Hotkey conflict gating', () => {
   test('shows conflict dialog and blocks pie menu visibility', async ({ page }) => {
     await page.goto('/');
 
+    await page.waitForFunction(
+      () => (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ === true,
+      { timeout: 2_000 },
+    );
+
     await page.evaluate(async () => {
       // @ts-expect-error vite runtime import for e2e setup
       const { useHotkeyStore } = await import(/* @vite-ignore */ '/src/state/hotkeyStore.ts');
@@ -62,6 +67,8 @@ test.describe('US2 - Hotkey conflict gating', () => {
         isSubmitting: false,
       });
     });
+
+    await page.waitForTimeout(50);
 
     const dialog = page.getByRole('dialog', { name: /shortcut conflict detected/i });
     await expect(dialog).toBeVisible();

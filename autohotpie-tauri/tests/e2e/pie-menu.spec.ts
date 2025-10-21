@@ -2,7 +2,35 @@ import { test, expect, type Page } from '@playwright/test';
 
 const HOTKEY = process.env.AHP_E2E_PIE_HOTKEY ?? 'Control+Shift+P';
 
+async function ensurePageFocus(page: Page) {
+  await page.evaluate(() => {
+    window.focus();
+    document.body?.focus?.();
+  });
+}
+
+async function waitForProfilesReady(page: Page) {
+  await page.waitForFunction(
+    () => (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ === true,
+    { timeout: 2_000 },
+  );
+}
+
+async function waitForHotkeyReady(page: Page, hotkey: string) {
+  const expected = hotkey.toLowerCase();
+  await page.waitForFunction(
+    (needle) => {
+      const matchers = (window as unknown as { __PIE_HOTKEY_MATCHERS__?: string[] }).__PIE_HOTKEY_MATCHERS__;
+      return Array.isArray(matchers) && matchers.includes(needle);
+    },
+    expected,
+    { timeout: 2_000 },
+  );
+}
+
 async function triggerHotkey(page: Page, hotkey: string) {
+  await ensurePageFocus(page);
+
   const modifiers = parseHotkey(hotkey);
   const mainKey = modifiers.pop();
   if (!mainKey) {
@@ -24,7 +52,7 @@ type SliceAssertion = {
 };
 
 async function expectPieMenuSlices(page: Page, assertions: SliceAssertion[]) {
-  const pieMenu = page.getByTestId('pie-menu');
+  const pieMenu = page.getByTestId('pie-menu').last();
   await expect(pieMenu).toBeVisible({ timeout: 1_000 });
 
   for (const assertion of assertions) {
@@ -46,6 +74,9 @@ function parseHotkey(hotkey: string): string[] {
 test.describe('US1 - Pie menu invocation', () => {
   test('default profile is used when no context matches', async ({ page }) => {
     await page.goto('/');
+
+    await waitForProfilesReady(page);
+    await waitForHotkeyReady(page, HOTKEY);
 
     await triggerHotkey(page, HOTKEY);
 
@@ -71,6 +102,9 @@ test.describe('US1 - Pie menu invocation', () => {
   test('VS Code profile is selected when process matches', async ({ page }) => {
     await page.goto('/?mockProcess=code.exe&mockWindow=Visual%20Studio%20Code');
 
+    await waitForProfilesReady(page);
+    await waitForHotkeyReady(page, HOTKEY);
+
     await triggerHotkey(page, HOTKEY);
 
     await expectPieMenuSlices(page, [
@@ -82,6 +116,9 @@ test.describe('US1 - Pie menu invocation', () => {
 
   test('browser profile is selected when window title matches', async ({ page }) => {
     await page.goto('/?mockProcess=chrome.exe&mockWindow=Mozilla%20Firefox');
+
+    await waitForProfilesReady(page);
+    await waitForHotkeyReady(page, HOTKEY);
 
     await triggerHotkey(page, HOTKEY);
 

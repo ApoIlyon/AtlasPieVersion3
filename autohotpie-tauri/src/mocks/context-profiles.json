@@ -1,139 +1,208 @@
 {
   "profiles": [
     {
-      "id": "default",
-      "name": "Default Profile",
-      "segments": [
+      "profile": {
+        "id": "default",
+        "name": "Default Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Shift+P",
+        "activationRules": [],
+        "rootMenu": "default-root"
+      },
+      "menus": [
         {
-          "id": "launch-calculator",
-          "label": "Launch Calculator",
-          "type": "application",
+          "id": "default-root",
+          "title": "Default",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "launch-calculator",
+              "label": "Launch Calculator",
+              "action": "action-launch-calculator",
+              "order": 0
+            },
+            {
+              "id": "open-notepad",
+              "label": "Open Notepad",
+              "action": "action-open-notepad",
+              "order": 1
+            },
+            {
+              "id": "open-downloads",
+              "label": "Open Downloads",
+              "action": "action-open-downloads",
+              "order": 2
+            },
+            {
+              "id": "mute-audio",
+              "label": "Mute Audio",
+              "action": "action-mute-audio",
+              "order": 3
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-launch-calculator",
+          "name": "Launch Calculator",
+          "kind": "system:command",
           "payload": {
             "command": "calc"
           }
         },
         {
-          "id": "open-notepad",
-          "label": "Open Notepad",
-          "type": "application",
+          "id": "action-open-notepad",
+          "name": "Open Notepad",
+          "kind": "system:command",
           "payload": {
             "command": "notepad"
           }
         },
         {
-          "id": "open-downloads",
-          "label": "Open Downloads",
-          "type": "application",
+          "id": "action-open-downloads",
+          "name": "Open Downloads",
+          "kind": "system:command",
           "payload": {
             "command": "explorer",
             "args": ["%USERPROFILE%\\Downloads"]
           }
         },
         {
-          "id": "mute-audio",
-          "label": "Mute Audio",
-          "type": "application",
+          "id": "action-mute-audio",
+          "name": "Mute Audio",
+          "kind": "system:command",
           "payload": {
             "command": "nircmd.exe",
             "args": ["mutesysvolume", "2"]
           }
-        },
-        {
-          "id": "start-screen-record",
-          "label": "Start Screen Record",
-          "type": "script",
-          "payload": {
-            "command": "scripts/start-screen-record.ps1"
-          }
-        },
-        {
-          "id": "snap-layout",
-          "label": "Snap Layout",
-          "type": "script",
-          "payload": {
-            "command": "scripts/snap-layout.ps1"
-          }
-        },
-        {
-          "id": "clipboard-history",
-          "label": "Clipboard History",
-          "type": "application",
-          "payload": {
-            "command": "cmd",
-            "args": ["/c", "echo Clipboard History"]
-          }
-        },
-        {
-          "id": "task-switcher",
-          "label": "Task Switcher",
-          "type": "application",
-          "payload": {
-            "command": "cmd",
-            "args": ["/c", "echo Task Switcher"]
-          }
         }
-      ],
-      "contextRules": []
+      ]
     },
     {
-      "id": "vscode",
-      "name": "VS Code Profile",
-      "segments": [
+      "profile": {
+        "id": "vscode",
+        "name": "VS Code Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Alt+V",
+        "activationRules": [
+          {
+            "mode": "process_name",
+            "value": "code.exe"
+          }
+        ],
+        "rootMenu": "vscode-root"
+      },
+      "menus": [
         {
-          "id": "switch-terminal",
-          "label": "Switch Terminal",
-          "type": "script",
+          "id": "vscode-root",
+          "title": "VS Code",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "switch-terminal",
+              "label": "Switch Terminal",
+              "action": "action-switch-terminal",
+              "order": 0
+            },
+            {
+              "id": "build-project",
+              "label": "Build Project",
+              "action": "action-build-project",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-switch-terminal",
+          "name": "Switch Terminal",
+          "kind": "system:command",
           "payload": {
             "command": "scripts/switch-terminal.ps1"
           }
         },
         {
-          "id": "build-project",
-          "label": "Build Project",
-          "type": "script",
+          "id": "action-build-project",
+          "name": "Build Project",
+          "kind": "system:command",
           "payload": {
             "command": "scripts/build-project.ps1"
           }
         }
-      ],
-      "contextRules": [
-        {
-          "mode": "processName",
-          "value": "code.exe",
-          "caseSensitive": false
-        }
       ]
     },
     {
-      "id": "browser",
-      "name": "Browser Profile",
-      "segments": [
+      "profile": {
+        "id": "browser",
+        "name": "Browser Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Alt+B",
+        "activationRules": [
+          {
+            "mode": "process_name",
+            "value": "chrome.exe"
+          },
+          {
+            "mode": "window_title",
+            "value": "Mozilla Firefox"
+          }
+        ],
+        "rootMenu": "browser-root"
+      },
+      "menus": [
         {
-          "id": "open-devtools",
-          "label": "Open DevTools",
-          "type": "script",
+          "id": "browser-root",
+          "title": "Browser",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "open-devtools",
+              "label": "Open DevTools",
+              "action": "action-open-devtools",
+              "order": 0
+            },
+            {
+              "id": "refresh-tab",
+              "label": "Refresh Tab",
+              "action": "action-refresh-tab",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-open-devtools",
+          "name": "Open DevTools",
+          "kind": "system:command",
           "payload": {
             "command": "scripts/open-devtools.ps1"
           }
         },
         {
-          "id": "refresh-tab",
-          "label": "Refresh Tab",
-          "type": "application",
+          "id": "action-refresh-tab",
+          "name": "Refresh Tab",
+          "kind": "system:command",
           "payload": {
             "command": "Refresh"
           }
-        }
-      ],
-      "contextRules": [
-        {
-          "mode": "processName",
-          "value": "chrome.exe",
-          "caseSensitive": false
-        },
-        {
-          "mode": "windowTitle",
-          "value": "Mozilla Firefox"
         }
       ]
     }

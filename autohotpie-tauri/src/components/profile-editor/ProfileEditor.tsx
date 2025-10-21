@@ -20,6 +20,20 @@ const SLICE_MIN = 2;
 const SLICE_MAX = 12;
 const MENU_DEPTH_MAX = 3;
 
+const HOTKEY_MODIFIERS = new Set([
+  'ctrl',
+  'control',
+  'shift',
+  'alt',
+  'altgraph',
+  'meta',
+  'cmd',
+  'command',
+  'option',
+  'super',
+  'win',
+]);
+
 function computeMenuDepth(menuId: string | null, menuMap: Map<string, { slices: { childMenu?: string | null }[] }>, visited: Set<string>): number {
   if (!menuId || visited.has(menuId)) {
     return 0;
@@ -97,6 +111,99 @@ function normalizeAccelerator(event: KeyboardEvent): string | null {
     return null;
   }
   return accelerator.join('+');
+}
+
+function isModifierLabel(label: string): boolean {
+  const normalized = label.trim().toLowerCase();
+  return HOTKEY_MODIFIERS.has(normalized);
+}
+
+function normalizeHotkeyForComparison(accelerator: string): string {
+  return accelerator
+    .split('+')
+    .map((part) => part.trim().toLowerCase())
+    .filter((part) => part.length > 0)
+    .join('+');
+}
+
+interface HotkeyValidationResult {
+  severity: 'info' | 'warning' | 'error' | null;
+  message: string | null;
+  isValid: boolean;
+}
+
+function validateProfileHotkey(
+  accelerator: string,
+  currentProfileId: string,
+  profiles: ProfileRecord[],
+): HotkeyValidationResult {
+  const trimmed = accelerator.trim();
+
+  if (!trimmed) {
+    return {
+      severity: 'info',
+      message: 'Hotkey cleared. Activate this profile manually or via tray switcher.',
+      isValid: true,
+    };
+  }
+
+  const parts = trimmed
+    .split('+')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (!parts.length) {
+    return {
+      severity: 'error',
+      message: 'Hotkey combination is empty.',
+      isValid: false,
+    };
+  }
+
+  const hasNonModifier = parts.some((part) => !isModifierLabel(part));
+  if (!hasNonModifier) {
+    return {
+      severity: 'error',
+      message: 'Hotkey must include a non-modifier key.',
+      isValid: false,
+    };
+  }
+
+  const hasModifier = parts.some((part) => isModifierLabel(part));
+
+  const normalizedCandidate = normalizeHotkeyForComparison(trimmed);
+
+  const duplicate = profiles.find((record) => {
+    if (record.profile.id === currentProfileId) {
+      return false;
+    }
+    const existing = record.profile.globalHotkey;
+    return Boolean(
+      existing && normalizeHotkeyForComparison(existing) === normalizedCandidate,
+    );
+  });
+
+  if (duplicate) {
+    return {
+      severity: 'error',
+      message: `Hotkey already assigned to profile "${duplicate.profile.name}".`,
+      isValid: false,
+    };
+  }
+
+  if (!hasModifier) {
+    return {
+      severity: 'warning',
+      message: 'Consider adding a modifier key to reduce conflicts.',
+      isValid: true,
+    };
+  }
+
+  return {
+    severity: null,
+    message: null,
+    isValid: true,
+  };
 }
 
 interface HotkeyCaptureButtonProps {
@@ -298,6 +405,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const [hotkeyValue, setHotkeyValue] = useState(profile.profile.globalHotkey ?? '');
   const [hotkeyMessage, setHotkeyMessage] = useState<string | null>(null);
   const [hotkeySubmitting, setHotkeySubmitting] = useState(false);
+  const validationErrors = profileStore.validationErrors ?? [];
 
   const rootMenuId = useMemo(() => {
     if (!menus.length) {
@@ -358,7 +466,24 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
 
   const depthExceeded = overallDepth > MENU_DEPTH_MAX;
   const sliceCountExceeded = currentSlices.length > SLICE_MAX;
-  const sliceCountTooLow = currentSlices.length > 0 && currentSlices.length < SLICE_MIN;
+  const sliceCountTooLow = currentSlices.length < SLICE_MIN;
+  const slicesMissing = Math.max(0, SLICE_MIN - currentSlices.length);
+
+  const profileStoreState = useProfileStore(
+    useCallback(
+      (state) => ({
+        profiles: state.profiles,
+      }),
+      [],
+    ),
+  );
+
+  const hotkeyValidation = useMemo(
+    () => validateProfileHotkey(hotkeyValue, profile.profile.id, profileStoreState.profiles),
+    [hotkeyValue, profile.profile.id, profileStoreState.profiles],
+  );
+
+  const hasStructureViolations = depthExceeded || sliceCountExceeded || sliceCountTooLow;
 
   useEffect(() => {
     setHotkeyValue(profile.profile.globalHotkey ?? '');
@@ -402,18 +527,32 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const handleHotkeySubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (!hotkeyValidation.isValid) {
+        setHotkeyMessage('Resolve hotkey validation issues before saving.');
+        return;
+      }
+      if (hasStructureViolations) {
+        setHotkeyMessage('Fix menu validation errors before saving hotkey changes.');
+        return;
+      }
       clearError();
+      profileStore.clearValidationErrors();
       setHotkeyMessage(null);
       setHotkeySubmitting(true);
       try {
         const accelerator = hotkeyValue.trim();
-        await profileStore.saveProfile({
+        const saved = await profileStore.saveProfile({
           ...profile,
           profile: {
             ...profile.profile,
             globalHotkey: accelerator.length ? accelerator : null,
           },
         });
+
+        if (!saved) {
+          setHotkeyMessage('Profile save blocked by validation errors. Review alerts below.');
+          return;
+        }
 
         if (accelerator.length) {
           const success = await registerHotkey({
@@ -494,11 +633,22 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                     disabled={isSubmitting || hotkeySubmitting}
                     onStart={() => {
                       clearError();
+                      profileStore.clearValidationErrors();
                       setHotkeyMessage(null);
                     }}
                     onCapture={(accelerator) => {
+                      profileStore.clearValidationErrors();
                       setHotkeyValue(accelerator);
-                      setHotkeyMessage(`Captured ${accelerator}. Save to apply.`);
+                      const validation = validateProfileHotkey(
+                        accelerator,
+                        profile.profile.id,
+                        profileStoreState.profiles,
+                      );
+                      setHotkeyMessage(
+                        validation.severity && validation.severity !== 'info'
+                          ? null
+                          : `Captured ${accelerator}. Save to apply.`,
+                      );
                     }}
                     onCancel={() => {
                       setHotkeyMessage('Capture cancelled.');
@@ -509,7 +659,13 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                   <button
                     type="submit"
                     className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSubmitting || hotkeySubmitting}
+                    disabled={
+                      isSubmitting ||
+                      hotkeySubmitting ||
+                      !hotkeyValidation.isValid ||
+                      hotkeyValidation.severity === 'error' ||
+                      hasStructureViolations
+                    }
                   >
                     {isSubmitting || hotkeySubmitting ? 'Saving…' : 'Save hotkey'}
                   </button>
@@ -518,24 +674,52 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                     className="rounded-2xl border border-white/15 px-3 py-2 text-sm text-white/60 transition hover:border-white/25 hover:text-white/80"
                     onClick={() => {
                       setHotkeyValue('');
-                      void profileStore.saveProfile({
-                        ...profile,
-                        profile: {
-                          ...profile.profile,
-                          globalHotkey: null,
-                        },
-                      }).then(() => {
-                        setHotkeyMessage('Hotkey cleared for this profile.');
-                      });
+                      clearError();
+                      profileStore.clearValidationErrors();
+                      void (async () => {
+                        const saved = await profileStore.saveProfile({
+                          ...profile,
+                          profile: {
+                            ...profile.profile,
+                            globalHotkey: null,
+                          },
+                        });
+                        if (saved) {
+                          setHotkeyMessage('Hotkey cleared for this profile.');
+                        } else {
+                          setHotkeyMessage('Unable to clear hotkey while validation errors persist.');
+                        }
+                      })();
                     }}
-                    disabled={isSubmitting || hotkeySubmitting}
+                    disabled={
+                      isSubmitting || hotkeySubmitting || hasStructureViolations
+                    }
                   >
                     Clear
                   </button>
                 </div>
               </div>
+              {hotkeyValidation.message && (
+                <p
+                  className={clsx(
+                    'text-xs',
+                    hotkeyValidation.severity === 'error'
+                      ? 'text-red-400'
+                      : hotkeyValidation.severity === 'warning'
+                        ? 'text-amber-300'
+                        : 'text-white/60',
+                  )}
+                >
+                  {hotkeyValidation.message}
+                </p>
+              )}
               {hotkeyMessage && <p className="text-xs text-white/60">{hotkeyMessage}</p>}
               {hotkeyError && <p className="text-xs text-red-400">{hotkeyError}</p>}
+              {hasStructureViolations && (
+                <p className="text-xs text-red-400">
+                  Resolve menu validation issues (slice counts or nesting depth) before saving hotkey changes.
+                </p>
+              )}
             </form>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
@@ -594,6 +778,22 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
             </div>
           </div>
 
+          {validationErrors.length > 0 && (
+            <div className="space-y-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
+              <p className="uppercase tracking-[0.25em] text-red-200/80">Backend validation errors</p>
+              <ul className="space-y-2">
+                {validationErrors.map((error, index) => (
+                  <li
+                    key={`${error}-${index}`}
+                    className="rounded-xl border border-red-500/40 bg-red-500/15 px-3 py-2 text-red-100"
+                  >
+                    {error}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {(depthExceeded || sliceCountExceeded || sliceCountTooLow) && (
             <div className="space-y-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
               <p className="uppercase tracking-[0.25em] text-red-200/80">Validation alerts</p>
@@ -605,8 +805,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               )}
               {sliceCountTooLow && (
                 <p>
-                  This menu has {currentSlices.length} slice. Add at least {SLICE_MIN - currentSlices.length + 1} more to reach the minimum
-                  of {SLICE_MIN}.
+                  This menu has {currentSlices.length} slice{currentSlices.length === 1 ? '' : 's'}. Add {slicesMissing} more to reach the minimum of {SLICE_MIN}.
                 </p>
               )}
             </div>
@@ -622,6 +821,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 slices={pieSlices}
                 activeSliceId={activeSliceId}
                 visible
+                dataTestId="pie-menu-editor"
                 centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
               />
             ) : (

@@ -20,6 +20,7 @@ export interface PieMenuProps {
   radius?: number;
   gapDeg?: number;
   centerContent?: React.ReactNode;
+  dataTestId?: string;
 }
 
 const TAU = Math.PI * 2;
@@ -38,6 +39,7 @@ export function PieMenu({
   radius = DEFAULT_RADIUS,
   gapDeg = 4,
   centerContent,
+  dataTestId = 'pie-menu',
 }: PieMenuProps) {
   const sortedSlices = useMemo(
     () => [...slices].sort((a, b) => a.order - b.order),
@@ -88,7 +90,7 @@ export function PieMenu({
   return (
     <motion.div
       ref={rootRef}
-      data-testid="pie-menu"
+      data-testid={dataTestId}
       hidden={!visible}
       aria-hidden={!visible}
       className={clsx(

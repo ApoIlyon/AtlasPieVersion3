@@ -174,9 +174,16 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const [lastSafeModeReason, setLastSafeModeReason] = useState<string | null>(null);
   const [activeProfile, setActiveProfile] = useState<ActiveProfileSnapshot | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasConflictDialogOpen = useHotkeyStore((state) => state.dialogOpen);
-  const hotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
-  const hasHotkeyConflicts = Boolean(hotkeyStatus && !hotkeyStatus.registered);
+  const { dialogOpen: hasConflictDialogOpen, dialogStatus: dialogStatusState } = useHotkeyStore((state) => ({
+    dialogOpen: state.dialogOpen,
+    dialogStatus: state.dialogStatus,
+  }));
+  const systemHotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
+  const hasHotkeyConflicts = useMemo(() => {
+    const dialogConflict = dialogStatusState && !dialogStatusState.registered;
+    const systemConflict = systemHotkeyStatus && !systemHotkeyStatus.registered;
+    return Boolean(dialogConflict || systemConflict);
+  }, [dialogStatusState, systemHotkeyStatus]);
   const profileStoreState = useProfileStore((state) => ({
     profiles: state.profiles,
     activeProfileId: state.activeProfileId,
@@ -200,6 +207,13 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [autoCloseMs, clearTimer]);
 
   useEffect(() => clearTimer, [clearTimer, isOpen]);
+
+  useEffect(() => {
+    if (hasConflictDialogOpen || hasHotkeyConflicts) {
+      clearTimer();
+      setIsOpen(false);
+    }
+  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts]);
 
   const recordActionOutcome = useCallback(
     (payload: {
@@ -247,28 +261,65 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   );
 
   const fallbackHotkeys = useMemo(() => {
-    if (!fallbackHotkey) {
-      return [] as string[];
+    const base: string[] = (() => {
+      if (!fallbackHotkey) {
+        return [];
+      }
+      return Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
+    })();
+
+    if (!isTauriEnvironment()) {
+      const hotkeys = new Set<string>(base);
+      const activeProfileId = profileStoreState.activeProfileId;
+      const fallbackRecord = profileStoreState.profiles[0];
+      const activeRecord = activeProfileId
+        ? profileStoreState.profiles.find((record) => record.profile.id === activeProfileId)
+        : fallbackRecord;
+
+      if (fallbackRecord?.profile.globalHotkey) {
+        hotkeys.add(fallbackRecord.profile.globalHotkey.trim());
+      }
+      if (activeRecord?.profile.globalHotkey) {
+        hotkeys.add(activeRecord.profile.globalHotkey.trim());
+      }
+      return Array.from(hotkeys);
     }
-    return Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
-  }, [fallbackHotkey]);
+
+    return base;
+  }, [fallbackHotkey, profileStoreState.activeProfileId, profileStoreState.profiles]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment() && typeof window !== 'undefined') {
+      (window as unknown as { __PIE_HOTKEY_MATCHERS__?: string[] }).__PIE_HOTKEY_MATCHERS__ = fallbackHotkeys.map(
+        (key) => key.toLowerCase(),
+      );
+    }
+  }, [fallbackHotkeys]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
       const matchers = fallbackHotkeys.map((hotkey) => createHotkeyMatcher(hotkey));
 
+      const clearMenuState = () => {
+        clearTimer();
+        setIsOpen(false);
+      };
+
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.repeat) {
           return;
         }
+        if (hasConflictDialogOpen || hasHotkeyConflicts) {
+          if (matchers.some((match) => match(event)) || event.key === 'Escape') {
+            event.preventDefault();
+            clearMenuState();
+          }
+          return;
+        }
+
         if (matchers.some((match) => match(event))) {
           event.preventDefault();
           setIsOpen((prev) => {
-            if (hasConflictDialogOpen || hasHotkeyConflicts) {
-              clearTimer();
-              return false;
-            }
-
             const next = !prev;
             if (next) {
               scheduleAutoClose();
@@ -280,18 +331,16 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         if (event.key === 'Escape') {
-          setIsOpen(false);
-          clearTimer();
+          clearMenuState();
         }
       };
 
       const toggleEvent = () => {
+        if (hasConflictDialogOpen || hasHotkeyConflicts) {
+          clearMenuState();
+          return;
+        }
         setIsOpen((prev) => {
-          if (hasConflictDialogOpen || hasHotkeyConflicts) {
-            clearTimer();
-            return false;
-          }
-
           const next = !prev;
           if (next) {
             scheduleAutoClose();
@@ -304,8 +353,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
       const openEvent = () => {
         if (hasConflictDialogOpen || hasHotkeyConflicts) {
-          clearTimer();
-          setIsOpen(false);
+          clearMenuState();
           return;
         }
         setIsOpen(true);
@@ -313,8 +361,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       };
 
       const closeEvent = () => {
-        setIsOpen(false);
-        clearTimer();
+        clearMenuState();
       };
 
       const actionEvent = (event: Event) => {
