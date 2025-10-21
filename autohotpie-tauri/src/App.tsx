@@ -140,6 +140,7 @@ export function App() {
     disableConflictingHotkey: state.disableConflictingHotkey,
     isSubmitting: state.isSubmitting,
   }));
+  const retryProfileHotkeyWithOverride = useProfileStore((state) => state.retryProfileHotkeyWithOverride);
   const profileHotkeyStatus = useProfileStore(selectProfileHotkeyStatus);
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const systemActiveProfile = useSystemStore((state) => state.activeProfile);
@@ -338,7 +339,19 @@ export function App() {
         status={combinedHotkeyStatus}
         isSubmitting={isHotkeySubmitting}
         onClose={handleHotkeyDialogClose}
-        onRetry={isProfileConflictOnly ? undefined : retryWithOverride}
+        onRetry={
+          isProfileConflictOnly
+            ? () => {
+                void retryProfileHotkeyWithOverride();
+              }
+            : retryWithOverride
+              ? () => {
+                  void retryWithOverride();
+                }
+              : () => {
+                  void retryProfileHotkeyWithOverride();
+                }
+        }
         onDisable={isProfileConflictOnly ? undefined : disableConflictingHotkey}
       />
       <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">

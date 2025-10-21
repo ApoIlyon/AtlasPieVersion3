@@ -72,6 +72,9 @@ interface ProfileStoreState {
   error: string | null;
   initialized: boolean;
   lastHotkeyStatus: HotkeyRegistrationStatus | null;
+  lastHotkeyAttempt: HotkeyAttemptSnapshot | null;
+  registeringHotkeyFor: string | null;
+  suppressHotkeyConflicts: boolean;
   loadProfiles: () => Promise<void>;
   refreshProfiles: () => Promise<void>;
   saveProfile: (record: ProfileRecord) => Promise<ProfileRecord | null>;
@@ -81,6 +84,7 @@ interface ProfileStoreState {
   getProfileById: (profileId: string) => ProfileRecord | undefined;
   getProfileByIndex: (index: number) => ProfileRecord | undefined;
   clearHotkeyStatus: () => void;
+  retryProfileHotkeyWithOverride: () => Promise<HotkeyRegistrationStatus | null>;
 }
 
 const eventBindings: {
@@ -98,12 +102,29 @@ function toErrorMessage(error: unknown): string {
   return 'Unknown error';
 }
 
+interface HotkeyAttemptSnapshot {
+  profileId: string | null;
+  accelerator: string | null;
+  conflictCodes?: string[] | null;
+}
+
 async function registerActiveHotkey(
   profile: Profile | undefined,
   previousProfileId: string | null,
+  set: (partial: Partial<ProfileStoreState>) => void,
+  get: () => ProfileStoreState,
 ): Promise<HotkeyRegistrationStatus | null> {
   if (!isTauriEnvironment()) {
     return null;
+  }
+
+  const lastStatus = get().lastHotkeyStatus;
+  const lastAttempt = get().lastHotkeyAttempt;
+  const inFlightFor = get().registeringHotkeyFor;
+  const suppressConflicts = get().suppressHotkeyConflicts;
+
+  if (inFlightFor && profile && inFlightFor === profile.id) {
+    return lastStatus;
   }
 
   try {
@@ -117,14 +138,49 @@ async function registerActiveHotkey(
   }
 
   if (!profile || !profile.enabled) {
+    set({ lastHotkeyAttempt: null, registeringHotkeyFor: null });
     return null;
   }
 
   const accelerator = profile.globalHotkey?.trim();
   if (!accelerator) {
+    set({ lastHotkeyAttempt: null, registeringHotkeyFor: null });
     return null;
   }
 
+  if (suppressConflicts) {
+    if (
+      lastAttempt &&
+      lastAttempt.profileId === profile.id &&
+      lastAttempt.accelerator === accelerator &&
+      (lastAttempt.conflictCodes?.length ?? 0) > 0
+    ) {
+      return null;
+    }
+    set({ suppressHotkeyConflicts: false });
+  }
+
+  if (
+    lastStatus &&
+    !lastStatus.registered &&
+    lastAttempt &&
+    lastAttempt.profileId === profile.id &&
+    lastAttempt.accelerator === accelerator
+  ) {
+    const previousCodes = lastAttempt.conflictCodes ?? null;
+    const currentCodes = lastStatus.conflicts?.map((conflict) => conflict.code) ?? null;
+    if (
+      (!previousCodes && !currentCodes) ||
+      (previousCodes && currentCodes && previousCodes.length === currentCodes.length && previousCodes.every((code, index) => code === currentCodes[index]))
+    ) {
+      if (suppressConflicts) {
+        return null;
+      }
+      return lastStatus;
+    }
+  }
+
+  set({ registeringHotkeyFor: profile.id, suppressHotkeyConflicts: false });
   try {
     const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
       request: {
@@ -137,10 +193,17 @@ async function registerActiveHotkey(
     if (!status.registered) {
       console.warn('Profile hotkey registered with conflicts', status.conflicts);
     }
+    set({
+      lastHotkeyAttempt: {
+        profileId: profile.id,
+        accelerator,
+        conflictCodes: status.conflicts?.map((conflict) => conflict.code) ?? null,
+      },
+    });
     return status;
   } catch (error) {
     console.error('Failed to register profile hotkey', error);
-    return {
+    const failureStatus: HotkeyRegistrationStatus = {
       registered: false,
       conflicts: [
         {
@@ -149,6 +212,19 @@ async function registerActiveHotkey(
         },
       ],
     };
+    set({
+      lastHotkeyAttempt: {
+        profileId: profile.id,
+        accelerator,
+        conflictCodes: failureStatus.conflicts.map((conflict) => conflict.code),
+      },
+    });
+    return failureStatus;
+  } finally {
+    const current = get().registeringHotkeyFor;
+    if (current === profile.id) {
+      set({ registeringHotkeyFor: null });
+    }
   }
 }
 
@@ -168,7 +244,7 @@ async function attachListeners(set: (partial: Partial<ProfileStoreState>) => voi
           error: null,
         });
         const record = get().getProfileById(payload.activeProfileId ?? '');
-        void registerActiveHotkey(record?.profile, payload.activeProfileId ?? null).then(
+        void registerActiveHotkey(record?.profile, payload.activeProfileId ?? null, set, get).then(
           (status) => {
             if (status) {
               set({ lastHotkeyStatus: status });
@@ -190,7 +266,7 @@ async function attachListeners(set: (partial: Partial<ProfileStoreState>) => voi
         const record = get().getProfileByIndex(payload.profile.index);
         if (record) {
           set({ activeProfileId: record.profile.id });
-          void registerActiveHotkey(record.profile, record.profile.id).then((status) => {
+          void registerActiveHotkey(record.profile, record.profile.id, set, get).then((status) => {
             if (status) {
               set({ lastHotkeyStatus: status });
             }
@@ -208,6 +284,9 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   error: null,
   initialized: false,
   lastHotkeyStatus: null,
+  lastHotkeyAttempt: null,
+  registeringHotkeyFor: null,
+  suppressHotkeyConflicts: false,
   async loadProfiles() {
     if (get().isLoading) {
       return;
@@ -224,7 +303,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       const payload = await invoke<ProfileStorePayload>('list_profiles');
       get().setProfiles(payload);
       const activeRecord = get().getProfileById(payload.activeProfileId ?? '');
-      const status = await registerActiveHotkey(activeRecord?.profile, payload.activeProfileId ?? null);
+      const status = await registerActiveHotkey(activeRecord?.profile, payload.activeProfileId ?? null, set, get);
       if (status) {
         set({ lastHotkeyStatus: status });
       }
@@ -252,6 +331,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     }
     try {
       const saved = await invoke<ProfileRecord>('save_profile', { record });
+      set({ suppressHotkeyConflicts: false });
       await get().refreshProfiles();
       return saved;
     } catch (error) {
@@ -278,7 +358,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     try {
       await invoke('activate_profile', { profileId });
       const record = get().getProfileById(profileId);
-      const status = await registerActiveHotkey(record?.profile, profileId);
+      const status = await registerActiveHotkey(record?.profile, profileId, set, get);
       if (status) {
         set({ lastHotkeyStatus: status });
       }
@@ -309,8 +389,70 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     return get().profiles[index];
   },
   clearHotkeyStatus() {
-    set({ lastHotkeyStatus: null });
+    set((state) => ({
+      lastHotkeyStatus: null,
+      suppressHotkeyConflicts: true,
+      lastHotkeyAttempt: state.lastHotkeyAttempt,
+    }));
+  },
+  async retryProfileHotkeyWithOverride() {
+    const attempt = get().lastHotkeyAttempt;
+    if (!attempt?.profileId || !attempt.accelerator) {
+      return null;
+    }
+
+    set({ registeringHotkeyFor: attempt.profileId, suppressHotkeyConflicts: false });
+    try {
+      const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
+        request: {
+          id: `profile:${attempt.profileId}`,
+          accelerator: attempt.accelerator,
+          event: 'hotkeys://trigger',
+          allowConflicts: true,
+        },
+      });
+
+      if (!status.registered) {
+        console.warn('Profile hotkey override still conflicted', status.conflicts);
+      }
+
+      set({
+        lastHotkeyStatus: status,
+        lastHotkeyAttempt: {
+          profileId: attempt.profileId,
+          accelerator: attempt.accelerator,
+          conflictCodes: status.conflicts?.map((conflict) => conflict.code) ?? null,
+        },
+      });
+
+      return status;
+    } catch (error) {
+      console.error('Failed to override profile hotkey', error);
+      const failureStatus: HotkeyRegistrationStatus = {
+        registered: false,
+        conflicts: [
+          {
+            code: 'exception',
+            message: toErrorMessage(error),
+          },
+        ],
+      };
+      set({
+        lastHotkeyStatus: failureStatus,
+        lastHotkeyAttempt: {
+          profileId: attempt.profileId,
+          accelerator: attempt.accelerator,
+          conflictCodes: failureStatus.conflicts.map((conflict) => conflict.code),
+        },
+      });
+      return failureStatus;
+    } finally {
+      if (get().registeringHotkeyFor === attempt.profileId) {
+        set({ registeringHotkeyFor: null });
+      }
+    }
   },
 }));
 
-export const selectProfileHotkeyStatus = (state: ProfileStoreState) => state.lastHotkeyStatus;
+export const selectProfileHotkeyStatus = (state: ProfileStoreState) =>
+  state.suppressHotkeyConflicts ? null : state.lastHotkeyStatus;

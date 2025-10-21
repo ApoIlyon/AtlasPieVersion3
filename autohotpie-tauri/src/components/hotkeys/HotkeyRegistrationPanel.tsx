@@ -4,7 +4,7 @@ import { useProfileStore, selectProfileHotkeyStatus } from '../../state/profileS
 
 export function HotkeyRegistrationPanel() {
   const [id, setId] = useState('global-pie');
-  const [accelerator, setAccelerator] = useState('Ctrl+Alt+P');
+  const [accelerator, setAccelerator] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const { registerHotkey, isSubmitting, error, clearError } = useHotkeyStore((state) => ({
     registerHotkey: state.registerHotkey,
@@ -25,9 +25,10 @@ export function HotkeyRegistrationPanel() {
     clearError();
     setMessage(null);
     try {
-      const success = await registerHotkey({ id, accelerator });
+      const trimmed = accelerator.trim();
+      const success = await registerHotkey({ id, accelerator: trimmed });
       if (success) {
-        setMessage('Hotkey registered successfully.');
+        setMessage(trimmed ? 'Hotkey registered successfully.' : 'Hotkey cleared.');
       } else {
         setMessage(null);
       }
@@ -61,7 +62,6 @@ export function HotkeyRegistrationPanel() {
             value={accelerator}
             onChange={(event) => setAccelerator(event.target.value)}
             placeholder="Ctrl+Alt+P"
-            required
           />
         </label>
 
@@ -72,6 +72,18 @@ export function HotkeyRegistrationPanel() {
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Registering…' : 'Register hotkey'}
+          </button>
+          <button
+            type="button"
+            className="rounded-2xl border border-border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-overlay hover:text-text-primary"
+            onClick={() => {
+              setAccelerator('');
+              setMessage(null);
+              clearError();
+            }}
+            disabled={isSubmitting && !accelerator.length}
+          >
+            Clear
           </button>
           {message && <span className="text-xs text-text-secondary">{message}</span>}
         </div>
