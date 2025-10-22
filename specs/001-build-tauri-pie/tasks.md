@@ -106,8 +106,8 @@
   - Hotkey registration now updates `profileStore.lastHotkeyStatus`; UI shows profile-only conflicts with guidance.
 - [x] T022 [P] [US2] Build profiles dashboard grid view in `autohotpie-tauri/src/screens/ProfilesDashboard.tsx`
 - [x] T023 [P] [US2] Implement nested pie editor UI with breadcrumbs in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T023a [US2] Add profile hotkey editor with validation hints in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T023b [US2] Enforce slice count/depth limits with validation and tests in `autohotpie-tauri/src-tauri/src/domain/validation.rs` & `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T023a [US2] Add profile hotkey editor with validation hints in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T023b [US2] Enforce slice count/depth limits with validation and tests in `autohotpie-tauri/src-tauri/src/domain/validation.rs` & `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T024 [P] [US2] Create icon manager gallery aligned with kando style in `autohotpie-tauri/src/components/icons/IconManager.tsx`
 - [ ] T025 [US2] Implement action builder with macro validation in `autohotpie-tauri/src/components/actions/ActionBuilder.tsx`
 - [ ] T026 [US2] Wire tray switcher for profile activation in `autohotpie-tauri/src-tauri/src/services/tray.rs` and `autohotpie-tauri/src/components/tray/TrayMenu.tsx`
