@@ -1,4 +1,12 @@
-use super::{Action, ActionId, PieMenu, PieMenuId, PieSliceId, Profile, ProfileId};
+use super::{
+    ActionDefinition,
+    ActionId,
+    PieMenu,
+    PieMenuId,
+    PieSliceId,
+    Profile,
+    ProfileId,
+};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
@@ -39,7 +47,7 @@ pub enum DomainValidationError {
 pub fn validate_profile(
     profile: &Profile,
     menus: &[PieMenu],
-    actions: &[Action],
+    actions: &[ActionDefinition],
 ) -> Result<(), Vec<DomainValidationError>> {
     let mut errors: Vec<DomainValidationError> = Vec::new();
     if profile.name.trim().is_empty() {
@@ -49,7 +57,7 @@ pub fn validate_profile(
     }
 
     let menu_map: HashMap<PieMenuId, &PieMenu> = menus.iter().map(|menu| (menu.id, menu)).collect();
-    let action_map: HashMap<ActionId, &Action> =
+    let action_map: HashMap<ActionId, &ActionDefinition> =
         actions.iter().map(|action| (action.id, action)).collect();
 
     if !menu_map.contains_key(&profile.root_menu) {
@@ -77,7 +85,7 @@ pub fn validate_profile(
 fn validate_menu(
     menu: &PieMenu,
     menu_map: &HashMap<PieMenuId, &PieMenu>,
-    action_map: &HashMap<ActionId, &Action>,
+    action_map: &HashMap<ActionId, &ActionDefinition>,
     errors: &mut Vec<DomainValidationError>,
 ) {
     let mut seen_orders: HashSet<u32> = HashSet::new();
@@ -177,21 +185,20 @@ fn traverse_depth(
 mod tests {
     use super::*;
     use crate::domain::pie_menu::{PieAppearance, PieSlice};
-    use crate::domain::ActionPayload;
 
-    fn sample_action() -> Action {
-        Action::new(
-            "Launch",
-            ActionPayload::LaunchProgram {
-                executable: "notepad".to_string(),
-                arguments: vec![],
-                working_dir: None,
-            },
-        )
+    fn sample_action() -> ActionDefinition {
+        ActionDefinition {
+            id: ActionId::new(),
+            name: "Launch".to_string(),
+            description: None,
+            timeout_ms: 3000,
+            last_validated_at: None,
+            steps: Vec::new(),
+        }
     }
 
     fn sample_menu(action_id: ActionId) -> PieMenu {
-        PieMenu {
+        let mut menu = PieMenu {
             id: PieMenuId::new(),
             title: "Main".to_string(),
             appearance: PieAppearance::default(),
@@ -204,7 +211,17 @@ mod tests {
                 child_menu: None,
                 order: 0,
             }],
-        }
+        };
+        menu.slices.push(PieSlice {
+            id: PieSliceId::new(),
+            label: "Inspect".to_string(),
+            icon: None,
+            hotkey: None,
+            action: Some(action_id),
+            child_menu: None,
+            order: 1,
+        });
+        menu
     }
 
     #[test]

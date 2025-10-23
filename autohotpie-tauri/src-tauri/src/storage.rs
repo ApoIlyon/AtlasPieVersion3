@@ -138,6 +138,7 @@ impl StorageManager {
         &self.base_dir
     }
 
+    #[allow(dead_code)]
     pub fn profiles_repo(&self) -> &ProfileRepository {
         &self.profiles_repo
     }
@@ -235,7 +236,7 @@ impl StorageManager {
     }
 
     pub fn load_profiles_or_migrate(&self, settings: &Settings) -> io::Result<ProfileStore> {
-        let mut store = match self.profiles_repo.load() {
+        let store = match self.profiles_repo.load() {
             Ok(store) if !store.profiles.is_empty() => store,
             Ok(_) => {
                 let legacy_file = legacy_settings_file(&self.base_dir);

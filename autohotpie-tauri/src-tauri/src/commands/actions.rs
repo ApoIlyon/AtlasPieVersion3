@@ -1,6 +1,6 @@
 use super::{AppError, AppState, Result};
 use crate::domain::{Action, ActionEventPayload, ActionId};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, State, Runtime};
 
 fn action_not_found(id: &ActionId) -> AppError {
     AppError::Message(format!("action {id} not found"))
@@ -17,8 +17,8 @@ pub fn recent_action_events(state: State<'_, AppState>) -> Result<Vec<ActionEven
 }
 
 #[tauri::command]
-pub fn save_actions(
-    _app: AppHandle,
+pub fn save_actions<R: Runtime>(
+    _app: AppHandle<R>,
     state: State<'_, AppState>,
     actions: Vec<Action>,
 ) -> Result<Vec<Action>> {

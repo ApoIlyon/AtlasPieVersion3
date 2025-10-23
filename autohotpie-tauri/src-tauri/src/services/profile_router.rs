@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::time::{interval, Duration};
 
@@ -76,7 +76,7 @@ impl ProfileRouterState {
     }
 }
 
-pub fn start_router(app: AppHandle) {
+pub fn start_router<R: Runtime>(app: AppHandle<R>) {
     let shared_state = {
         let router_state = app.state::<ProfileRouterState>();
         router_state.handle()
@@ -97,8 +97,8 @@ pub fn start_router(app: AppHandle) {
     });
 }
 
-async fn evaluate(
-    app: &AppHandle,
+async fn evaluate<R: Runtime>(
+    app: &AppHandle<R>,
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
     history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
 ) -> Result<()> {
@@ -359,45 +359,49 @@ fn parse_rule(rule: &crate::domain::profile::ActivationRule) -> Option<Rule> {
             matcher: Matcher::Fallback,
             raw: "fallback".to_string(),
         }),
-        crate::domain::profile::ActivationMatchMode::ProcessName => rule.value.as_ref().map(|value| Rule {
-            target: Target::Process,
-            matcher: Matcher::Exact(value.to_ascii_lowercase()),
-            raw: value.clone(),
-        }),
-        crate::domain::profile::ActivationMatchMode::WindowTitle => rule.value.as_ref().map(|value| Rule {
-            target: Target::Window,
-            matcher: Matcher::Exact(value.to_ascii_lowercase()),
-            raw: value.clone(),
-        }),
-        crate::domain::profile::ActivationMatchMode::WindowClass => rule.value.as_ref().map(|value| Rule {
-            target: Target::Any,
-            matcher: Matcher::Exact(value.to_ascii_lowercase()),
-            raw: value.clone(),
-        }),
-        crate::domain::profile::ActivationMatchMode::Custom => rule.value.as_ref().and_then(|value| {
-            let trimmed = value.trim();
-            if let Some(rest) = trimmed.strip_prefix("regex:") {
-                match Regex::new(rest.trim()) {
-                    Ok(regex) => Some(Rule {
-                        target: Target::Any,
-                        matcher: Matcher::Regex(regex),
-                        raw: trimmed.to_string(),
-                    }),
-                    Err(err) => {
-                        eprintln!("invalid regex '{rest}' in profile rule: {err}");
-                        None
-                    }
-                }
-            } else if trimmed.is_empty() {
+        crate::domain::profile::ActivationMatchMode::ProcessName => rule
+            .value
+            .as_ref()
+            .and_then(|value| rule_from_value(value, Target::Process)),
+        crate::domain::profile::ActivationMatchMode::WindowTitle => rule
+            .value
+            .as_ref()
+            .and_then(|value| rule_from_value(value, Target::Window)),
+        crate::domain::profile::ActivationMatchMode::WindowClass => rule
+            .value
+            .as_ref()
+            .and_then(|value| rule_from_value(value, Target::Any)),
+        crate::domain::profile::ActivationMatchMode::Custom => rule
+            .value
+            .as_ref()
+            .and_then(|value| rule_from_value(value, Target::Any)),
+    }
+}
+
+fn rule_from_value(value: &str, target: Target) -> Option<Rule> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    if let Some(rest) = trimmed.strip_prefix("regex:") {
+        match Regex::new(rest.trim()) {
+            Ok(regex) => Some(Rule {
+                target,
+                matcher: Matcher::Regex(regex),
+                raw: trimmed.to_string(),
+            }),
+            Err(err) => {
+                eprintln!("invalid regex '{rest}' in profile rule: {err}");
                 None
-            } else {
-                Some(Rule {
-                    target: Target::Any,
-                    matcher: Matcher::Exact(trimmed.to_ascii_lowercase()),
-                    raw: trimmed.to_string(),
-                })
             }
-        }),
+        }
+    } else {
+        Some(Rule {
+            target,
+            matcher: Matcher::Exact(trimmed.to_string()),
+            raw: trimmed.to_string(),
+        })
     }
 }
 
@@ -526,7 +530,7 @@ fn format_timestamp(datetime: OffsetDateTime) -> String {
         .unwrap_or_else(|_| datetime.to_string())
 }
 
-pub fn resolve_now(app: &AppHandle) -> Result<Option<ActiveProfileSnapshot>> {
+pub fn resolve_now<R: Runtime>(app: &AppHandle<R>) -> Result<Option<ActiveProfileSnapshot>> {
     let shared_state = {
         let router_state = app.state::<ProfileRouterState>();
         router_state.handle()
@@ -584,17 +588,84 @@ pub fn resolve_now(app: &AppHandle) -> Result<Option<ActiveProfileSnapshot>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{AppProfile, Settings};
     use crate::services::system_status::WindowSnapshot;
+    use crate::storage::profile_repository::{ProfileRecord, ProfileStore};
+    use crate::{
+        domain::profile::{ActivationMatchMode, ActivationRule, Profile},
+        domain::{PieMenuId, ProfileId},
+    };
 
     use std::collections::HashMap;
     use std::sync::Arc;
     use time::OffsetDateTime;
 
-    fn base_settings() -> Settings {
-        Settings {
-            global: serde_json::json!({}),
-            app_profiles: Vec::new(),
+    fn empty_store() -> ProfileStore {
+        ProfileStore {
+            profiles: Vec::new(),
+            ..ProfileStore::default()
+        }
+    }
+
+    fn make_rule(mode: ActivationMatchMode, value: Option<&str>) -> ActivationRule {
+        ActivationRule {
+            mode,
+            value: value.map(|v| v.to_string()),
+            negate: None,
+        }
+    }
+
+    fn make_record(name: &str, rules: Vec<ActivationRule>) -> ProfileRecord {
+        let root_menu = PieMenuId::new();
+        let action_id = crate::domain::ActionId::new();
+        let action = crate::domain::ActionDefinition {
+            id: action_id,
+            name: format!("{name} Action"),
+            description: None,
+            timeout_ms: 3000,
+            last_validated_at: None,
+            steps: Vec::new(),
+        };
+
+        let menu = crate::domain::pie_menu::PieMenu {
+            id: root_menu,
+            title: format!("{name} Menu"),
+            appearance: crate::domain::pie_menu::PieAppearance::default(),
+            slices: vec![
+                crate::domain::pie_menu::PieSlice {
+                    id: crate::domain::pie_menu::PieSliceId::new(),
+                    label: "Primary".into(),
+                    icon: None,
+                    hotkey: None,
+                    action: Some(action_id),
+                    child_menu: None,
+                    order: 0,
+                },
+                crate::domain::pie_menu::PieSlice {
+                    id: crate::domain::pie_menu::PieSliceId::new(),
+                    label: "Secondary".into(),
+                    icon: None,
+                    hotkey: None,
+                    action: Some(action_id),
+                    child_menu: None,
+                    order: 1,
+                },
+            ],
+        };
+
+        ProfileRecord {
+            profile: Profile {
+                id: ProfileId::new(),
+                name: name.to_string(),
+                description: None,
+                enabled: true,
+                global_hotkey: None,
+                activation_rules: rules,
+                root_menu,
+            },
+            menus: vec![menu],
+            actions: vec![action],
+            created_at: None,
+            updated_at: None,
         }
     }
 
@@ -607,36 +678,32 @@ mod tests {
 
     #[test]
     fn select_profile_matches_process_exact() {
-        let mut settings = base_settings();
-        settings.app_profiles.push(AppProfile {
-            name: "Chrome".into(),
-            ahk_handles: vec!["process:chrome.exe".into()],
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
+        let mut store = empty_store();
+        store.profiles.push(make_record(
+            "Chrome",
+            vec![make_rule(ActivationMatchMode::ProcessName, Some("chrome.exe"))],
+        ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
         let result =
-            select_profile(&settings, &snapshot(Some("chrome.exe"), None), &history).unwrap();
+            select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
         assert_eq!(result.name, "Chrome");
         assert_eq!(result.match_kind, MatchKind::ProcessName);
     }
 
     #[test]
     fn select_profile_matches_window_regex() {
-        let mut settings = base_settings();
-        settings.app_profiles.push(AppProfile {
-            name: "Editor".into(),
-            ahk_handles: vec!["window:regex:^Visual Studio".into()],
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
+        let mut store = empty_store();
+        store.profiles.push(make_record(
+            "Editor",
+            vec![make_rule(ActivationMatchMode::WindowTitle, Some("regex:^Visual Studio"))],
+        ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
         let result = select_profile(
-            &settings,
+            &store,
             &snapshot(None, Some("Visual Studio Code")),
             &history,
         )
@@ -647,24 +714,20 @@ mod tests {
 
     #[test]
     fn select_profile_prefers_first_matching_profile_in_order() {
-        let mut settings = base_settings();
-        settings.app_profiles.push(AppProfile {
-            name: "VS Code".into(),
-            ahk_handles: vec!["process:code.exe".into()],
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
-        settings.app_profiles.push(AppProfile {
-            name: "Browser".into(),
-            ahk_handles: vec!["window:regex:Code".into()],
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
+        let mut store = empty_store();
+        store.profiles.push(make_record(
+            "VS Code",
+            vec![make_rule(ActivationMatchMode::ProcessName, Some("code.exe"))],
+        ));
+        store.profiles.push(make_record(
+            "Browser",
+            vec![make_rule(ActivationMatchMode::WindowTitle, Some("regex:Code"))],
+        ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
         let result = select_profile(
-            &settings,
+            &store,
             &snapshot(Some("code.exe"), Some("Visual Studio Code")),
             &history,
         )
@@ -676,24 +739,17 @@ mod tests {
 
     #[test]
     fn select_profile_uses_specific_match_before_fallback_profiles() {
-        let mut settings = base_settings();
-        settings.app_profiles.push(AppProfile {
-            name: "Default".into(),
-            ahk_handles: Vec::new(),
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
-        settings.app_profiles.push(AppProfile {
-            name: "Chrome".into(),
-            ahk_handles: vec!["process:chrome.exe".into()],
-            enable: true,
-            ..AppProfile::default_default_profile()
-        });
+        let mut store = empty_store();
+        store.profiles.push(make_record("Default", Vec::new()));
+        store.profiles.push(make_record(
+            "Chrome",
+            vec![make_rule(ActivationMatchMode::ProcessName, Some("chrome.exe"))],
+        ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
         let result =
-            select_profile(&settings, &snapshot(Some("chrome.exe"), None), &history).unwrap();
+            select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
 
         assert_eq!(result.name, "Chrome");
         assert_eq!(result.match_kind, MatchKind::ProcessName);

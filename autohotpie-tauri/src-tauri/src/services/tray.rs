@@ -1,16 +1,18 @@
+#[cfg(feature = "tray-icon")]
 use tauri::{
     tray::{MouseButton, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager, Runtime,
 };
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
 const MENU_TOGGLE_ID: &str = "menu.toggle-pie";
 
+#[cfg(feature = "tray-icon")]
 pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    #[cfg(target_os = "macos")]
+    #[cfg(all(feature = "tray-icon", target_os = "macos"))]
     setup_menu_bar(app)?;
 
     let mut builder = TrayIconBuilder::with_id("main")
@@ -26,6 +28,7 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     builder.build(app).map(|_| ())
 }
 
+#[cfg(feature = "tray-icon")]
 fn on_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     match event {
         TrayIconEvent::Click { button, .. } | TrayIconEvent::DoubleClick { button, .. } => {
@@ -37,6 +40,7 @@ fn on_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     }
 }
 
+#[cfg(feature = "tray-icon")]
 fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
     if let Some(window) = tray.app_handle().get_webview_window("main") {
         let _ = window.unminimize();
@@ -45,7 +49,7 @@ fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
     }
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
 fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let toggle_item = MenuItemBuilder::new("Toggle Pie Menu")
         .id(MENU_TOGGLE_ID)

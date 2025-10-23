@@ -1,5 +1,6 @@
 use crate::domain::pie_menu::{PieMenu, PieMenuId, PieSlice, PieSliceId};
 use crate::domain::profile::{ActivationMatchMode, ActivationRule, Profile, ProfileId};
+use crate::domain::{ActionDefinition, MacroStepKind};
 use crate::models::AppProfile;
 use crate::storage::SETTINGS_FILE_NAME;
 use serde::{Deserialize, Serialize};
@@ -16,12 +17,101 @@ fn other_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, message.into())
 }
 
+fn normalize_profile_store(store: &mut ProfileStore) {
+    store.schema_version = PROFILES_SCHEMA_VERSION;
+    store.profiles.iter_mut().for_each(|record| {
+        record.menus.iter_mut().for_each(|menu| {
+            menu.slices.iter_mut().for_each(|slice| {
+                slice.icon = slice.icon.as_ref().and_then(|value| {
+                    let trimmed = value.trim();
+                    if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                });
+                slice.hotkey = slice.hotkey.as_ref().and_then(|value| {
+                    let trimmed = value.trim();
+                    if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                });
+            });
+            menu.slices.sort_by_key(|slice| slice.order);
+        });
+
+        record.actions = record
+            .actions
+            .iter()
+            .cloned()
+            .map(normalize_action_definition)
+            .collect();
+        record.profile.activation_rules = record
+            .profile
+            .activation_rules
+            .iter()
+            .cloned()
+            .map(normalize_activation_rule)
+            .collect();
+    });
+}
+
+fn normalize_action_definition(mut action: ActionDefinition) -> ActionDefinition {
+    action.name = action.name.trim().to_string();
+    action.description = action.description.and_then(|value| {
+        let trimmed = value.trim();
+        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+    });
+    action.steps = action
+        .steps
+        .into_iter()
+        .enumerate()
+        .map(|(index, mut step)| {
+            step.order = index as u32;
+            step.note = step.note.and_then(|value| {
+                let trimmed = value.trim();
+                if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+            });
+            match &mut step.kind {
+                MacroStepKind::Launch { app_path, arguments } => {
+                    *app_path = app_path.trim().to_string();
+                    *arguments = arguments.as_ref().and_then(|value| {
+                        let trimmed = value.trim();
+                        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                    });
+                }
+                MacroStepKind::Keys { keys, repeat } => {
+                    *keys = keys.trim().to_string();
+                    if *repeat == 0 {
+                        *repeat = 1;
+                    }
+                }
+                MacroStepKind::Delay { duration_ms } => {
+                    if *duration_ms == 0 {
+                        *duration_ms = 10;
+                    }
+                }
+                MacroStepKind::Script { language, script } => {
+                    *language = language.trim().to_string();
+                    *script = script.trim().to_string();
+                }
+            }
+            step
+        })
+        .collect();
+    action
+}
+
+fn normalize_activation_rule(mut rule: ActivationRule) -> ActivationRule {
+    rule.value = rule.value.and_then(|value| {
+        let trimmed = value.trim();
+        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+    });
+    rule
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileRecord {
     pub profile: Profile,
     #[serde(default)]
     pub menus: Vec<PieMenu>,
+    #[serde(default)]
+    pub actions: Vec<ActionDefinition>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -67,6 +157,7 @@ impl ProfileRepository {
         }
     }
 
+    #[allow(dead_code)]
     pub fn file_path(&self) -> &Path {
         &self.file_path
     }
@@ -76,15 +167,18 @@ impl ProfileRepository {
             return Ok(ProfileStore::default());
         }
         let data = fs::read_to_string(&self.file_path)?;
-        let store: ProfileStore = serde_json::from_str(&data)
+        let mut store: ProfileStore = serde_json::from_str(&data)
             .map_err(|err| other_error(format!("failed to parse {}: {err}", PROFILES_FILE_NAME)))?;
+        normalize_profile_store(&mut store);
         Ok(store)
     }
 
     pub fn save(&self, store: &ProfileStore) -> io::Result<()> {
         self.ensure_dirs()?;
         self.create_backup()?;
-        let payload = serde_json::to_string_pretty(store)
+        let mut normalized = store.clone();
+        normalize_profile_store(&mut normalized);
+        let payload = serde_json::to_string_pretty(&normalized)
             .map_err(|err| other_error(format!("failed to serialize profiles: {err}")))?;
         fs::write(&self.file_path, payload)?;
         Ok(())
@@ -115,6 +209,7 @@ impl ProfileRepository {
         store.profiles = migrated_profiles;
         store.migrated_from_settings = Some(OffsetDateTime::now_utc().to_string());
         store.active_profile_id = store.profiles.first().map(|entry| entry.profile.id);
+        normalize_profile_store(&mut store);
         self.save(&store)?;
         Ok(Some(store))
     }
@@ -201,6 +296,7 @@ fn convert_legacy_profile(source: &AppProfile) -> ProfileRecord {
     ProfileRecord {
         profile,
         menus,
+        actions: Vec::new(),
         created_at: Some(now.clone()),
         updated_at: Some(now),
     }

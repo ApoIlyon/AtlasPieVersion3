@@ -95,3 +95,59 @@ pub enum ActionPayload {
         params: Value,
     },
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActionDefinition {
+    pub id: ActionId,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_macro_timeout")]
+    pub timeout_ms: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_validated_at: Option<String>,
+    #[serde(default)]
+    pub steps: Vec<MacroStepDefinition>,
+}
+
+fn default_macro_timeout() -> u32 {
+    3000
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MacroStepDefinition {
+    pub id: ActionId,
+    pub order: u32,
+    #[serde(flatten)]
+    pub kind: MacroStepKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum MacroStepKind {
+    Launch {
+        app_path: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        arguments: Option<String>,
+    },
+    Keys {
+        keys: String,
+        #[serde(default = "default_repeat")]
+        repeat: u32,
+    },
+    Delay {
+        duration_ms: u32,
+    },
+    Script {
+        language: String,
+        script: String,
+    },
+}
+
+fn default_repeat() -> u32 {
+    1
+}

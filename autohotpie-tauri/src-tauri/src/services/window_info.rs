@@ -2,13 +2,13 @@ use crate::services::system_status::{CursorPosition, SystemStatus, WindowSnapsho
 use anyhow::{anyhow, Result};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tokio::time::interval;
 
 const WINDOW_EVENT: &str = "system://window-info";
 const POLL_INTERVAL: Duration = Duration::from_millis(750);
 
-pub fn start_monitor(app: AppHandle, status: Arc<Mutex<SystemStatus>>) {
+pub fn start_monitor<R: Runtime>(app: AppHandle<R>, status: Arc<Mutex<SystemStatus>>) {
     tauri::async_runtime::spawn(async move {
         if let Err(err) = run_loop(app.clone(), status.clone()).await {
             eprintln!("window info monitor exited: {err}");
@@ -16,7 +16,7 @@ pub fn start_monitor(app: AppHandle, status: Arc<Mutex<SystemStatus>>) {
     });
 }
 
-async fn run_loop(app: AppHandle, status: Arc<Mutex<SystemStatus>>) -> Result<()> {
+async fn run_loop<R: Runtime>(app: AppHandle<R>, status: Arc<Mutex<SystemStatus>>) -> Result<()> {
     publish_snapshot(&app, &status).await?;
     let mut ticker = interval(POLL_INTERVAL);
     loop {
@@ -25,7 +25,7 @@ async fn run_loop(app: AppHandle, status: Arc<Mutex<SystemStatus>>) -> Result<()
     }
 }
 
-async fn publish_snapshot(app: &AppHandle, status: &Arc<Mutex<SystemStatus>>) -> Result<()> {
+async fn publish_snapshot<R: Runtime>(app: &AppHandle<R>, status: &Arc<Mutex<SystemStatus>>) -> Result<()> {
     let snapshot = collect_snapshot(app).await?;
     {
         let mut guard = status
@@ -37,7 +37,7 @@ async fn publish_snapshot(app: &AppHandle, status: &Arc<Mutex<SystemStatus>>) ->
     Ok(())
 }
 
-async fn collect_snapshot(app: &AppHandle) -> Result<WindowSnapshot> {
+async fn collect_snapshot<R: Runtime>(app: &AppHandle<R>) -> Result<WindowSnapshot> {
     let mut snapshot = WindowSnapshot::now();
 
     snapshot.process_name = current_process_name(app);
@@ -64,7 +64,7 @@ async fn collect_snapshot(app: &AppHandle) -> Result<WindowSnapshot> {
     Ok(snapshot)
 }
 
-fn current_process_name(app: &AppHandle) -> Option<String> {
+fn current_process_name<R: Runtime>(app: &AppHandle<R>) -> Option<String> {
     if let Some(name) = app.config().product_name.clone() {
         if !name.is_empty() {
             return Some(name);

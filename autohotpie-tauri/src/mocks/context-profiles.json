@@ -51,36 +51,96 @@
         {
           "id": "action-launch-calculator",
           "name": "Launch Calculator",
-          "kind": "system:command",
-          "payload": {
-            "command": "calc"
-          }
+          "description": "Open Windows calculator.",
+          "kind": "macro",
+          "timeoutMs": 3000,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-launch-calculator-1",
+              "order": 0,
+              "kind": "launch",
+              "appPath": "calc",
+              "arguments": null,
+              "note": null
+            },
+            {
+              "id": "step-launch-calculator-2",
+              "order": 1,
+              "kind": "delay",
+              "durationMs": 250,
+              "note": "Wait for UI"
+            }
+          ]
         },
         {
           "id": "action-open-notepad",
           "name": "Open Notepad",
-          "kind": "system:command",
-          "payload": {
-            "command": "notepad"
-          }
+          "description": "Launch notepad and type greeting.",
+          "kind": "macro",
+          "timeoutMs": 3500,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-open-notepad-launch",
+              "order": 0,
+              "kind": "launch",
+              "appPath": "notepad",
+              "arguments": null,
+              "note": null
+            },
+            {
+              "id": "step-open-notepad-delay",
+              "order": 1,
+              "kind": "delay",
+              "durationMs": 350,
+              "note": null
+            },
+            {
+              "id": "step-open-notepad-keys",
+              "order": 2,
+              "kind": "keys",
+              "keys": "Hello from AutoHotPie!",
+              "repeat": 1,
+              "note": null
+            }
+          ]
         },
         {
           "id": "action-open-downloads",
           "name": "Open Downloads",
-          "kind": "system:command",
-          "payload": {
-            "command": "explorer",
-            "args": ["%USERPROFILE%\\Downloads"]
-          }
+          "description": null,
+          "kind": "macro",
+          "timeoutMs": 4000,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-open-downloads-launch",
+              "order": 0,
+              "kind": "launch",
+              "appPath": "explorer",
+              "arguments": "%USERPROFILE%\\Downloads",
+              "note": null
+            }
+          ]
         },
         {
           "id": "action-mute-audio",
           "name": "Mute Audio",
-          "kind": "system:command",
-          "payload": {
-            "command": "nircmd.exe",
-            "args": ["mutesysvolume", "2"]
-          }
+          "description": "Toggle system mute via nircmd.",
+          "kind": "macro",
+          "timeoutMs": 2000,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-mute-audio-script",
+              "order": 0,
+              "kind": "script",
+              "language": "powershell",
+              "script": "nircmd.exe mutesysvolume 2",
+              "note": null
+            }
+          ]
         }
       ]
     },
@@ -128,18 +188,68 @@
         {
           "id": "action-switch-terminal",
           "name": "Switch Terminal",
-          "kind": "system:command",
-          "payload": {
-            "command": "scripts/switch-terminal.ps1"
-          }
+          "description": null,
+          "kind": "macro",
+          "timeoutMs": 4500,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-switch-terminal-keys",
+              "order": 0,
+              "kind": "keys",
+              "keys": "Ctrl+`",
+              "repeat": 1,
+              "note": "Toggle integrated terminal"
+            },
+            {
+              "id": "step-switch-terminal-delay",
+              "order": 1,
+              "kind": "delay",
+              "durationMs": 200,
+              "note": null
+            },
+            {
+              "id": "step-switch-terminal-keys-2",
+              "order": 2,
+              "kind": "keys",
+              "keys": "Ctrl+Shift+`",
+              "repeat": 1,
+              "note": "Cycle terminal"
+            }
+          ]
         },
         {
           "id": "action-build-project",
           "name": "Build Project",
-          "kind": "system:command",
-          "payload": {
-            "command": "scripts/build-project.ps1"
-          }
+          "description": "Trigger build task.",
+          "kind": "macro",
+          "timeoutMs": 6000,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-build-project-keys",
+              "order": 0,
+              "kind": "keys",
+              "keys": "Ctrl+Shift+B",
+              "repeat": 1,
+              "note": null
+            },
+            {
+              "id": "step-build-project-delay",
+              "order": 1,
+              "kind": "delay",
+              "durationMs": 500,
+              "note": null
+            },
+            {
+              "id": "step-build-project-script",
+              "order": 2,
+              "kind": "script",
+              "language": "powershell",
+              "script": "Write-Host 'Waiting for build tasks list'",
+              "note": "Placeholder"
+            }
+          ]
         }
       ]
     },
@@ -191,18 +301,38 @@
         {
           "id": "action-open-devtools",
           "name": "Open DevTools",
-          "kind": "system:command",
-          "payload": {
-            "command": "scripts/open-devtools.ps1"
-          }
+          "description": "Open developer tools via keyboard shortcut.",
+          "kind": "macro",
+          "timeoutMs": 2500,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-open-devtools-keys",
+              "order": 0,
+              "kind": "keys",
+              "keys": "Ctrl+Shift+I",
+              "repeat": 1,
+              "note": null
+            }
+          ]
         },
         {
           "id": "action-refresh-tab",
           "name": "Refresh Tab",
-          "kind": "system:command",
-          "payload": {
-            "command": "Refresh"
-          }
+          "description": null,
+          "kind": "macro",
+          "timeoutMs": 2000,
+          "lastValidatedAt": "2025-10-18T17:42:10.000Z",
+          "steps": [
+            {
+              "id": "step-refresh-tab-keys",
+              "order": 0,
+              "kind": "keys",
+              "keys": "Ctrl+R",
+              "repeat": 1,
+              "note": null
+            }
+          ]
         }
       ]
     }

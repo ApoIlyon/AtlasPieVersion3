@@ -4,7 +4,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Runtime};
 use tokio::time::interval;
 
 const STORAGE_EVENT: &str = "system://storage-mode";
@@ -22,7 +22,7 @@ pub fn detect_mode(storage: &StorageManager) -> StorageMode {
     }
 }
 
-pub fn start_monitor(app: AppHandle, storage: StorageManager, status: Arc<Mutex<SystemStatus>>) {
+pub fn start_monitor<R: Runtime>(app: AppHandle<R>, storage: StorageManager, status: Arc<Mutex<SystemStatus>>) {
     tauri::async_runtime::spawn(async move {
         if let Err(err) = run_loop(app.clone(), storage.clone(), status.clone()).await {
             eprintln!("storage guard exited: {err}");
@@ -30,8 +30,8 @@ pub fn start_monitor(app: AppHandle, storage: StorageManager, status: Arc<Mutex<
     });
 }
 
-async fn run_loop(
-    app: AppHandle,
+async fn run_loop<R: Runtime>(
+    app: AppHandle<R>,
     storage: StorageManager,
     status: Arc<Mutex<SystemStatus>>,
 ) -> anyhow::Result<()> {
@@ -43,8 +43,8 @@ async fn run_loop(
     }
 }
 
-async fn update_mode(
-    app: &AppHandle,
+async fn update_mode<R: Runtime>(
+    app: &AppHandle<R>,
     storage: &StorageManager,
     status: &Arc<Mutex<SystemStatus>>,
 ) -> anyhow::Result<()> {

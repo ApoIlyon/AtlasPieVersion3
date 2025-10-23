@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, State, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
@@ -122,8 +122,8 @@ fn default_emit_event() -> String {
 }
 
 #[tauri::command]
-pub fn register_hotkey(
-    app: AppHandle,
+pub fn register_hotkey<R: Runtime>(
+    app: AppHandle<R>,
     state: State<'_, HotkeyState>,
     request: RegisterHotkeyRequest,
 ) -> Result<HotkeyRegistrationStatus> {
@@ -138,8 +138,8 @@ pub fn register_hotkey(
     )
 }
 
-fn register_hotkey_impl<FRegister, FUnregister, FIsRegistered, FPlatformProbe>(
-    app: &AppHandle,
+fn register_hotkey_impl<R: Runtime, FRegister, FUnregister, FIsRegistered, FPlatformProbe>(
+    app: &AppHandle<R>,
     state: &HotkeyState,
     request: RegisterHotkeyRequest,
     mut register_fn: FRegister,
@@ -164,7 +164,7 @@ where
         is_registered_fn(shortcut)
     })?;
 
-    let mut publish_status = |status: &HotkeyRegistrationStatus| {
+    let publish_status = |status: &HotkeyRegistrationStatus| {
         broadcast_conflicts(
             &app,
             &HotkeyConflictSnapshot {
@@ -176,7 +176,7 @@ where
         );
     };
 
-    let mut finalize = |registered: bool, conflicts: Vec<HotkeyConflict>| {
+    let finalize = |registered: bool, conflicts: Vec<HotkeyConflict>| {
         let status = HotkeyRegistrationStatus {
             registered,
             conflicts,
@@ -269,8 +269,8 @@ where
 }
 
 #[tauri::command]
-pub fn unregister_hotkey(
-    app: AppHandle,
+pub fn unregister_hotkey<R: Runtime>(
+    app: AppHandle<R>,
     state: State<'_, HotkeyState>,
     request: UnregisterHotkeyRequest,
 ) -> Result<()> {
@@ -286,8 +286,8 @@ pub fn list_hotkeys(state: State<'_, HotkeyState>) -> Result<Vec<RegisteredHotke
 }
 
 #[tauri::command]
-pub fn check_hotkey(
-    app: AppHandle,
+pub fn check_hotkey<R: Runtime>(
+    app: AppHandle<R>,
     state: State<'_, HotkeyState>,
     request: HotkeyCheckRequest,
 ) -> Result<HotkeyRegistrationStatus> {
@@ -335,8 +335,8 @@ pub fn check_hotkey(
     Ok(status)
 }
 
-fn register_shortcut(
-    app: &AppHandle,
+fn register_shortcut<R: Runtime>(
+    app: &AppHandle<R>,
     shortcut: Shortcut,
     event: String,
     payload: HotkeyEventPayload,
@@ -353,7 +353,7 @@ fn register_shortcut(
         .map_err(|err| AppError::Message(format!("failed to register global shortcut: {err}")))
 }
 
-fn unregister_shortcut(app: &AppHandle, accelerator: &str) -> Result<()> {
+fn unregister_shortcut<R: Runtime>(app: &AppHandle<R>, accelerator: &str) -> Result<()> {
     if let Ok(shortcut) = Shortcut::from_str(accelerator) {
         if app.global_shortcut().is_registered(shortcut.clone()) {
             app.global_shortcut().unregister(shortcut).map_err(|err| {
@@ -365,8 +365,8 @@ fn unregister_shortcut(app: &AppHandle, accelerator: &str) -> Result<()> {
     Ok(())
 }
 
-fn probe_platform_conflicts(
-    app: &AppHandle,
+fn probe_platform_conflicts<R: Runtime>(
+    app: &AppHandle<R>,
     shortcut: Shortcut,
     accelerator: &str,
 ) -> Result<Vec<HotkeyConflict>> {
@@ -393,12 +393,12 @@ fn probe_platform_conflicts(
     Ok(conflicts)
 }
 
-fn broadcast_conflicts(app: &AppHandle, snapshot: &HotkeyConflictSnapshot) {
+fn broadcast_conflicts<R: Runtime>(app: &AppHandle<R>, snapshot: &HotkeyConflictSnapshot) {
     let _ = app.emit("hotkeys://conflicts", snapshot);
 }
 
-fn evaluate_conflicts(
-    app: &AppHandle,
+fn evaluate_conflicts<R: Runtime>(
+    app: &AppHandle<R>,
     state: &State<'_, HotkeyState>,
     accelerator: &str,
     ignore_id: Option<&str>,

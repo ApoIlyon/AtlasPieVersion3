@@ -2,11 +2,14 @@ use super::{AppError, AppState, Result, SystemState};
 use crate::services::profile_router::{ActiveProfileSnapshot, ProfileRouterState};
 use crate::services::system_status::SystemStatus;
 use std::process::Command;
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State, Runtime};
 use tokio::sync::broadcast::error::RecvError;
 
 #[tauri::command]
-pub async fn subscribe_action_events(state: State<'_, AppState>, app: AppHandle) -> Result<()> {
+pub async fn subscribe_action_events<R: Runtime>(
+    state: State<'_, AppState>,
+    app: AppHandle<R>,
+) -> Result<()> {
     let mut rx = state.action_events_channel().subscribe();
     let emit_handle = app.clone();
     tauri::async_runtime::spawn(async move {
@@ -27,7 +30,7 @@ pub async fn subscribe_action_events(state: State<'_, AppState>, app: AppHandle)
 use tauri_plugin_opener::OpenerExt;
 
 #[tauri::command]
-pub fn run_pie_menu(app: AppHandle, use_ahk: bool) -> Result<()> {
+pub fn run_pie_menu<R: Runtime>(app: AppHandle<R>, use_ahk: bool) -> Result<()> {
     let resource_name = if use_ahk {
         "PieMenu.ahk"
     } else {
@@ -63,12 +66,12 @@ pub fn get_active_profile(
 }
 
 #[tauri::command]
-pub fn get_version(app: AppHandle) -> Result<String> {
+pub fn get_version<R: Runtime>(app: AppHandle<R>) -> Result<String> {
     Ok(super::current_version(&app))
 }
 
 #[tauri::command]
-pub fn open_logs(app: AppHandle, state: State<'_, AppState>) -> Result<()> {
+pub fn open_logs<R: Runtime>(app: AppHandle<R>, state: State<'_, AppState>) -> Result<()> {
     let path: String = state
         .audit()
         .current_log_path()

@@ -84,6 +84,56 @@ autohotpie-tauri/contracts/
 
 **Structure Decision**: Используем монорепозиторий `autohotpie-tauri/`: фронтенд в `src/`, Rust backend в `src-tauri/src/` с разделением по слоям. Tests и scripts выстроены по уровням; контракты живут рядом для синхронизации с документацией.
 
+## ActionDefinition Payload Contract
+
+- **Command scope**: `list_profiles`, `save_profile`, последующие CRUD-команды возвращают/принимают `ProfileStore` целиком.
+- **ProfileStore JSON**:
+  - `schemaVersion: number`
+  - `profiles: ProfileRecord[]`
+  - `activeProfileId?: string | null`
+  - `migratedFromSettings?: string | null`
+- **ProfileRecord JSON**:
+  - `profile`: базовые поля (`id`, `name`, `enabled`, `globalHotkey`, `activationRules[]`, `rootMenu`)
+  - `menus[]`: без изменений
+  - `actions[]: ActionDefinition[]`
+  - `createdAt?: string | null`, `updatedAt?: string | null`
+- **ActionDefinition** (frontend/backend shared):
+
+```jsonc
+{
+  "id": "action-launch-calculator",
+  "name": "Launch Calculator",
+  "description": null,
+  "kind": "macro",
+  "timeoutMs": 3000,
+  "lastValidatedAt": "2025-10-18T17:42:10Z",
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 0,
+      "kind": "launch",
+      "appPath": "calc",
+      "arguments": null,
+      "note": null
+    },
+    {
+      "id": "step-2",
+      "order": 1,
+      "kind": "delay",
+      "durationMs": 250,
+      "note": null
+    }
+  ]
+}
+```
+
+- **MacroStep payloads**:
+  - `launch`: `appPath`, `arguments?`, `note?`
+  - `keys`: `keys`, `repeat?`, `note?`
+  - `delay`: `durationMs`, `note?`
+  - `script`: `language ('powershell'|'bash'|'python')`, `script`, `note?`
+- **Validation contract**: backend возвращает `AppError::Message` с JSON `{ kind: "profile-validation", errors: string[] }` если макросы не проходят проверку.
+
 ## Complexity Tracking
 
 *Fill ONLY if Constitution Check has violations that must be justified*

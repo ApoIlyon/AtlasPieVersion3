@@ -5,6 +5,8 @@ import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import mockContextProfilesJson from '../mocks/context-profiles.json';
 import type { HotkeyRegistrationStatus } from '../types/hotkeys';
+import type { ActionDefinition } from '../types/actions';
+import { cloneActionDefinition } from '../types/actions';
 
 export type ActivationMatchMode =
   | 'always'
@@ -55,13 +57,18 @@ export interface PieMenu {
 export interface ProfileRecord {
   profile: Profile;
   menus: PieMenu[];
+  actions: ActionDefinition[];
   createdAt?: string | null;
   updatedAt?: string | null;
 }
 
+type ProfileRecordLike = Omit<ProfileRecord, 'actions'> & {
+  actions?: ActionDefinition[] | null;
+};
+
 export interface ProfileStorePayload {
   schemaVersion: number;
-  profiles: ProfileRecord[];
+  profiles: ProfileRecordLike[];
   activeProfileId?: string | null;
   migratedFromSettings?: string | null;
 }
@@ -96,24 +103,29 @@ const eventBindings: {
 } = {};
 
 interface MockContextProfilesFile {
-  profiles: ProfileRecord[];
+  profiles: ProfileRecordLike[];
 }
 
-function cloneMockProfiles(records: ProfileRecord[]): ProfileRecord[] {
-  return records.map((record) => ({
+function normalizeProfileRecord(record: ProfileRecordLike): ProfileRecord {
+  return {
     profile: { ...record.profile },
     menus: (record.menus ?? []).map((menu) => ({
       ...menu,
       appearance: { ...menu.appearance },
       slices: (menu.slices ?? []).map((slice) => ({ ...slice })),
     })),
+    actions: (record.actions ?? []).map((action) => cloneActionDefinition(action)),
     createdAt: record.createdAt ?? null,
     updatedAt: record.updatedAt ?? null,
-  }));
+  };
+}
+
+function cloneMockProfiles(records: ProfileRecordLike[]): ProfileRecord[] {
+  return records.map((record) => normalizeProfileRecord(record));
 }
 
 function loadMockProfiles(): ProfileRecord[] {
-  const payload = mockContextProfilesJson as MockContextProfilesFile | undefined;
+  const payload = mockContextProfilesJson as unknown as MockContextProfilesFile | undefined;
   if (!payload?.profiles?.length) {
     return [];
   }

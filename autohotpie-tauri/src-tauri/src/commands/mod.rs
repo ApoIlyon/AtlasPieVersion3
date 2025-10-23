@@ -25,7 +25,7 @@ use crate::storage::profile_repository::ProfileStore;
 use crate::storage::StorageManager;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::{ipc::InvokeError, App, AppHandle, Emitter, Manager};
+use tauri::{ipc::InvokeError, App, AppHandle, Emitter, Manager, Runtime};
 use tokio::sync::broadcast::error::RecvError;
 
 #[derive(Debug, thiserror::Error)]
@@ -128,7 +128,7 @@ pub struct SystemState {
     pub status: Arc<Mutex<SystemStatus>>,
 }
 
-pub fn init(app: &mut App) -> anyhow::Result<()> {
+pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     let handle = app.handle();
     let storage = StorageManager::new(handle.clone())?;
     let mut settings = storage.load()?;
@@ -198,7 +198,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
     connectivity::start_monitor(handle.clone(), shared_status.clone());
     storage_guard::start_monitor(handle.clone(), storage.clone(), shared_status.clone());
     window_info::start_monitor(handle.clone(), shared_status);
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(all(feature = "tray-icon", not(target_os = "linux")))]
     if let Err(err) = crate::services::tray::setup_tray(&handle) {
         eprintln!("failed to set up tray icon: {err}");
     }
@@ -207,7 +207,7 @@ pub fn init(app: &mut App) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn current_version(app: &AppHandle) -> String {
+pub fn current_version<R: Runtime>(app: &AppHandle<R>) -> String {
     app.config()
         .version
         .as_deref()
@@ -224,8 +224,8 @@ fn collect_actions(actions: &[Action]) -> HashMap<ActionId, Action> {
 }
 
 #[tauri::command]
-pub fn resolve_active_profile(
-    app: AppHandle,
+pub fn resolve_active_profile<R: Runtime>(
+    app: AppHandle<R>,
 ) -> Result<Option<profile_router::ActiveProfileSnapshot>> {
     profile_router::resolve_now(&app).map_err(|err| AppError::Message(err.to_string()))
 }

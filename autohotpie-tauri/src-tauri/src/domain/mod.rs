@@ -7,7 +7,14 @@ pub mod pie_menu;
 pub mod profile;
 pub mod validation;
 
-pub use action::{Action, ActionId, ActionPayload};
+pub use action::{
+    Action,
+    ActionDefinition,
+    ActionId,
+    ActionPayload,
+    MacroStepDefinition,
+    MacroStepKind,
+};
 pub use context::{ActionEventPayload, ActionEventStatus};
 pub use context_rules::MatchMode;
 pub use pie_menu::{PieMenu, PieMenuId, PieSliceId};
