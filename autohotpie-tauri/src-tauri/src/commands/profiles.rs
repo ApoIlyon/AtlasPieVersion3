@@ -159,11 +159,11 @@ fn validate_record(record: &ProfileRecord) -> std::result::Result<(), Vec<Domain
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::action::MacroStepDefinition;
     use crate::domain::pie_menu::{PieAppearance, PieMenu, PieSlice};
     use crate::domain::{
         ActionDefinition,
         ActionId,
-        MacroStepDefinition,
         MacroStepKind,
         PieMenuId,
         PieSliceId,
