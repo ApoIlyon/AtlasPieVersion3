@@ -21,7 +21,7 @@ use crate::services::{
     system_status::SystemStatus,
     window_info,
 };
-use crate::storage::profile_repository::ProfileStore;
+use crate::storage::profile_repository::{ProfileRecoveryInfo, ProfileStore};
 use crate::storage::StorageManager;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -53,6 +53,7 @@ pub struct AppState {
     pub action_runner: ActionRunner,
     pub action_events: ActionEventsChannel,
     pub profiles: Mutex<ProfileStore>,
+    profiles_recovery: Mutex<Option<ProfileRecoveryInfo>>,
     actions: Mutex<HashMap<ActionId, Action>>,
 }
 
@@ -93,12 +94,12 @@ impl AppState {
         &self,
         f: impl FnOnce(&mut ProfileStore) -> Result<R>,
     ) -> Result<R> {
-        let mut guard = self
-            .profiles
-            .lock()
-            .map_err(|_| AppError::StatePoisoned)?;
+        let mut guard = self.profiles.lock().map_err(|_| AppError::StatePoisoned)?;
         let output = f(&mut guard)?;
         self.storage.save_profiles(&guard).map_err(AppError::from)?;
+        if let Ok(mut recovery) = self.profiles_recovery.lock() {
+            *recovery = None;
+        }
         Ok(output)
     }
 
@@ -107,6 +108,19 @@ impl AppState {
             .lock()
             .map_err(|_| AppError::StatePoisoned)
             .map(|guard| guard.clone())
+    }
+
+    pub fn profile_recovery(&self) -> Option<ProfileRecoveryInfo> {
+        self.profiles_recovery
+            .lock()
+            .ok()
+            .and_then(|guard| guard.clone())
+    }
+
+    pub fn set_profile_recovery(&self, info: Option<ProfileRecoveryInfo>) {
+        if let Ok(mut guard) = self.profiles_recovery.lock() {
+            *guard = info;
+        }
     }
 
     pub fn request_action<R>(
@@ -136,7 +150,20 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     if settings.set_app_version(&version) {
         storage.save_with_backup(&settings)?;
     }
-    let profiles = storage.load_profiles_or_migrate(&settings)?;
+    let (profiles, recovery) = match storage.load_profiles_or_migrate(&settings) {
+        Ok(store) => (store, None),
+        Err(err) => {
+            if let Some(info) = err.to_recovery() {
+                eprintln!(
+                    "profiles store corrupted at {}: {}",
+                    info.file_path, info.message
+                );
+                (ProfileStore::default(), Some(info))
+            } else {
+                return Err(err.into());
+            }
+        }
+    };
     let audit = AuditLogger::from_storage(&storage)?;
     let action_events = ActionEventsChannel::default();
 
@@ -159,8 +186,22 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         action_runner,
         action_events,
         profiles: Mutex::new(profiles),
+        profiles_recovery: Mutex::new(recovery.clone()),
         actions: Mutex::new(actions_map),
     });
+
+    if let Some(info) = recovery {
+        if let Err(err) = handle.emit(
+            "profiles://recovery-required",
+            serde_json::json!({
+                "message": info.message,
+                "filePath": info.file_path,
+                "backupsDir": info.backups_dir,
+            }),
+        ) {
+            eprintln!("failed to emit profiles recovery event: {err}");
+        }
+    }
 
     let dispatch_handle = handle.clone();
     let dispatch_events = app.state::<AppState>().action_events_channel();

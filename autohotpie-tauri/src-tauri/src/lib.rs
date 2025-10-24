@@ -21,6 +21,7 @@ pub fn run() {
             commands::profiles::save_profile,
             commands::profiles::delete_profile,
             commands::profiles::activate_profile,
+            commands::profiles::open_profiles_backups,
             commands::settings::load_settings,
             commands::settings::save_settings,
             commands::settings::add_profile,

@@ -41,3 +41,6 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"
 time = { version = "0.3", features = ["macros", "formatting", "serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 regex = "1"
+
+[dev-dependencies]
+tempfile = "3"

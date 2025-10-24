@@ -1,6 +1,6 @@
 use crate::commands::{AppState, SystemState};
-use crate::storage::profile_repository::ProfileStore;
 use crate::services::{audit_log::AuditLogger, system_status::WindowSnapshot};
+use crate::storage::profile_repository::ProfileStore;
 use anyhow::{anyhow, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -346,10 +346,7 @@ impl ProfileCandidate {
 }
 
 fn parse_rules(handles: &[crate::domain::profile::ActivationRule]) -> Vec<Rule> {
-    handles
-        .iter()
-        .filter_map(parse_rule)
-        .collect()
+    handles.iter().filter_map(parse_rule).collect()
 }
 
 fn parse_rule(rule: &crate::domain::profile::ActivationRule) -> Option<Rule> {
@@ -681,13 +678,15 @@ mod tests {
         let mut store = empty_store();
         store.profiles.push(make_record(
             "Chrome",
-            vec![make_rule(ActivationMatchMode::ProcessName, Some("chrome.exe"))],
+            vec![make_rule(
+                ActivationMatchMode::ProcessName,
+                Some("chrome.exe"),
+            )],
         ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
-        let result =
-            select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
+        let result = select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
         assert_eq!(result.name, "Chrome");
         assert_eq!(result.match_kind, MatchKind::ProcessName);
     }
@@ -697,7 +696,10 @@ mod tests {
         let mut store = empty_store();
         store.profiles.push(make_record(
             "Editor",
-            vec![make_rule(ActivationMatchMode::WindowTitle, Some("regex:^Visual Studio"))],
+            vec![make_rule(
+                ActivationMatchMode::WindowTitle,
+                Some("regex:^Visual Studio"),
+            )],
         ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
@@ -717,11 +719,17 @@ mod tests {
         let mut store = empty_store();
         store.profiles.push(make_record(
             "VS Code",
-            vec![make_rule(ActivationMatchMode::ProcessName, Some("code.exe"))],
+            vec![make_rule(
+                ActivationMatchMode::ProcessName,
+                Some("code.exe"),
+            )],
         ));
         store.profiles.push(make_record(
             "Browser",
-            vec![make_rule(ActivationMatchMode::WindowTitle, Some("regex:Code"))],
+            vec![make_rule(
+                ActivationMatchMode::WindowTitle,
+                Some("regex:Code"),
+            )],
         ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
@@ -743,13 +751,15 @@ mod tests {
         store.profiles.push(make_record("Default", Vec::new()));
         store.profiles.push(make_record(
             "Chrome",
-            vec![make_rule(ActivationMatchMode::ProcessName, Some("chrome.exe"))],
+            vec![make_rule(
+                ActivationMatchMode::ProcessName,
+                Some("chrome.exe"),
+            )],
         ));
 
         let history = Arc::new(Mutex::new(HashMap::new()));
 
-        let result =
-            select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
+        let result = select_profile(&store, &snapshot(Some("chrome.exe"), None), &history).unwrap();
 
         assert_eq!(result.name, "Chrome");
         assert_eq!(result.match_kind, MatchKind::ProcessName);

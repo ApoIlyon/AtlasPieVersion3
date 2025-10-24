@@ -1,12 +1,4 @@
-use super::{
-    ActionDefinition,
-    ActionId,
-    PieMenu,
-    PieMenuId,
-    PieSliceId,
-    Profile,
-    ProfileId,
-};
+use super::{ActionDefinition, ActionId, PieMenu, PieMenuId, PieSliceId, Profile, ProfileId};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
@@ -37,11 +29,23 @@ pub enum DomainValidationError {
     #[error("pie menu {menu} contains duplicate slice order {order}")]
     DuplicateSliceOrder { menu: PieMenuId, order: u32 },
     #[error("pie menu {menu} has {count} slices which exceeds maximum {max}")]
-    TooManySlices { menu: PieMenuId, count: usize, max: usize },
+    TooManySlices {
+        menu: PieMenuId,
+        count: usize,
+        max: usize,
+    },
     #[error("pie menu {menu} has {count} slices which is below minimum {min}")]
-    TooFewSlices { menu: PieMenuId, count: usize, min: usize },
+    TooFewSlices {
+        menu: PieMenuId,
+        count: usize,
+        min: usize,
+    },
     #[error("pie menu {menu} depth {depth} exceeds maximum {max}")]
-    MenuDepthExceeded { menu: PieMenuId, depth: usize, max: usize },
+    MenuDepthExceeded {
+        menu: PieMenuId,
+        depth: usize,
+        max: usize,
+    },
 }
 
 pub fn validate_profile(
@@ -401,7 +405,12 @@ mod tests {
             order: 1,
         });
 
-        let menus = vec![root.clone(), level_two.clone(), level_three.clone(), level_four.clone()];
+        let menus = vec![
+            root.clone(),
+            level_two.clone(),
+            level_three.clone(),
+            level_four.clone(),
+        ];
         let profile = Profile {
             id: ProfileId::new(),
             name: "Default".to_string(),

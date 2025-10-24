@@ -25,7 +25,10 @@ async fn run_loop<R: Runtime>(app: AppHandle<R>, status: Arc<Mutex<SystemStatus>
     }
 }
 
-async fn perform_check<R: Runtime>(app: &AppHandle<R>, status: &Arc<Mutex<SystemStatus>>) -> Result<()> {
+async fn perform_check<R: Runtime>(
+    app: &AppHandle<R>,
+    status: &Arc<Mutex<SystemStatus>>,
+) -> Result<()> {
     let is_offline = check_connectivity().await?;
     let mut guard = status
         .lock()

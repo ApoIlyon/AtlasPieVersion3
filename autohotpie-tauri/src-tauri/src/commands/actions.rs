@@ -1,6 +1,6 @@
 use super::{AppError, AppState, Result};
 use crate::domain::{Action, ActionEventPayload, ActionId};
-use tauri::{AppHandle, State, Runtime};
+use tauri::{AppHandle, Runtime, State};
 
 fn action_not_found(id: &ActionId) -> AppError {
     AppError::Message(format!("action {id} not found"))

@@ -20,7 +20,10 @@ fn copy_webview2_loader() -> std::io::Result<()> {
     use std::path::PathBuf;
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").map_err(|err| {
-        io::Error::new(io::ErrorKind::Other, format!("OUT_DIR not available: {err}"))
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("OUT_DIR not available: {err}"),
+        )
     })?);
     let profile_dir = out_dir
         .ancestors()
@@ -30,7 +33,10 @@ fn copy_webview2_loader() -> std::io::Result<()> {
     let build_dir = profile_dir.join("build");
 
     let arch_var = env::var("CARGO_CFG_TARGET_ARCH").map_err(|err| {
-        io::Error::new(io::ErrorKind::Other, format!("target arch not available: {err}"))
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("target arch not available: {err}"),
+        )
     })?;
     let arch = match arch_var.as_str() {
         "x86_64" => "x64",
@@ -47,8 +53,13 @@ fn copy_webview2_loader() -> std::io::Result<()> {
         fs::create_dir_all(&deps_dir)?;
     }
 
-    let targets = [deps_dir.join("WebView2Loader.dll"), profile_dir.join("WebView2Loader.dll")];
-    for target in targets { fs::copy(&loader, target)?; }
+    let targets = [
+        deps_dir.join("WebView2Loader.dll"),
+        profile_dir.join("WebView2Loader.dll"),
+    ];
+    for target in targets {
+        fs::copy(&loader, target)?;
+    }
 
     Ok(())
 }

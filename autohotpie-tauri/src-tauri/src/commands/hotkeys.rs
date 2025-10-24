@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, State, Runtime};
+use tauri::{AppHandle, Emitter, Runtime, State};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";

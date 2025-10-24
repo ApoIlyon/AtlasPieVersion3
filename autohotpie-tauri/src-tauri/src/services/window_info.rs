@@ -25,7 +25,10 @@ async fn run_loop<R: Runtime>(app: AppHandle<R>, status: Arc<Mutex<SystemStatus>
     }
 }
 
-async fn publish_snapshot<R: Runtime>(app: &AppHandle<R>, status: &Arc<Mutex<SystemStatus>>) -> Result<()> {
+async fn publish_snapshot<R: Runtime>(
+    app: &AppHandle<R>,
+    status: &Arc<Mutex<SystemStatus>>,
+) -> Result<()> {
     let snapshot = collect_snapshot(app).await?;
     {
         let mut guard = status

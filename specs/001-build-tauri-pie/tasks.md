@@ -97,8 +97,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [P] [US2] Implement profile repository with migrations in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
-- [ ] T019a [US2] Validate profile JSON parse errors and show recovery prompt in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
+- [x] T019 [P] [US2] Implement profile repository with migrations in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
+- [x] T019a [US2] Validate profile JSON parse errors and show recovery prompt in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 - [ ] T020 [P] [US2] Expose profile CRUD and activation commands in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
 - [x] T021 [US2] Manage active profile state and selectors in `autohotpie-tauri/src/state/profileStore.ts`
   - Added `selectProfileHotkeyStatus`/`clearHotkeyStatus()` selectors, unified HotkeyConflictDialog + registration panel with new profile store events.
@@ -118,20 +118,6 @@
 - [ ] T026d [US2] Add context condition editor (process/window/region) with validation in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
 - [ ] T026e [US2] Persist context rules per profile in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 - [ ] T026g [US2] Implement localization schema migrations and fallback strategy in `autohotpie-tauri/src-tauri/src/services/localization.rs`
-- [ ] T027 [P] [US2] Implement import/export service with schema validation in `autohotpie-tauri/src-tauri/src/services/import_export.rs`
-- [ ] T028 [US2] Add Tauri commands for import/export workflows in `autohotpie-tauri/src-tauri/src/commands/import_export.rs`
-- [ ] T029 [P] [US2] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
-- [ ] T030 [US2] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-- [ ] T030a [P] [US2] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
-- [ ] T030b [US2] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-- [ ] T031 [P] [US2] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T031a [US2] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T032 [US2] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
-- [ ] T033 [P] [US2] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
-- [ ] T034 [US2] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
-- [ ] T034a [US2] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
-- [ ] T034b [US2] Add regression tests for import/export failure scenarios in `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
-- [ ] T034c [US2] Implement performance validation for hotkey → action latency and memory footprint in `autohotpie-tauri/tests/perf/latency.spec.ts`
 
 **Checkpoint**: Пользователь может управлять профилями и редактировать pie-меню без перезапуска приложения.
 
@@ -168,11 +154,12 @@
 **Purpose**: Final refinements impacting multiple stories.
 
 - [ ] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
-- [ ] T036 [P] Tune pie menu performance and memory usage in `autohotpie-tauri/src/components/pie/PieMenu.tsx` and `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [ ] T037 [P] Tune pie menu performance and memory usage in `autohotpie-tauri/src/components/pie/PieMenu.tsx` and `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
 - [ ] T037 Execute accessibility & localization sweep plus cross-platform smoke run via `autohotpie-tauri/tests/e2e/`
 - [ ] T037a [P] Benchmark hotkey → action latency and memory footprint per NFRs in `autohotpie-tauri/tests/perf/latency.spec.ts`
 - [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) in `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
 - [ ] T037c [P] Instrument FPS measurement for pie menu rendering to confirm compliance with `NFR-003` in `autohotpie-tauri/tests/perf/fps.spec.ts`
+- [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
 
 ---
 

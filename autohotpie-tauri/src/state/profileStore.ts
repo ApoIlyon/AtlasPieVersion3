@@ -73,6 +73,12 @@ export interface ProfileStorePayload {
   migratedFromSettings?: string | null;
 }
 
+export interface ProfileRecoveryState {
+  message: string;
+  filePath: string;
+  backupsDir: string;
+}
+
 interface ProfileStoreState {
   profiles: ProfileRecord[];
   activeProfileId: string | null;
@@ -84,6 +90,7 @@ interface ProfileStoreState {
   lastHotkeyAttempt: HotkeyAttemptSnapshot | null;
   registeringHotkeyFor: string | null;
   suppressHotkeyConflicts: boolean;
+  recovery: ProfileRecoveryState | null;
   loadProfiles: () => Promise<void>;
   refreshProfiles: () => Promise<void>;
   saveProfile: (record: ProfileRecord) => Promise<ProfileRecord | null>;
@@ -95,11 +102,15 @@ interface ProfileStoreState {
   clearValidationErrors: () => void;
   clearHotkeyStatus: () => void;
   retryProfileHotkeyWithOverride: () => Promise<HotkeyRegistrationStatus | null>;
+  openRecoveryBackups: () => Promise<void>;
+  retryRecoveryLoad: () => Promise<void>;
+  acknowledgeRecovery: () => Promise<void>;
 }
 
 const eventBindings: {
   storeChanged?: UnlistenFn;
   activeChanged?: UnlistenFn;
+  recoveryRequired?: UnlistenFn;
 } = {};
 
 interface MockContextProfilesFile {
@@ -146,6 +157,38 @@ function toErrorMessage(error: unknown): string {
     return error;
   }
   return 'Unknown error';
+}
+
+function parseRecoveryPayload(raw: unknown): ProfileRecoveryState | null {
+  if (!raw) {
+    return null;
+  }
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as { kind?: string; message?: string; filePath?: string; backupsDir?: string };
+      if (parsed && parsed.kind === 'profile-recovery') {
+        return {
+          message: parsed.message ?? 'Profile data could not be loaded. Manual recovery required.',
+          filePath: parsed.filePath ?? '',
+          backupsDir: parsed.backupsDir ?? '',
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to parse recovery payload', error);
+    }
+    return null;
+  }
+  if (typeof raw === 'object') {
+    const candidate = raw as { kind?: string; message?: string; filePath?: string; backupsDir?: string };
+    if (candidate?.kind === 'profile-recovery') {
+      return {
+        message: candidate.message ?? 'Profile data could not be loaded. Manual recovery required.',
+        filePath: candidate.filePath ?? '',
+        backupsDir: candidate.backupsDir ?? '',
+      };
+    }
+  }
+  return null;
 }
 
 interface HotkeyAttemptSnapshot {
@@ -282,12 +325,14 @@ async function attachListeners(set: (partial: Partial<ProfileStoreState>) => voi
   if (!eventBindings.storeChanged) {
     eventBindings.storeChanged = await listen<ProfileStorePayload>('profiles://store-changed', ({ payload }) => {
       if (payload) {
+        const normalized = (payload.profiles ?? []).map((record) => normalizeProfileRecord(record));
         set({
-          profiles: payload.profiles ?? [],
+          profiles: normalized,
           activeProfileId: payload.activeProfileId ?? null,
           initialized: true,
           isLoading: false,
           error: null,
+          recovery: null,
         });
         const record = get().getProfileById(payload.activeProfileId ?? '');
         void registerActiveHotkey(record?.profile, payload.activeProfileId ?? null, set, get).then(
@@ -321,6 +366,29 @@ async function attachListeners(set: (partial: Partial<ProfileStoreState>) => voi
       },
     );
   }
+
+  if (!eventBindings.recoveryRequired) {
+    eventBindings.recoveryRequired = await listen<ProfileRecoveryState | string | null | undefined>(
+      'profiles://recovery-required',
+      ({ payload }) => {
+        const recovery = parseRecoveryPayload(payload ?? null);
+        if (!recovery) {
+          console.warn('profiles://recovery-required emitted without payload');
+          return;
+        }
+        set({
+          recovery,
+          error: null,
+          profiles: [],
+          activeProfileId: null,
+          isLoading: false,
+          initialized: true,
+          validationErrors: [],
+        });
+        markProfilesReady(true);
+      },
+    );
+  }
 }
 
 export const useProfileStore = create<ProfileStoreState>((set, get) => ({
@@ -334,6 +402,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   lastHotkeyAttempt: null,
   registeringHotkeyFor: null,
   suppressHotkeyConflicts: false,
+  recovery: null,
   async loadProfiles() {
     if (get().isLoading) {
       return;
@@ -365,7 +434,19 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
         set({ lastHotkeyStatus: status });
       }
     } catch (error) {
-      set({ error: toErrorMessage(error) });
+      const message = toErrorMessage(error);
+      const recovery = parseRecoveryPayload(message);
+      if (recovery) {
+        set({
+          recovery,
+          error: null,
+          profiles: [],
+          activeProfileId: null,
+          validationErrors: [],
+        });
+      } else {
+        set({ error: message, validationErrors: [] });
+      }
     } finally {
       set({ isLoading: false, initialized: true });
       markProfilesReady(true);
@@ -390,7 +471,19 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       const payload = await invoke<ProfileStorePayload>('list_profiles');
       get().setProfiles(payload);
     } catch (error) {
-      set({ error: toErrorMessage(error) });
+      const message = toErrorMessage(error);
+      const recovery = parseRecoveryPayload(message);
+      if (recovery) {
+        set({
+          recovery,
+          error: null,
+          profiles: [],
+          activeProfileId: null,
+          validationErrors: [],
+        });
+      } else {
+        set({ error: message, validationErrors: [] });
+      }
     } finally {
       markProfilesReady(true);
     }
@@ -398,6 +491,10 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   async saveProfile(record) {
     if (!isTauriEnvironment()) {
       set({ error: 'Profiles cannot be modified in browser preview mode.' });
+      return null;
+    }
+    if (get().recovery) {
+      set({ error: 'Profiles need manual recovery before they can be modified.' });
       return null;
     }
     try {
@@ -428,6 +525,10 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       set({ error: 'Profiles cannot be modified in browser preview mode.' });
       return;
     }
+    if (get().recovery) {
+      set({ error: 'Profiles need manual recovery before they can be modified.' });
+      return;
+    }
     try {
       await invoke('delete_profile', { profileId });
       await get().refreshProfiles();
@@ -437,6 +538,10 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   },
   async activateProfile(profileId) {
     if (!isTauriEnvironment()) {
+      return;
+    }
+    if (get().recovery) {
+      set({ error: 'Profiles need manual recovery before they can be modified.' });
       return;
     }
     try {
@@ -452,13 +557,15 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     }
   },
   setProfiles(payload) {
+    const normalized = (payload.profiles ?? []).map((record) => normalizeProfileRecord(record));
     set({
-      profiles: payload.profiles ?? [],
+      profiles: normalized,
       activeProfileId: payload.activeProfileId ?? null,
       initialized: true,
       isLoading: false,
       error: null,
       validationErrors: [],
+      recovery: null,
     });
     markProfilesReady(true);
   },
@@ -540,6 +647,25 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
         set({ registeringHotkeyFor: null });
       }
     }
+  },
+  async openRecoveryBackups() {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+    if (!get().recovery) {
+      return;
+    }
+    try {
+      await invoke('open_profiles_backups');
+    } catch (error) {
+      set({ error: toErrorMessage(error) });
+    }
+  },
+  async retryRecoveryLoad() {
+    await get().refreshProfiles();
+  },
+  async acknowledgeRecovery() {
+    set({ recovery: null });
   },
 }));
 

@@ -22,7 +22,11 @@ pub fn detect_mode(storage: &StorageManager) -> StorageMode {
     }
 }
 
-pub fn start_monitor<R: Runtime>(app: AppHandle<R>, storage: StorageManager, status: Arc<Mutex<SystemStatus>>) {
+pub fn start_monitor<R: Runtime>(
+    app: AppHandle<R>,
+    storage: StorageManager,
+    status: Arc<Mutex<SystemStatus>>,
+) {
     tauri::async_runtime::spawn(async move {
         if let Err(err) = run_loop(app.clone(), storage.clone(), status.clone()).await {
             eprintln!("storage guard exited: {err}");

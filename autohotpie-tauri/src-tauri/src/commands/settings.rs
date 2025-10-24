@@ -1,6 +1,6 @@
 use super::{current_version, AppError, AppState, Result};
 use crate::models::{AppProfile, Settings};
-use tauri::{AppHandle, State, Runtime};
+use tauri::{AppHandle, Runtime, State};
 
 fn lock_settings<'a>(
     state: &'a State<'_, AppState>,
@@ -46,7 +46,10 @@ pub fn add_profile(state: State<'_, AppState>, profile: AppProfile) -> Result<Se
 }
 
 #[tauri::command]
-pub fn reset_settings<R: Runtime>(app: AppHandle<R>, state: State<'_, AppState>) -> Result<Settings> {
+pub fn reset_settings<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+) -> Result<Settings> {
     let version = current_version(&app);
     let mut settings = Settings::default();
     settings.set_app_version(&version);

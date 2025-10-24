@@ -4,11 +4,8 @@ use crate::domain::profile::ProfileId;
 use crate::domain::Action;
 use crate::models::{AppProfile, Settings};
 use crate::storage::profile_repository::{
-    legacy_settings_file,
-    read_legacy_settings,
-    ProfileRepository,
-    ProfileStore,
-    PROFILES_SCHEMA_VERSION,
+    legacy_settings_file, read_legacy_settings, ProfileRecoveryInfo, ProfileRepository,
+    ProfileStore, ProfileStoreLoadError, PROFILES_SCHEMA_VERSION,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -143,6 +140,15 @@ impl StorageManager {
         &self.profiles_repo
     }
 
+    pub fn profiles_backups_dir(&self) -> io::Result<PathBuf> {
+        self.ensure_dirs()?;
+        let dir = self.profiles_repo.backups_dir().to_path_buf();
+        if !dir.exists() {
+            fs::create_dir_all(&dir)?;
+        }
+        Ok(dir)
+    }
+
     pub fn load_actions(&self) -> io::Result<Vec<Action>> {
         if !self.actions_path.exists() {
             return Ok(Vec::new());
@@ -235,16 +241,30 @@ impl StorageManager {
         Ok(())
     }
 
-    pub fn load_profiles_or_migrate(&self, settings: &Settings) -> io::Result<ProfileStore> {
+    pub fn load_profiles_or_migrate(
+        &self,
+        settings: &Settings,
+    ) -> Result<ProfileStore, ProfileStoreLoadError> {
         let store = match self.profiles_repo.load() {
             Ok(store) if !store.profiles.is_empty() => store,
             Ok(_) => {
                 let legacy_file = legacy_settings_file(&self.base_dir);
-                let legacy_profiles = read_legacy_settings(&legacy_file)?
+                let legacy_profiles = read_legacy_settings(&legacy_file)
+                    .map_err(|err| ProfileStoreLoadError::Io {
+                        file_path: legacy_file.clone(),
+                        source: err,
+                    })?
                     .unwrap_or_else(|| settings.app_profiles.clone());
                 if legacy_profiles.is_empty() {
                     ProfileStore::default()
-                } else if let Some(store) = self.profiles_repo.migrate_from_legacy(&legacy_profiles)? {
+                } else if let Some(store) = self
+                    .profiles_repo
+                    .migrate_from_legacy(&legacy_profiles)
+                    .map_err(|err| ProfileStoreLoadError::Io {
+                        file_path: self.profiles_repo.file_path().to_path_buf(),
+                        source: err,
+                    })?
+                {
                     store
                 } else {
                     ProfileStore::default()
@@ -254,6 +274,10 @@ impl StorageManager {
         };
 
         self.normalize_profile_store(store)
+            .map_err(|err| ProfileStoreLoadError::Io {
+                file_path: self.profiles_repo.file_path().to_path_buf(),
+                source: err,
+            })
     }
 
     pub fn save_profiles(&self, store: &ProfileStore) -> io::Result<()> {

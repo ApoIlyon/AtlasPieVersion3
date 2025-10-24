@@ -2,7 +2,7 @@ use super::{AppError, AppState, Result, SystemState};
 use crate::services::profile_router::{ActiveProfileSnapshot, ProfileRouterState};
 use crate::services::system_status::SystemStatus;
 use std::process::Command;
-use tauri::{AppHandle, Emitter, Manager, State, Runtime};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 use tokio::sync::broadcast::error::RecvError;
 
 #[tauri::command]

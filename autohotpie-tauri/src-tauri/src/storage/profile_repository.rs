@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use thiserror::Error;
 use time::OffsetDateTime;
 
 pub const PROFILES_FILE_NAME: &str = "profiles.v1.json";
@@ -17,6 +18,68 @@ fn other_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, message.into())
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileRecoveryInfo {
+    pub message: String,
+    pub file_path: String,
+    pub backups_dir: String,
+}
+
+impl ProfileRecoveryInfo {
+    pub fn new(message: impl Into<String>, file_path: &Path, backups_dir: &Path) -> Self {
+        Self {
+            message: message.into(),
+            file_path: file_path.display().to_string(),
+            backups_dir: backups_dir.display().to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ProfileStoreLoadError {
+    #[error("failed to read profiles store at {file_path}: {source}")]
+    Io {
+        file_path: PathBuf,
+        #[source]
+        source: io::Error,
+    },
+    #[error("profiles store at {file_path} is corrupted: {message}")]
+    Corrupted {
+        file_path: PathBuf,
+        message: String,
+        backups_dir: PathBuf,
+    },
+}
+
+impl ProfileStoreLoadError {
+    pub fn to_recovery(&self) -> Option<ProfileRecoveryInfo> {
+        match self {
+            ProfileStoreLoadError::Corrupted {
+                file_path,
+                message,
+                backups_dir,
+            } => Some(ProfileRecoveryInfo::new(message, file_path, backups_dir)),
+            _ => None,
+        }
+    }
+
+    fn io(path: PathBuf, source: io::Error) -> Self {
+        Self::Io {
+            file_path: path,
+            source,
+        }
+    }
+
+    fn corrupted(path: PathBuf, message: impl Into<String>, backups_dir: PathBuf) -> Self {
+        Self::Corrupted {
+            file_path: path,
+            message: message.into(),
+            backups_dir,
+        }
+    }
+}
+
 fn normalize_profile_store(store: &mut ProfileStore) {
     store.schema_version = PROFILES_SCHEMA_VERSION;
     store.profiles.iter_mut().for_each(|record| {
@@ -24,11 +87,19 @@ fn normalize_profile_store(store: &mut ProfileStore) {
             menu.slices.iter_mut().for_each(|slice| {
                 slice.icon = slice.icon.as_ref().and_then(|value| {
                     let trimmed = value.trim();
-                    if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed.to_string())
+                    }
                 });
                 slice.hotkey = slice.hotkey.as_ref().and_then(|value| {
                     let trimmed = value.trim();
-                    if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed.to_string())
+                    }
                 });
             });
             menu.slices.sort_by_key(|slice| slice.order);
@@ -54,7 +125,11 @@ fn normalize_action_definition(mut action: ActionDefinition) -> ActionDefinition
     action.name = action.name.trim().to_string();
     action.description = action.description.and_then(|value| {
         let trimmed = value.trim();
-        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_string())
+        }
     });
     action.steps = action
         .steps
@@ -64,14 +139,25 @@ fn normalize_action_definition(mut action: ActionDefinition) -> ActionDefinition
             step.order = index as u32;
             step.note = step.note.and_then(|value| {
                 let trimmed = value.trim();
-                if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                }
             });
             match &mut step.kind {
-                MacroStepKind::Launch { app_path, arguments } => {
+                MacroStepKind::Launch {
+                    app_path,
+                    arguments,
+                } => {
                     *app_path = app_path.trim().to_string();
                     *arguments = arguments.as_ref().and_then(|value| {
                         let trimmed = value.trim();
-                        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+                        if trimmed.is_empty() {
+                            None
+                        } else {
+                            Some(trimmed.to_string())
+                        }
                     });
                 }
                 MacroStepKind::Keys { keys, repeat } => {
@@ -99,7 +185,11 @@ fn normalize_action_definition(mut action: ActionDefinition) -> ActionDefinition
 fn normalize_activation_rule(mut rule: ActivationRule) -> ActivationRule {
     rule.value = rule.value.and_then(|value| {
         let trimmed = value.trim();
-        if trimmed.is_empty() { None } else { Some(trimmed.to_string()) }
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_string())
+        }
     });
     rule
 }
@@ -162,13 +252,23 @@ impl ProfileRepository {
         &self.file_path
     }
 
-    pub fn load(&self) -> io::Result<ProfileStore> {
+    pub fn backups_dir(&self) -> &Path {
+        &self.backups_path
+    }
+
+    pub fn load(&self) -> Result<ProfileStore, ProfileStoreLoadError> {
         if !self.file_path.exists() {
             return Ok(ProfileStore::default());
         }
-        let data = fs::read_to_string(&self.file_path)?;
-        let mut store: ProfileStore = serde_json::from_str(&data)
-            .map_err(|err| other_error(format!("failed to parse {}: {err}", PROFILES_FILE_NAME)))?;
+        let data = fs::read_to_string(&self.file_path)
+            .map_err(|err| ProfileStoreLoadError::io(self.file_path.clone(), err))?;
+        let mut store: ProfileStore = serde_json::from_str(&data).map_err(|err| {
+            ProfileStoreLoadError::corrupted(
+                self.file_path.clone(),
+                format!("{err}"),
+                self.backups_path.clone(),
+            )
+        })?;
         normalize_profile_store(&mut store);
         Ok(store)
     }
@@ -184,10 +284,7 @@ impl ProfileRepository {
         Ok(())
     }
 
-    pub fn migrate_from_legacy(
-        &self,
-        settings: &[AppProfile],
-    ) -> io::Result<Option<ProfileStore>> {
+    pub fn migrate_from_legacy(&self, settings: &[AppProfile]) -> io::Result<Option<ProfileStore>> {
         if self.file_path.exists() {
             return Ok(None);
         }
@@ -196,10 +293,8 @@ impl ProfileRepository {
             return Ok(None);
         }
 
-        let migrated_profiles: Vec<ProfileRecord> = settings
-            .iter()
-            .map(convert_legacy_profile)
-            .collect();
+        let migrated_profiles: Vec<ProfileRecord> =
+            settings.iter().map(convert_legacy_profile).collect();
 
         if migrated_profiles.is_empty() {
             return Ok(None);
@@ -230,7 +325,8 @@ impl ProfileRepository {
         if !self.file_path.exists() {
             return Ok(());
         }
-        let timestamp = OffsetDateTime::now_utc().format(&time::format_description::well_known::Rfc3339)
+        let timestamp = OffsetDateTime::now_utc()
+            .format(&time::format_description::well_known::Rfc3339)
             .map_err(|err| other_error(format!("failed to format backup timestamp: {err}")))?;
         let file_name = format!("{}.{}", timestamp.replace(':', "-"), PROFILES_FILE_NAME);
         let backup_path = self.backups_path.join(file_name);
@@ -303,17 +399,14 @@ fn convert_legacy_profile(source: &AppProfile) -> ProfileRecord {
 }
 
 fn extract_global_hotkey(source: &AppProfile) -> Option<String> {
-    source
-        .pie_keys
-        .iter()
-        .find_map(|key| {
-            let accelerator = key.hotkey.trim();
-            if accelerator.is_empty() {
-                None
-            } else {
-                Some(accelerator.to_string())
-            }
-        })
+    source.pie_keys.iter().find_map(|key| {
+        let accelerator = key.hotkey.trim();
+        if accelerator.is_empty() {
+            None
+        } else {
+            Some(accelerator.to_string())
+        }
+    })
 }
 
 fn convert_activation_rules(handles: &[String]) -> Vec<ActivationRule> {
@@ -413,9 +506,7 @@ pub fn read_legacy_settings(path: &Path) -> io::Result<Option<Vec<AppProfile>>> 
     }
 
     match serde_json::from_str::<LegacyWrapper>(&data) {
-        Ok(wrapper) => Ok(wrapper
-            .settings
-            .map(|settings| settings.app_profiles)),
+        Ok(wrapper) => Ok(wrapper.settings.map(|settings| settings.app_profiles)),
         Err(_) => {
             // Fallback parsers for raw Settings payloads.
             #[derive(Deserialize)]
@@ -434,3 +525,6 @@ pub fn read_legacy_settings(path: &Path) -> io::Result<Option<Vec<AppProfile>>> 
 pub fn legacy_settings_file(base_dir: &Path) -> PathBuf {
     base_dir.join(SETTINGS_FILE_NAME)
 }
+
+#[cfg(test)]
+mod tests;

@@ -2,21 +2,48 @@ use super::{AppError, AppState, Result};
 use crate::domain::profile::ProfileId;
 use crate::domain::validation::{validate_profile, DomainValidationError};
 use crate::services::profile_router;
-use crate::storage::profile_repository::{ProfileRecord, ProfileStore};
+use crate::storage::profile_repository::{ProfileRecord, ProfileRecoveryInfo, ProfileStore};
 use serde_json::json;
-use tauri::{AppHandle, Emitter, State, Runtime};
+use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri_plugin_opener::OpenerExt;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 
 const PROFILES_STORE_EVENT: &str = "profiles://store-changed";
 
+fn recovery_error(info: &ProfileRecoveryInfo) -> AppError {
+    AppError::Message(
+        serde_json::json!({
+            "kind": "profile-recovery",
+            "message": info.message,
+            "filePath": info.file_path,
+            "backupsDir": info.backups_dir,
+        })
+        .to_string(),
+    )
+}
+
+fn ensure_no_recovery(state: &AppState) -> Result<()> {
+    if let Some(info) = state.profile_recovery() {
+        return Err(recovery_error(&info));
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub fn list_profiles(state: State<'_, AppState>) -> Result<ProfileStore> {
+    if let Some(info) = state.profile_recovery() {
+        return Err(recovery_error(&info));
+    }
     state.profiles_snapshot()
 }
 
 #[tauri::command]
-pub fn get_profile(state: State<'_, AppState>, profile_id: String) -> Result<Option<ProfileRecord>> {
+pub fn get_profile(
+    state: State<'_, AppState>,
+    profile_id: String,
+) -> Result<Option<ProfileRecord>> {
+    ensure_no_recovery(&state)?;
     let id = parse_profile_id(&profile_id)?;
     let store = state.profiles_snapshot()?;
     Ok(store
@@ -31,6 +58,7 @@ pub fn save_profile<R: Runtime>(
     state: State<'_, AppState>,
     mut record: ProfileRecord,
 ) -> Result<ProfileRecord> {
+    ensure_no_recovery(&state)?;
     record = normalize_record(record)?;
     if let Err(errors) = validate_record(&record) {
         let payload = json!({
@@ -53,6 +81,7 @@ pub fn delete_profile<R: Runtime>(
     state: State<'_, AppState>,
     profile_id: String,
 ) -> Result<()> {
+    ensure_no_recovery(&state)?;
     let id = parse_profile_id(&profile_id)?;
     state.with_profiles_mut(|store| remove_record(store, id))?;
     emit_profiles_changed(&app, &state)?;
@@ -65,6 +94,7 @@ pub fn activate_profile<R: Runtime>(
     state: State<'_, AppState>,
     profile_id: String,
 ) -> Result<()> {
+    ensure_no_recovery(&state)?;
     let id = parse_profile_id(&profile_id)?;
     state.with_profiles_mut(|store| {
         if !store.profiles.iter().any(|record| record.profile.id == id) {
@@ -79,7 +109,24 @@ pub fn activate_profile<R: Runtime>(
         .map_err(|err| AppError::Message(err.to_string()))
 }
 
-fn emit_profiles_changed<R: Runtime>(app: &AppHandle<R>, state: &State<'_, AppState>) -> Result<()> {
+#[tauri::command]
+pub fn open_profiles_backups<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+) -> Result<()> {
+    let path = state
+        .storage()
+        .profiles_backups_dir()
+        .map_err(AppError::from)?;
+    app.opener()
+        .open_path(path.to_string_lossy().to_string(), None::<&str>)
+        .map_err(|err| AppError::Message(format!("failed to open backups directory: {err}")))
+}
+
+fn emit_profiles_changed<R: Runtime>(
+    app: &AppHandle<R>,
+    state: &State<'_, AppState>,
+) -> Result<()> {
     let snapshot = state.profiles_snapshot()?;
     app.emit(PROFILES_STORE_EVENT, snapshot)
         .map_err(|err| AppError::Message(format!("failed to emit profiles change: {err}")))
@@ -114,11 +161,7 @@ fn normalize_record(mut record: ProfileRecord) -> Result<ProfileRecord> {
 
 fn upsert_record(store: &mut ProfileStore, record: ProfileRecord) -> Result<()> {
     let id = record.profile.id;
-    if let Some(existing) = store
-        .profiles
-        .iter_mut()
-        .find(|item| item.profile.id == id)
-    {
+    if let Some(existing) = store.profiles.iter_mut().find(|item| item.profile.id == id) {
         let created_at = existing.created_at.clone();
         *existing = record;
         existing.created_at = created_at;
@@ -162,12 +205,7 @@ mod tests {
     use crate::domain::action::MacroStepDefinition;
     use crate::domain::pie_menu::{PieAppearance, PieMenu, PieSlice};
     use crate::domain::{
-        ActionDefinition,
-        ActionId,
-        MacroStepKind,
-        PieMenuId,
-        PieSliceId,
-        Profile,
+        ActionDefinition, ActionId, MacroStepKind, PieMenuId, PieSliceId, Profile,
     };
 
     fn sample_record() -> ProfileRecord {
@@ -237,18 +275,26 @@ mod tests {
         let mut record = sample_record();
         record.actions.clear();
         let outcome = validate_record(&record);
-        assert!(outcome.is_err(), "expected validation failure for missing action");
+        assert!(
+            outcome.is_err(),
+            "expected validation failure for missing action"
+        );
         let errors = outcome.err().unwrap();
-        assert!(errors
-            .iter()
-            .any(|err| matches!(err, DomainValidationError::MissingAction { .. })),
-            "expected missing-action error, got {errors:?}");
+        assert!(
+            errors
+                .iter()
+                .any(|err| matches!(err, DomainValidationError::MissingAction { .. })),
+            "expected missing-action error, got {errors:?}"
+        );
     }
 
     #[test]
     fn validate_record_succeeds_when_actions_present() {
         let record = sample_record();
         let outcome = validate_record(&record);
-        assert!(outcome.is_ok(), "expected validation success, got {outcome:?}");
+        assert!(
+            outcome.is_ok(),
+            "expected validation success, got {outcome:?}"
+        );
     }
 }

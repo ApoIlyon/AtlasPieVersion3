@@ -56,9 +56,7 @@ fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .accelerator("Command+Shift+P")?
         .build(app)?;
 
-    let menu = MenuBuilder::new(app)
-        .item(&toggle_item)?
-        .build()?;
+    let menu = MenuBuilder::new(app).item(&toggle_item)?.build()?;
 
     app.set_menu(menu)?;
     app.on_menu_event(|handle, event| {

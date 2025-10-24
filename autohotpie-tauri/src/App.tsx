@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
 import { useSystemStore } from './state/systemStore';
 import { OfflineNotice } from './components/feedback/OfflineNotice';
+import { ProfileRecoveryDialog } from './components/feedback/ProfileRecoveryDialog';
 import { HotkeyConflictDialog } from './components/hotkeys/HotkeyConflictDialog';
 import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistrationPanel';
 import { useHotkeyStore } from './state/hotkeyStore';
@@ -626,6 +627,7 @@ export function App() {
           lastSafeModeReason={lastSafeModeReason}
         />
       )}
+      <ProfileRecoveryDialog />
     </div>
   );
 }
