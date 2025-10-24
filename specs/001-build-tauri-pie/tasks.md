@@ -99,7 +99,7 @@
 
 - [x] T019 [P] [US2] Implement profile repository with migrations in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
 - [x] T019a [US2] Validate profile JSON parse errors and show recovery prompt in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
-- [ ] T020 [P] [US2] Expose profile CRUD and activation commands in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
+- [x] T020 [P] [US2] Expose profile CRUD and activation commands in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
 - [x] T021 [US2] Manage active profile state and selectors in `autohotpie-tauri/src/state/profileStore.ts`
   - Added `selectProfileHotkeyStatus`/`clearHotkeyStatus()` selectors, unified HotkeyConflictDialog + registration panel with new profile store events.
 - [x] T021a [P] [US2] Persist per-profile hotkey bindings and conflict flags in `autohotpie-tauri/src/state/profileStore.ts`
