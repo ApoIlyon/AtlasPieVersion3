@@ -1,0 +1,21 @@
+{
+  "language": "en",
+  "version": "1.0.0",
+  "strings": {
+    "app.title": "AutoHotPie",
+    "app.subtitle": "Automation pies without AutoHotkey",
+    "header.brand": "AutoHotPie Tauri",
+    "header.title": "Pie Menu Studio",
+    "header.openLog": "Open log",
+    "header.versionLoading": "Loading version…",
+    "nav.dashboard": "Dashboard",
+    "nav.profiles": "Profiles",
+    "nav.settings": "Settings",
+    "localization.switcher.label": "Language",
+    "localization.switcher.refresh": "Refresh",
+    "localization.switcher.updated": "Localization packs refreshed",
+    "localization.switcher.error": "Failed to load localization",
+    "tray.menu.refresh": "Refresh localization",
+    "tray.menu.open": "Open application"
+  }
+}

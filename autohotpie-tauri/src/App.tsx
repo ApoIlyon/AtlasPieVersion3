@@ -21,6 +21,8 @@ import type { HotkeyRegistrationStatus } from './types/hotkeys';
 import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
+import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
+import { useLocalization } from './hooks/useLocalization';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -82,6 +84,7 @@ function usePlatform() {
 }
 
 export function App() {
+  const { t, currentLanguage } = useLocalization();
   useEffect(() => {
     if (isTauriEnvironment()) {
       const tauriWindow = window as typeof window & {
@@ -113,6 +116,7 @@ export function App() {
     isLoading: profilesLoading,
     error: profilesError,
     activateProfile,
+    createProfile,
   } = useProfileStore((state) => ({
     profiles: state.profiles,
     activeProfileId: state.activeProfileId,
@@ -121,6 +125,7 @@ export function App() {
     isLoading: state.isLoading,
     error: state.error,
     activateProfile: state.activateProfile,
+    createProfile: state.createProfile,
   }));
   const initialize = useAppStore((state) => state.initialize);
   const systemInit = useSystemStore((state) => state.init);
@@ -318,6 +323,17 @@ export function App() {
     void invoke('open_logs');
   }, []);
 
+  const navItems = useMemo(
+    () =>
+      ([
+        { id: 'dashboard' as AppSection, label: t('nav.dashboard') },
+        { id: 'profiles' as AppSection, label: t('nav.profiles') },
+        { id: 'actions' as AppSection, label: t('nav.actions') },
+        { id: 'settings' as AppSection, label: t('nav.settings') },
+      ]),
+    [t, currentLanguage],
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090a13] text-text-primary">
       {isMac && (
@@ -357,33 +373,29 @@ export function App() {
       />
       <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-white/40">AutoHotPie Tauri</p>
-          <h1 className="mt-1 text-3xl font-semibold text-white">Pie Menu Studio</h1>
+          <p className="text-sm uppercase tracking-[0.35em] text-white/40">{t('header.brand')}</p>
+          <h1 className="mt-1 text-3xl font-semibold text-white">{t('header.title')}</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
-            onClick={openLogViewer}
-          >
-            OPEN LOG
-          </button>
-          <div className="rounded-full bg-white/5 px-4 py-2 text-sm text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
-            {version ? `App v${version}` : 'Loading version…'}
+        <div className="flex items-start gap-4">
+          <LanguageSwitcher />
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
+              onClick={openLogViewer}
+            >
+              {t('header.openLog')}
+            </button>
+            <div className="rounded-full bg-white/5 px-4 py-2 text-sm text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
+              {version ? `${t('app.title')} v${version}` : t('header.versionLoading')}
+            </div>
           </div>
         </div>
       </header>
 
       <main className="relative z-10 grid gap-6 px-8 py-10 lg:grid-cols-[320px,1fr]">
         <nav className="space-y-2">
-          {(
-            [
-              { id: 'dashboard', label: 'Dashboard' },
-              { id: 'profiles', label: 'Profiles' },
-              { id: 'actions', label: 'Actions' },
-              { id: 'settings', label: 'Settings' },
-            ] as { id: AppSection; label: string }[]
-          ).map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               className={clsx(
@@ -533,7 +545,12 @@ export function App() {
                 isLoading={profilesLoading}
                 error={profilesError}
                 onCreateProfile={() => {
-                  setSelectedProfileId(null);
+                  void (async () => {
+                    const record = await createProfile();
+                    if (record?.profile?.id) {
+                      setSelectedProfileId(record.profile.id);
+                    }
+                  })();
                 }}
                 onOpenEditor={(profileId) => {
                   setSelectedProfileId(profileId);

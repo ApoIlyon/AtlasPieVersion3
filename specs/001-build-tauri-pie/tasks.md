@@ -108,16 +108,16 @@
 - [x] T023 [P] [US2] Implement nested pie editor UI with breadcrumbs in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [x] T023a [US2] Add profile hotkey editor with validation hints in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [x] T023b [US2] Enforce slice count/depth limits with validation and tests in `autohotpie-tauri/src-tauri/src/domain/validation.rs` & `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T024 [P] [US2] Create icon manager gallery aligned with kando style in `autohotpie-tauri/src/components/icons/IconManager.tsx`
-- [ ] T025 [US2] Implement action builder with macro validation in `autohotpie-tauri/src/components/actions/ActionBuilder.tsx`
-- [ ] T026 [US2] Wire tray switcher for profile activation in `autohotpie-tauri/src-tauri/src/services/tray.rs` and `autohotpie-tauri/src/components/tray/TrayMenu.tsx`
-- [ ] T026f [US2] Extend profile commands to update hotkey bindings in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
-- [ ] T026a [US2] Implement localization pack loader and cache in `autohotpie-tauri/src-tauri/src/services/localization.rs`
-- [ ] T026b [US2] Build language switcher UI and missing translation indicators in `autohotpie-tauri/src/components/localization/LanguageSwitcher.tsx`
-- [ ] T026c [US2] Add localization smoke test (strings render in RU/EN) in `autohotpie-tauri/tests/e2e/localization.spec.ts`
-- [ ] T026d [US2] Add context condition editor (process/window/region) with validation in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
-- [ ] T026e [US2] Persist context rules per profile in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
-- [ ] T026g [US2] Implement localization schema migrations and fallback strategy in `autohotpie-tauri/src-tauri/src/services/localization.rs`
+- [x] T024 [P] [US2] Create icon manager gallery aligned with kando style in `autohotpie-tauri/src/components/icons/IconManager.tsx`
+- [x] T025 [US2] Implement action builder with macro validation in `autohotpie-tauri/src/components/actions/ActionBuilder.tsx`
+- [x] T026 [US2] Wire tray switcher for profile activation in `autohotpie-tauri/src-tauri/src/services/tray.rs` and `autohotpie-tauri/src/components/tray/TrayMenu.tsx`
+- [x] T026f [US2] Extend profile commands to update hotkey bindings in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
+- [x] T026a [US2] Implement localization pack loader and cache in `autohotpie-tauri/src-tauri/src/services/localization.rs`
+- [x] T026b [US2] Build language switcher UI and missing translation indicators in `autohotpie-tauri/src/components/localization/LanguageSwitcher.tsx`
+- [x] T026c [US2] Add localization smoke test (strings render in RU/EN) in `autohotpie-tauri/tests/e2e/localization.spec.ts`
+- [x] T026d [US2] Add context condition editor (process/window/region) with validation in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
+- [x] T026e [US2] Persist context rules per profile in `autohotpie-tauri/src-tauri/src/storage/profile_repository.rs`
+- [x] T026g [US2] Implement localization schema migrations and fallback strategy in `autohotpie-tauri/src-tauri/src/services/localization.rs`
 
 **Checkpoint**: Пользователь может управлять профилями и редактировать pie-меню без перезапуска приложения.
 

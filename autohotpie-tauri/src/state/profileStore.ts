@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
-import mockContextProfilesJson from '../mocks/context-profiles.json';
+import mockContextProfilesJson from '../mocks/context-profiles.json' assert { type: 'json' };
 import type { HotkeyRegistrationStatus } from '../types/hotkeys';
 import type { ActionDefinition } from '../types/actions';
 import { cloneActionDefinition } from '../types/actions';
@@ -13,12 +13,23 @@ export type ActivationMatchMode =
   | 'process_name'
   | 'window_title'
   | 'window_class'
+  | 'screen_area'
   | 'custom';
+
+export interface ScreenArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export interface ActivationRule {
   mode: ActivationMatchMode;
   value?: string | null;
   negate?: boolean | null;
+  isRegex?: boolean | null;
+  caseSensitive?: boolean | null;
+  screenArea?: ScreenArea | null;
 }
 
 export interface Profile {
@@ -93,7 +104,12 @@ interface ProfileStoreState {
   recovery: ProfileRecoveryState | null;
   loadProfiles: () => Promise<void>;
   refreshProfiles: () => Promise<void>;
+  createProfile: (input?: { name?: string; globalHotkey?: string | null }) => Promise<ProfileRecord | null>;
   saveProfile: (record: ProfileRecord) => Promise<ProfileRecord | null>;
+  updateProfileActivationRules: (
+    profileId: string,
+    rules: ActivationRule[],
+  ) => Promise<ProfileRecord | null>;
   deleteProfile: (profileId: string) => Promise<void>;
   activateProfile: (profileId: string) => Promise<void>;
   setProfiles: (payload: ProfileStorePayload) => void;
@@ -271,14 +287,32 @@ async function registerActiveHotkey(
 
   set({ registeringHotkeyFor: profile.id, suppressHotkeyConflicts: false });
   try {
-    const status = await invoke<HotkeyRegistrationStatus>('register_hotkey', {
-      request: {
-        id: `profile:${profile.id}`,
-        accelerator,
-        event: 'hotkeys://trigger',
-        allowConflicts: false,
-      },
-    });
+    const attemptRegistration = async (allowConflicts: boolean) =>
+      invoke<HotkeyRegistrationStatus>('register_hotkey', {
+        request: {
+          id: `profile:${profile.id}`,
+          accelerator,
+          event: 'hotkeys://trigger',
+          allowConflicts,
+        },
+      });
+
+    let status = await attemptRegistration(false);
+    if (!status.registered) {
+      const conflicts = status.conflicts ?? [];
+      const overridable =
+        conflicts.length > 0 &&
+        conflicts.every((conflict) =>
+          conflict.code === 'alreadyRegistered' || conflict.code === 'duplicateInternal',
+        );
+      if (overridable) {
+        try {
+          status = await attemptRegistration(true);
+        } catch (overrideError) {
+          console.warn('Failed to override conflicting hotkey', overrideError);
+        }
+      }
+    }
     if (!status.registered) {
       console.warn('Profile hotkey registered with conflicts', status.conflicts);
     }
@@ -452,6 +486,31 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       markProfilesReady(true);
     }
   },
+  async updateProfileActivationRules(profileId, rules) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Profiles cannot be modified in browser preview mode.' });
+      return null;
+    }
+    const record = get().getProfileById(profileId);
+    if (!record) {
+      set({ error: `Profile ${profileId} not found.` });
+      return null;
+    }
+    const updated: ProfileRecord = {
+      ...record,
+      profile: {
+        ...record.profile,
+        activationRules: rules,
+      },
+    };
+    const saved = await get().saveProfile(updated);
+    if (saved) {
+      set((state) => ({
+        profiles: state.profiles.map((item) => (item.profile.id === profileId ? saved : item)),
+      }));
+    }
+    return saved;
+  },
   async refreshProfiles() {
     markProfilesReady(false);
     if (!isTauriEnvironment()) {
@@ -486,6 +545,40 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       }
     } finally {
       markProfilesReady(true);
+    }
+  },
+  async createProfile(input) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Profiles cannot be modified in browser preview mode.' });
+      return null;
+    }
+    if (get().recovery) {
+      set({ error: 'Profiles need manual recovery before they can be modified.' });
+      return null;
+    }
+    try {
+      const payload = {
+        name: input?.name,
+        globalHotkey: input?.globalHotkey ?? null,
+      };
+      const record = await invoke<ProfileRecord>('create_profile', { payload });
+      await get().refreshProfiles();
+      return record;
+    } catch (error) {
+      const message = toErrorMessage(error);
+      if (message.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(message) as { kind?: string; errors?: string[] };
+          if (parsed.kind === 'profile-validation' && Array.isArray(parsed.errors)) {
+            set({ validationErrors: parsed.errors, error: null });
+            return null;
+          }
+        } catch (parseError) {
+          console.error('Failed to parse validation payload', parseError);
+        }
+      }
+      set({ error: message, validationErrors: [] });
+      return null;
     }
   },
   async saveProfile(record) {

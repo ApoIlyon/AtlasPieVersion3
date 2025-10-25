@@ -1,6 +1,8 @@
+use crate::domain::action::MacroStepDefinition;
+use crate::domain::context_rules::ScreenArea;
 use crate::domain::pie_menu::{PieMenu, PieMenuId, PieSlice, PieSliceId};
 use crate::domain::profile::{ActivationMatchMode, ActivationRule, Profile, ProfileId};
-use crate::domain::{ActionDefinition, MacroStepKind};
+use crate::domain::{ActionDefinition, ActionId, MacroStepKind};
 use crate::models::AppProfile;
 use crate::storage::SETTINGS_FILE_NAME;
 use serde::{Deserialize, Serialize};
@@ -16,6 +18,114 @@ pub const PROFILES_SCHEMA_VERSION: u32 = 1;
 
 fn other_error(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, message.into())
+}
+
+fn format_timestamp(moment: OffsetDateTime) -> String {
+    moment
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| moment.to_string())
+}
+
+pub(crate) fn build_default_profile_record(
+    name: &str,
+    global_hotkey: Option<&str>,
+) -> ProfileRecord {
+    let profile_id = ProfileId::new();
+    let root_menu_id = PieMenuId::new();
+    let action_launch_id = ActionId::new();
+    let action_open_downloads_id = ActionId::new();
+
+    let launch_steps = vec![MacroStepDefinition {
+        id: ActionId::new(),
+        order: 0,
+        kind: MacroStepKind::Launch {
+            app_path: "calc".to_string(),
+            arguments: None,
+        },
+        note: None,
+    }];
+
+    let open_downloads_steps = vec![MacroStepDefinition {
+        id: ActionId::new(),
+        order: 0,
+        kind: MacroStepKind::Launch {
+            app_path: "explorer".to_string(),
+            arguments: Some("%USERPROFILE%\\Downloads".to_string()),
+        },
+        note: None,
+    }];
+
+    let actions = vec![
+        ActionDefinition {
+            id: action_launch_id,
+            name: "Launch Calculator".to_string(),
+            description: Some("Open system calculator".to_string()),
+            timeout_ms: 3000,
+            last_validated_at: None,
+            steps: launch_steps,
+        },
+        ActionDefinition {
+            id: action_open_downloads_id,
+            name: "Open Downloads".to_string(),
+            description: Some("Open Downloads folder".to_string()),
+            timeout_ms: 3000,
+            last_validated_at: None,
+            steps: open_downloads_steps,
+        },
+    ];
+
+    let menu = PieMenu {
+        id: root_menu_id,
+        title: "Default".to_string(),
+        appearance: Default::default(),
+        slices: vec![
+            PieSlice {
+                id: PieSliceId::new(),
+                label: "Launch Calculator".to_string(),
+                icon: None,
+                hotkey: None,
+                action: Some(action_launch_id),
+                child_menu: None,
+                order: 0,
+            },
+            PieSlice {
+                id: PieSliceId::new(),
+                label: "Open Downloads".to_string(),
+                icon: None,
+                hotkey: None,
+                action: Some(action_open_downloads_id),
+                child_menu: None,
+                order: 1,
+            },
+        ],
+    };
+
+    let now = OffsetDateTime::now_utc();
+    let timestamp = format_timestamp(now);
+
+    ProfileRecord {
+        profile: Profile {
+            id: profile_id,
+            name: name.trim().to_string(),
+            description: None,
+            enabled: true,
+            global_hotkey: global_hotkey
+                .and_then(|value| {
+                    let trimmed = value.trim();
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed.to_string())
+                    }
+                }),
+            activation_rules: Vec::new(),
+            root_menu: root_menu_id,
+        },
+        menus: vec![menu],
+        actions,
+        created_at: Some(timestamp.clone()),
+        updated_at: Some(timestamp),
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -183,15 +293,158 @@ fn normalize_action_definition(mut action: ActionDefinition) -> ActionDefinition
 }
 
 fn normalize_activation_rule(mut rule: ActivationRule) -> ActivationRule {
-    rule.value = rule.value.and_then(|value| {
-        let trimmed = value.trim();
-        if trimmed.is_empty() {
-            None
+    rule.negate = normalize_bool(rule.negate);
+
+    let mut flags = RuleFlags {
+        is_regex: rule.is_regex,
+        case_sensitive: rule.case_sensitive,
+        screen_area: rule.screen_area.clone(),
+    };
+
+    let raw_value = rule
+        .value
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty());
+
+    let mut normalized_value: Option<String>;
+
+    if let Some(raw) = raw_value {
+        if raw.starts_with("json:") {
+            if let Some(payload) = parse_rule_payload(&raw[5..]) {
+                flags = payload.flags;
+                normalized_value = payload.serialized.map(|serialized| format!("json:{serialized}"));
+            } else {
+                normalized_value = None;
+            }
+        } else if raw.starts_with("regex:") {
+            flags.is_regex = Some(true);
+            let pattern = raw["regex:".len()..].trim();
+            normalized_value = if pattern.is_empty() {
+                None
+            } else {
+                Some(format!("regex:{pattern}"))
+            };
+        } else if rule.mode == ActivationMatchMode::ScreenArea {
+            flags.screen_area = parse_screen_area_string(raw);
+            normalized_value = None;
         } else {
-            Some(trimmed.to_string())
+            normalized_value = Some(raw.to_string());
         }
-    });
+    } else {
+        normalized_value = None;
+    }
+
+    if rule.mode == ActivationMatchMode::Always {
+        normalized_value = None;
+    }
+
+    if flags.screen_area.is_none() && rule.mode == ActivationMatchMode::ScreenArea {
+        flags.screen_area = rule.screen_area.and_then(normalize_screen_area);
+    }
+
+    rule.screen_area = flags.screen_area.clone();
+
+    if rule.mode == ActivationMatchMode::ScreenArea && normalized_value.is_none() {
+        if let Some(screen_area) = &rule.screen_area {
+            if let Ok(json) = serde_json::to_string(&RuleJsonPayload {
+                version: Some(1),
+                pattern: None,
+                is_regex: flags.is_regex,
+                case_sensitive: flags.case_sensitive,
+                screen_area: Some(screen_area.clone()),
+            }) {
+                normalized_value = Some(format!("json:{json}"));
+            }
+        }
+    }
+
+    rule.value = normalized_value;
+    rule.is_regex = normalize_bool(flags.is_regex);
+    rule.case_sensitive = normalize_bool(flags.case_sensitive);
     rule
+}
+
+fn normalize_bool(input: Option<bool>) -> Option<bool> {
+    input.and_then(|value| if value { Some(true) } else { None })
+}
+
+#[derive(Default)]
+struct RuleFlags {
+    is_regex: Option<bool>,
+    case_sensitive: Option<bool>,
+    screen_area: Option<ScreenArea>,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct RuleJsonPayload {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    version: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pattern: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    is_regex: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    case_sensitive: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    screen_area: Option<ScreenArea>,
+}
+
+struct ParsedPayload {
+    flags: RuleFlags,
+    serialized: Option<String>,
+}
+
+fn parse_rule_payload(raw: &str) -> Option<ParsedPayload> {
+    let mut payload: RuleJsonPayload = serde_json::from_str(raw).ok()?;
+    let mut flags = RuleFlags::default();
+    flags.is_regex = payload.is_regex;
+    flags.case_sensitive = payload.case_sensitive;
+    flags.screen_area = payload.screen_area.take().and_then(normalize_screen_area);
+
+    if let Some(pattern) = payload.pattern.take() {
+        let trimmed = pattern.trim().to_string();
+        if !trimmed.is_empty() {
+            payload.pattern = Some(trimmed);
+        }
+    }
+
+    payload.version = Some(1);
+
+    let serialized = serde_json::to_string(&payload).ok();
+
+    Some(ParsedPayload { flags, serialized })
+}
+
+fn normalize_screen_area(area: ScreenArea) -> Option<ScreenArea> {
+    if area.width <= 0 || area.height <= 0 {
+        return None;
+    }
+    Some(ScreenArea {
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: area.height,
+    })
+}
+
+fn parse_screen_area_string(raw: &str) -> Option<ScreenArea> {
+    let legacy = raw.trim();
+    let parts: Vec<&str> = legacy.split(&['x', ':'][..]).collect();
+    if parts.len() != 4 {
+        return None;
+    }
+    let x = parts[0].parse::<i32>().ok()?;
+    let y = parts[1].parse::<i32>().ok()?;
+    let width = parts[2].parse::<i32>().ok()?;
+    let height = parts[3].parse::<i32>().ok()?;
+    normalize_screen_area(ScreenArea {
+        x,
+        y,
+        width,
+        height,
+    })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -258,7 +511,13 @@ impl ProfileRepository {
 
     pub fn load(&self) -> Result<ProfileStore, ProfileStoreLoadError> {
         if !self.file_path.exists() {
-            return Ok(ProfileStore::default());
+            let mut store = ProfileStore::default();
+            store.profiles.push(build_default_profile_record("Default Profile", Some("Control+Shift+P")));
+            store.active_profile_id = store.profiles.first().map(|record| record.profile.id);
+            normalize_profile_store(&mut store);
+            self.save(&store)
+                .map_err(|err| ProfileStoreLoadError::io(self.file_path.clone(), err))?;
+            return Ok(store);
         }
         let data = fs::read_to_string(&self.file_path)
             .map_err(|err| ProfileStoreLoadError::io(self.file_path.clone(), err))?;
@@ -415,6 +674,9 @@ fn convert_activation_rules(handles: &[String]) -> Vec<ActivationRule> {
             mode: ActivationMatchMode::Always,
             value: None,
             negate: None,
+            is_regex: None,
+            case_sensitive: None,
+            screen_area: None,
         }];
     }
 
@@ -431,6 +693,9 @@ fn parse_activation_rule(raw: &str) -> ActivationRule {
             mode: ActivationMatchMode::Always,
             value: None,
             negate: None,
+            is_regex: None,
+            case_sensitive: None,
+            screen_area: None,
         };
     }
 
@@ -439,6 +704,9 @@ fn parse_activation_rule(raw: &str) -> ActivationRule {
             mode: ActivationMatchMode::ProcessName,
             value: Some(rest.trim().to_string()),
             negate: None,
+            is_regex: None,
+            case_sensitive: None,
+            screen_area: None,
         };
     }
 
@@ -447,6 +715,9 @@ fn parse_activation_rule(raw: &str) -> ActivationRule {
             mode: ActivationMatchMode::WindowTitle,
             value: Some(rest.trim().to_string()),
             negate: None,
+            is_regex: None,
+            case_sensitive: None,
+            screen_area: None,
         };
     }
 
@@ -454,6 +725,9 @@ fn parse_activation_rule(raw: &str) -> ActivationRule {
         mode: ActivationMatchMode::Custom,
         value: Some(trimmed.to_string()),
         negate: None,
+        is_regex: None,
+        case_sensitive: None,
+        screen_area: None,
     }
 }
 

@@ -2,14 +2,26 @@ use super::{AppError, AppState, Result};
 use crate::domain::profile::ProfileId;
 use crate::domain::validation::{validate_profile, DomainValidationError};
 use crate::services::profile_router;
-use crate::storage::profile_repository::{ProfileRecord, ProfileRecoveryInfo, ProfileStore};
+use crate::storage::profile_repository::{
+    build_default_profile_record, ProfileRecord, ProfileRecoveryInfo, ProfileStore,
+};
 use serde_json::json;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tauri_plugin_opener::OpenerExt;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
+use serde::Deserialize;
 
 const PROFILES_STORE_EVENT: &str = "profiles://store-changed";
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateProfilePayload {
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub global_hotkey: Option<String>,
+}
 
 fn recovery_error(info: &ProfileRecoveryInfo) -> AppError {
     AppError::Message(
@@ -21,6 +33,58 @@ fn recovery_error(info: &ProfileRecoveryInfo) -> AppError {
         })
         .to_string(),
     )
+}
+
+#[tauri::command]
+pub fn create_profile<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+    payload: CreateProfilePayload,
+) -> Result<ProfileRecord> {
+    ensure_no_recovery(&state)?;
+
+    let requested_name = payload
+        .name
+        .as_deref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .unwrap_or("New Profile");
+
+    let mut record = build_default_profile_record(requested_name, payload.global_hotkey.as_deref());
+
+    let created = state.with_profiles_mut(|store| {
+        let mut final_name = record.profile.name.clone();
+        if final_name.trim().is_empty() {
+            final_name = "New Profile".to_string();
+        }
+
+        let base_name = final_name.clone();
+        let mut suffix = 2;
+        while store
+            .profiles
+            .iter()
+            .any(|item| item.profile.name.eq_ignore_ascii_case(&final_name))
+        {
+            final_name = format!("{} ({})", base_name, suffix);
+            suffix += 1;
+        }
+        record.profile.name = final_name;
+
+        if let Err(errors) = validate_record(&record) {
+            let payload = json!({
+                "kind": "profile-validation",
+                "errors": errors.into_iter().map(|err| err.to_string()).collect::<Vec<_>>(),
+            });
+            return Err(AppError::Message(payload.to_string()));
+        }
+
+        store.profiles.push(record.clone());
+        store.active_profile_id = Some(record.profile.id);
+        Ok(record.clone())
+    })?;
+
+    emit_profiles_changed(&app, &state)?;
+    Ok(created)
 }
 
 fn ensure_no_recovery(state: &AppState) -> Result<()> {

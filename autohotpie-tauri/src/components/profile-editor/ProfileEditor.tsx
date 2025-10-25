@@ -4,6 +4,7 @@ import { useHotkeyStore } from '../../state/hotkeyStore';
 import { selectProfileHotkeyStatus, useProfileStore } from '../../state/profileStore';
 import type { ProfileRecord } from '../../state/profileStore';
 import { PieMenu, type PieSliceDefinition } from '../pie/PieMenu';
+import { ContextConditionsPanel } from './ContextConditionsPanel';
 
 export interface ProfileEditorProps {
   profile: ProfileRecord | null;
@@ -810,11 +811,10 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               )}
             </div>
           )}
+          <ContextConditionsPanel profile={profile} />
         </div>
-      </div>
 
-      <div className="grid gap-8 xl:grid-cols-[360px,1fr]">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
             {currentMenu ? (
               <PieMenu

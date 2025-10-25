@@ -1,4 +1,5 @@
-use super::{ActionDefinition, ActionId, PieMenu, PieMenuId, PieSliceId, Profile, ProfileId};
+use super::{ActionId, PieMenu, PieMenuId, PieSliceId, Profile, ProfileId};
+use crate::domain::action::ActionDefinition;
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 

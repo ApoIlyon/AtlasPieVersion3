@@ -1,0 +1,20 @@
+{
+  "language": "ru",
+  "version": "1.0.0",
+  "strings": {
+    "app.title": "AutoHotPie",
+    "app.subtitle": "Автоматизация пирогов без AutoHotkey",
+    "header.brand": "AutoHotPie Tauri",
+    "header.title": "Студия Pie-меню",
+    "header.openLog": "Открыть лог",
+    "header.versionLoading": "Загрузка версии…",
+    "nav.dashboard": "Панель",
+    "nav.profiles": "Профили",
+    "nav.actions": "Действия",
+    "nav.settings": "Настройки",
+    "localization.switcher.label": "Язык",
+    "localization.switcher.refresh": "Обновить",
+    "localization.switcher.updated": "Пакеты локализации обновлены",
+    "localization.switcher.error": "Не удалось загрузить локализацию"
+  }
+}

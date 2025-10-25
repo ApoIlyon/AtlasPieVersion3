@@ -4,8 +4,8 @@ use crate::domain::profile::ProfileId;
 use crate::domain::Action;
 use crate::models::{AppProfile, Settings};
 use crate::storage::profile_repository::{
-    legacy_settings_file, read_legacy_settings, ProfileRecoveryInfo, ProfileRepository,
-    ProfileStore, ProfileStoreLoadError, PROFILES_SCHEMA_VERSION,
+    legacy_settings_file, read_legacy_settings, ProfileRepository, ProfileStore,
+    ProfileStoreLoadError, PROFILES_SCHEMA_VERSION,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;

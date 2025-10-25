@@ -51,7 +51,10 @@ fn load_returns_recovery_info_on_corrupt_json() {
             message,
         } => {
             assert_eq!(file_path, store_path);
-            assert!(!message.trim().is_empty(), "expected error message to be present");
+            assert!(
+                !message.trim().is_empty(),
+                "expected error message to be present"
+            );
             assert_eq!(backups_dir, backups_root.join(PROFILES_BACKUP_DIR));
         }
         other => panic!("unexpected error: {:?}", other),

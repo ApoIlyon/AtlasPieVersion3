@@ -2,6 +2,7 @@
 
 pub mod actions;
 pub mod hotkeys;
+pub mod localization;
 pub mod profiles;
 pub mod settings;
 pub mod system;
@@ -12,10 +13,12 @@ use crate::models::Settings;
 use crate::services::action_runner::{
     ActionProvider, ActionRunner, ACTION_EXECUTED_EVENT, ACTION_FAILED_EVENT,
 };
+#[cfg(feature = "tray-icon")]
+use crate::services::tray;
 use crate::services::{
     action_events::ActionEventsChannel,
     audit_log::AuditLogger,
-    connectivity,
+    connectivity, localization as localization_service,
     profile_router::{self, ProfileRouterState},
     storage_guard,
     system_status::SystemStatus,
@@ -179,6 +182,8 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         action_events.clone(),
     );
 
+    localization_service::init(&handle)?;
+
     app.manage(AppState {
         storage: storage.clone(),
         audit,
@@ -244,8 +249,14 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         eprintln!("failed to set up tray icon: {err}");
     }
     profile_router::start_router(handle.clone());
+    #[cfg(feature = "tray-icon")]
+    tauri::async_runtime::block_on(tray::ensure_tray_state(&handle)).ok();
 
     Ok(())
+}
+
+pub fn shutdown() {
+    localization_service::shutdown();
 }
 
 pub fn current_version<R: Runtime>(app: &AppHandle<R>) -> String {

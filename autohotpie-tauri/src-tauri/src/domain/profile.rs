@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use super::pie_menu::PieMenuId;
+use super::{context_rules::ScreenArea, pie_menu::PieMenuId};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -66,13 +66,14 @@ impl Profile {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ActivationMatchMode {
     Always,
     ProcessName,
     WindowTitle,
     WindowClass,
+    ScreenArea,
     Custom,
 }
 
@@ -91,4 +92,10 @@ pub struct ActivationRule {
     pub value: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub negate: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_regex: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub case_sensitive: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub screen_area: Option<ScreenArea>,
 }

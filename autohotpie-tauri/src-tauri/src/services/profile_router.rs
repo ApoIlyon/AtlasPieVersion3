@@ -1,5 +1,8 @@
 use crate::commands::{AppState, SystemState};
-use crate::services::{audit_log::AuditLogger, system_status::WindowSnapshot};
+use crate::services::{
+    audit_log::AuditLogger,
+    system_status::{ScreenAreaSnapshot, WindowSnapshot},
+};
 use crate::storage::profile_repository::ProfileStore;
 use anyhow::{anyhow, Result};
 use regex::Regex;
@@ -19,6 +22,9 @@ const POLL_INTERVAL: Duration = Duration::from_millis(1000);
 pub enum MatchKind {
     ProcessName,
     WindowTitle,
+    WindowClass,
+    ScreenArea,
+    Custom,
     Fallback,
 }
 
@@ -172,6 +178,12 @@ fn select_profile(
         .as_ref()
         .map(|title| title.trim())
         .filter(|title| !title.is_empty());
+    let window_class = window
+        .window_class
+        .as_ref()
+        .map(|class| class.trim())
+        .filter(|class| !class.is_empty());
+    let screen_area = window.screen_area.as_ref();
 
     let history_snapshot = history
         .lock()
@@ -187,7 +199,7 @@ fn select_profile(
         }
 
         let rules = parse_rules(&record.profile.activation_rules);
-        if let Some(match_info) = match_rules(&rules, process_name, window_title) {
+        if let Some(match_info) = match_rules(&rules, process_name, window_title, window_class, screen_area) {
             let candidate = ProfileCandidate::from_match(
                 index,
                 record.profile.name.clone(),
@@ -267,14 +279,20 @@ fn update_active_profile(
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Target {
     Process,
-    Window,
+    WindowTitle,
+    WindowClass,
     Any,
+    ScreenArea,
 }
 
 #[derive(Debug, Clone)]
 enum Matcher {
-    Exact(String),
+    Exact {
+        value: String,
+        case_sensitive: bool,
+    },
     Regex(Regex),
+    ScreenArea(ScreenAreaSnapshot),
     Fallback,
 }
 
@@ -350,55 +368,98 @@ fn parse_rules(handles: &[crate::domain::profile::ActivationRule]) -> Vec<Rule> 
 }
 
 fn parse_rule(rule: &crate::domain::profile::ActivationRule) -> Option<Rule> {
+    use crate::domain::profile::ActivationMatchMode as Mode;
+
     match rule.mode {
-        crate::domain::profile::ActivationMatchMode::Always => Some(Rule {
+        Mode::Always => Some(Rule {
             target: Target::Any,
             matcher: Matcher::Fallback,
             raw: "fallback".to_string(),
         }),
-        crate::domain::profile::ActivationMatchMode::ProcessName => rule
-            .value
-            .as_ref()
-            .and_then(|value| rule_from_value(value, Target::Process)),
-        crate::domain::profile::ActivationMatchMode::WindowTitle => rule
-            .value
-            .as_ref()
-            .and_then(|value| rule_from_value(value, Target::Window)),
-        crate::domain::profile::ActivationMatchMode::WindowClass => rule
-            .value
-            .as_ref()
-            .and_then(|value| rule_from_value(value, Target::Any)),
-        crate::domain::profile::ActivationMatchMode::Custom => rule
-            .value
-            .as_ref()
-            .and_then(|value| rule_from_value(value, Target::Any)),
+        Mode::ProcessName => build_text_rule(rule, Target::Process),
+        Mode::WindowTitle => build_text_rule(rule, Target::WindowTitle),
+        Mode::WindowClass => build_text_rule(rule, Target::WindowClass),
+        Mode::Custom => build_text_rule(rule, Target::Any),
+        Mode::ScreenArea => build_screen_area_rule(rule),
     }
 }
 
-fn rule_from_value(value: &str, target: Target) -> Option<Rule> {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
+fn build_text_rule(rule: &crate::domain::profile::ActivationRule, target: Target) -> Option<Rule> {
+    let raw = rule.value.as_ref()?.trim();
+    if raw.is_empty() {
         return None;
     }
 
-    if let Some(rest) = trimmed.strip_prefix("regex:") {
-        match Regex::new(rest.trim()) {
+    let is_regex = rule.is_regex.unwrap_or_else(|| raw.starts_with("regex:"));
+    let case_sensitive = rule.case_sensitive.unwrap_or(false);
+
+    if is_regex {
+        let pattern = if raw.starts_with("regex:") {
+            raw["regex:".len()..].trim()
+        } else {
+            raw
+        };
+
+        if pattern.is_empty() {
+            return None;
+        }
+
+        match Regex::new(pattern) {
             Ok(regex) => Some(Rule {
                 target,
                 matcher: Matcher::Regex(regex),
-                raw: trimmed.to_string(),
+                raw: raw.to_string(),
             }),
             Err(err) => {
-                eprintln!("invalid regex '{rest}' in profile rule: {err}");
+                eprintln!("invalid regex '{pattern}' in profile rule: {err}");
                 None
             }
         }
     } else {
         Some(Rule {
             target,
-            matcher: Matcher::Exact(trimmed.to_string()),
-            raw: trimmed.to_string(),
+            matcher: Matcher::Exact {
+                value: raw.to_string(),
+                case_sensitive,
+            },
+            raw: raw.to_string(),
         })
+    }
+}
+
+fn build_screen_area_rule(rule: &crate::domain::profile::ActivationRule) -> Option<Rule> {
+    let area = rule.screen_area.as_ref()?;
+    Some(Rule {
+        target: Target::ScreenArea,
+        matcher: Matcher::ScreenArea(ScreenAreaSnapshot {
+            x: area.x,
+            y: area.y,
+            width: area.width,
+            height: area.height,
+        }),
+        raw: format!("screen_area:{}x{}:{}x{}", area.x, area.y, area.width, area.height),
+    })
+}
+
+impl Target {
+    fn match_kind(&self) -> MatchKind {
+        match self {
+            Target::Process => MatchKind::ProcessName,
+            Target::WindowTitle => MatchKind::WindowTitle,
+            Target::WindowClass => MatchKind::WindowClass,
+            Target::ScreenArea => MatchKind::ScreenArea,
+            Target::Any => MatchKind::Custom,
+        }
+    }
+
+    fn match_score(&self) -> u8 {
+        match self {
+            Target::ScreenArea => 5,
+            Target::Process => 4,
+            Target::WindowClass => 3,
+            Target::WindowTitle => 2,
+            Target::Any => 1,
+        }
     }
 }
 
@@ -406,6 +467,8 @@ fn match_rules(
     rules: &[Rule],
     process_name: Option<&str>,
     window_title: Option<&str>,
+    window_class: Option<&str>,
+    screen_area: Option<&ScreenAreaSnapshot>,
 ) -> Option<MatchInfo> {
     for rule in rules {
         match &rule.matcher {
@@ -417,10 +480,23 @@ fn match_rules(
                     fallback: true,
                 })
             }
-            Matcher::Exact(needle) => {
-                if rule_applies(rule.target, process_name, window_title, |value| {
-                    value.eq_ignore_ascii_case(needle)
-                }) {
+            Matcher::Exact {
+                value,
+                case_sensitive,
+            } => {
+                if rule_applies(
+                    rule.target,
+                    process_name,
+                    window_title,
+                    window_class,
+                    |candidate| {
+                        if *case_sensitive {
+                            candidate == value
+                        } else {
+                            candidate.eq_ignore_ascii_case(value)
+                        }
+                    },
+                ) {
                     return Some(MatchInfo {
                         kind: rule.target.match_kind(),
                         score: rule.target.match_score(),
@@ -430,15 +506,35 @@ fn match_rules(
                 }
             }
             Matcher::Regex(regex) => {
-                if rule_applies(rule.target, process_name, window_title, |value| {
-                    regex.is_match(value)
-                }) {
+                if rule_applies(
+                    rule.target,
+                    process_name,
+                    window_title,
+                    window_class,
+                    |candidate| regex.is_match(candidate),
+                ) {
                     return Some(MatchInfo {
                         kind: rule.target.match_kind(),
                         score: rule.target.match_score(),
                         rule: rule.raw.clone(),
                         fallback: false,
                     });
+                }
+            }
+            Matcher::ScreenArea(expected) => {
+                if let Some(actual) = screen_area {
+                    if actual.x == expected.x
+                        && actual.y == expected.y
+                        && actual.width == expected.width
+                        && actual.height == expected.height
+                    {
+                        return Some(MatchInfo {
+                            kind: MatchKind::ScreenArea,
+                            score: rule.target.match_score(),
+                            rule: rule.raw.clone(),
+                            fallback: false,
+                        });
+                    }
                 }
             }
         }
@@ -450,36 +546,19 @@ fn rule_applies<F>(
     target: Target,
     process: Option<&str>,
     window: Option<&str>,
+    class: Option<&str>,
     predicate: F,
 ) -> bool
 where
     F: Fn(&str) -> bool,
 {
+    let check = |candidate: Option<&str>| candidate.map_or(false, |value| predicate(value));
     match target {
-        Target::Process => process.map_or(false, |value| predicate(value)),
-        Target::Window => window.map_or(false, |value| predicate(value)),
-        Target::Any => {
-            process.map_or(false, |value| predicate(value))
-                || window.map_or(false, |value| predicate(value))
-        }
-    }
-}
-
-impl Target {
-    fn match_kind(&self) -> MatchKind {
-        match self {
-            Target::Process => MatchKind::ProcessName,
-            Target::Window => MatchKind::WindowTitle,
-            Target::Any => MatchKind::Fallback,
-        }
-    }
-
-    fn match_score(&self) -> u8 {
-        match self {
-            Target::Process => 3,
-            Target::Window => 2,
-            Target::Any => 1,
-        }
+        Target::Process => check(process),
+        Target::WindowTitle => check(window),
+        Target::WindowClass => check(class),
+        Target::Any => check(process) || check(window) || check(class),
+        Target::ScreenArea => false,
     }
 }
 
@@ -608,6 +687,9 @@ mod tests {
             mode,
             value: value.map(|v| v.to_string()),
             negate: None,
+            is_regex: None,
+            case_sensitive: None,
+            screen_area: None,
         }
     }
 

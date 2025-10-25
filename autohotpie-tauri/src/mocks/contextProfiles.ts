@@ -1,4 +1,4 @@
-import contextProfilesJson from './context-profiles.json';
+import contextProfilesJson from './context-profiles.json' assert { type: 'json' };
 import type { ActivationRule, PieMenu, PieSlice, ProfileRecord } from '../state/profileStore';
 
 interface MockContextProfilesFile {

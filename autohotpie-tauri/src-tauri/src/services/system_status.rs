@@ -31,11 +31,21 @@ pub struct CursorPosition {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
+pub struct ScreenAreaSnapshot {
+    pub x: i32,
+    pub y: i32,
+    pub width: i32,
+    pub height: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct WindowSnapshot {
     pub process_name: Option<String>,
     pub window_title: Option<String>,
     pub window_class: Option<String>,
     pub cursor_position: Option<CursorPosition>,
+    pub screen_area: Option<ScreenAreaSnapshot>,
     pub is_fullscreen: bool,
     pub timestamp: String,
 }

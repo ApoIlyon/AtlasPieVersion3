@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "playwright": "playwright test",
+    "playwright": "playwright test --config=tests/e2e/playwright.config.ts",
     "test:e2e": "playwright test --config=tests/e2e/playwright.config.ts",
     "e2e": "npm run test:e2e",
     "test:pie": "npm run test -- --run usePieMenuHotkey.test.ts && npx playwright test tests/perf/latency.spec.ts tests/perf/menu-latency.spec.ts --config=tests/e2e/playwright.config.ts --reporter=line --workers=1 && npx playwright test --config=tests/e2e/playwright.config.ts tests/e2e/pie-menu.spec.ts tests/e2e/action-execution.spec.ts tests/e2e/hotkey-conflict.spec.ts --reporter=line --workers=1",

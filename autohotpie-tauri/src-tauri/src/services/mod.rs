@@ -2,6 +2,7 @@ pub mod action_events;
 pub mod action_runner;
 pub mod audit_log;
 pub mod connectivity;
+pub mod localization;
 pub mod profile_router;
 pub mod storage_guard;
 pub mod system_status;

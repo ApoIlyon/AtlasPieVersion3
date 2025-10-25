@@ -28,6 +28,26 @@ function getTauriInvoke(): TauriInvoke | null {
   return tauriWindow.__TAURI__?.core?.invoke ?? tauriWindow.__TAURI__?.invoke ?? null;
 }
 
+const HOTKEY_DEBOUNCE_MS = 200;
+const HOTKEY_REPRESS_GRACE_MS = 600;
+const ACTION_TOAST_DEDUP_MS = 2000;
+
+declare global {
+  interface Window {
+    __PIE_DEBUG__?: {
+      state: {
+        isOpen: boolean;
+        hasConflictDialogOpen: boolean;
+        hasHotkeyConflicts: boolean;
+        lastSafeModeReason: string | null;
+        activeSliceId: string | null;
+        closeTimerPending: boolean;
+        lastToggleAt: number;
+      };
+    };
+  }
+}
+
 type ModifierFlags = {
   ctrl: boolean;
   shift: boolean;
@@ -35,11 +55,41 @@ type ModifierFlags = {
   meta: boolean;
 };
 
-function createHotkeyMatcher(hotkey: string) {
+type ParsedHotkey = {
+  original: string;
+  modifiers: ModifierFlags;
+  primaryKey: string | null;
+  keySet: Set<string>;
+};
+
+const NORMALIZED_MODIFIER_KEYS: Record<string, keyof ModifierFlags> = {
+  control: 'ctrl',
+  ctrl: 'ctrl',
+  shift: 'shift',
+  alt: 'alt',
+  option: 'alt',
+  meta: 'meta',
+  cmd: 'meta',
+  command: 'meta',
+  win: 'meta',
+};
+
+function normalizePrimary(part: string): string {
+  if (part === ' ') {
+    return 'space';
+  }
+  return part;
+}
+
+function parseHotkey(hotkey: string): ParsedHotkey | null {
   const parts = hotkey
     .split('+')
     .map((part) => part.trim().toLowerCase())
     .filter((part) => part.length > 0);
+
+  if (parts.length === 0) {
+    return null;
+  }
 
   const modifiers: ModifierFlags = {
     ctrl: false,
@@ -51,71 +101,102 @@ function createHotkeyMatcher(hotkey: string) {
   let primaryKey: string | null = null;
 
   for (const part of parts) {
-    if (part === 'ctrl' || part === 'control') {
-      modifiers.ctrl = true;
+    const modifierKey = NORMALIZED_MODIFIER_KEYS[part];
+    if (modifierKey) {
+      modifiers[modifierKey] = true;
       continue;
-    }
-
-    if (part === 'shift') {
-      modifiers.shift = true;
-      continue;
-    }
-    if (part === 'alt' || part === 'option') {
-      modifiers.alt = true;
-      continue;
-    }
-    if (part === 'meta' || part === 'cmd' || part === 'command' || part === 'win') {
-      modifiers.meta = true;
-      continue;
-    }
-    primaryKey = part;
-  }
-
-  return (event: KeyboardEvent) => {
-    if (event.ctrlKey !== modifiers.ctrl) {
-      return false;
-    }
-    if (event.shiftKey !== modifiers.shift) {
-      return false;
-    }
-    if (event.altKey !== modifiers.alt) {
-      return false;
-    }
-    if (event.metaKey !== modifiers.meta) {
-      return false;
     }
 
     if (!primaryKey) {
-      return true;
+      primaryKey = normalizePrimary(part);
     }
+  }
 
-    const key = event.key?.toLowerCase();
-    const code = event.code?.toLowerCase();
+  const keySet = new Set<string>();
+  if (modifiers.ctrl) {
+    keySet.add('ctrl');
+  }
+  if (modifiers.shift) {
+    keySet.add('shift');
+  }
+  if (modifiers.alt) {
+    keySet.add('alt');
+  }
+  if (modifiers.meta) {
+    keySet.add('meta');
+  }
+  if (primaryKey) {
+    keySet.add(primaryKey);
+  }
 
-    if (primaryKey === 'space') {
-      return key === ' ' || key === 'space' || code === 'space';
-    }
-
-    if (code && code.startsWith('key')) {
-      const normalized = code.replace('key', '');
-      if (normalized === primaryKey) {
-        return true;
-      }
-    }
-
-    if (code && code.startsWith('digit')) {
-      const normalized = code.replace('digit', '');
-      if (normalized === primaryKey) {
-        return true;
-      }
-    }
-
-    if (key === primaryKey) {
-      return true;
-    }
-
-    return false;
+  return {
+    original: hotkey,
+    modifiers,
+    primaryKey,
+    keySet,
   };
+}
+
+function matchesPrimaryKey(parsed: ParsedHotkey, event: KeyboardEvent): boolean {
+  if (!parsed.primaryKey) {
+    return true;
+  }
+
+  const key = event.key?.toLowerCase();
+  const code = event.code?.toLowerCase();
+
+  if (parsed.primaryKey === 'space') {
+    return key === ' ' || key === 'space' || code === 'space';
+  }
+
+  if (key === parsed.primaryKey) {
+    return true;
+  }
+
+  if (code) {
+    if (code.startsWith('key')) {
+      const normalized = code.replace('key', '');
+      return normalized === parsed.primaryKey;
+    }
+    if (code.startsWith('digit')) {
+      const normalized = code.replace('digit', '');
+      return normalized === parsed.primaryKey;
+    }
+    return code === parsed.primaryKey;
+  }
+
+  return false;
+}
+
+function hotkeyMatchesEvent(parsed: ParsedHotkey, event: KeyboardEvent): boolean {
+  if (event.ctrlKey !== parsed.modifiers.ctrl) {
+    return false;
+  }
+  if (event.shiftKey !== parsed.modifiers.shift) {
+    return false;
+  }
+  if (event.altKey !== parsed.modifiers.alt) {
+    return false;
+  }
+  if (event.metaKey !== parsed.modifiers.meta) {
+    return false;
+  }
+
+  return matchesPrimaryKey(parsed, event);
+}
+
+function normalizeEventKey(eventKey: string | undefined): string | null {
+  if (!eventKey) {
+    return null;
+  }
+  const lower = eventKey.toLowerCase();
+  if (lower === ' ') {
+    return 'space';
+  }
+  if (NORMALIZED_MODIFIER_KEYS[lower]) {
+    return NORMALIZED_MODIFIER_KEYS[lower];
+  }
+  return lower;
 }
 
 interface WindowEventPayload {
@@ -137,6 +218,7 @@ export interface UsePieMenuHotkeyOptions {
   hotkeyEvent?: string;
   autoCloseMs?: number;
   fallbackHotkey?: string | string[];
+  activationMode?: 'toggle' | 'hold';
 }
 
 export interface PieMenuHotkeyState {
@@ -167,6 +249,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     hotkeyEvent = 'hotkeys://trigger',
     autoCloseMs = 0,
     fallbackHotkey = 'Control+Alt+Space',
+    activationMode = 'toggle',
   } = options;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
@@ -174,6 +257,12 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const [lastSafeModeReason, setLastSafeModeReason] = useState<string | null>(null);
   const [activeProfile, setActiveProfile] = useState<ActiveProfileSnapshot | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastHotkeyEventAtRef = useRef<number>(0);
+  const lastToggleAtRef = useRef<number>(0);
+  const conflictCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressedKeysRef = useRef<Set<string>>(new Set());
+  const activeHoldHotkeyRef = useRef<ParsedHotkey | null>(null);
+  const lastToastRef = useRef<{ id: string; timestamp: number } | null>(null);
   const { dialogOpen: hasConflictDialogOpen, dialogStatus: dialogStatusState } = useHotkeyStore((state) => ({
     dialogOpen: state.dialogOpen,
     dialogStatus: state.dialogStatus,
@@ -210,10 +299,46 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
   useEffect(() => {
     if (hasConflictDialogOpen || hasHotkeyConflicts) {
-      clearTimer();
-      setIsOpen(false);
+      if (conflictCloseTimerRef.current) {
+        clearTimeout(conflictCloseTimerRef.current);
+      }
+      conflictCloseTimerRef.current = setTimeout(() => {
+        clearTimer();
+        setIsOpen(false);
+        lastToggleAtRef.current = Date.now();
+        conflictCloseTimerRef.current = null;
+      }, 250);
+      return;
+    }
+
+    if (conflictCloseTimerRef.current) {
+      clearTimeout(conflictCloseTimerRef.current);
+      conflictCloseTimerRef.current = null;
     }
   }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.__PIE_DEBUG__ = {
+      state: {
+        isOpen,
+        hasConflictDialogOpen,
+        hasHotkeyConflicts,
+        lastSafeModeReason,
+        activeSliceId,
+        closeTimerPending: closeTimerRef.current != null,
+        lastToggleAt: lastToggleAtRef.current,
+      },
+    };
+  }, [
+    activeSliceId,
+    hasConflictDialogOpen,
+    hasHotkeyConflicts,
+    isOpen,
+    lastSafeModeReason,
+  ]);
 
   const recordActionOutcome = useCallback(
     (payload: {
@@ -229,15 +354,24 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       const durationMs = payload.durationMs ?? null;
       const invocationId = payload.invocationId ?? null;
 
-      setLastAction({
-        status: payload.status,
-        message: payload.message ?? null,
-        actionId: payload.id,
-        actionName: payload.name,
-        timestamp,
-        durationMs,
-        invocationId,
-      });
+      const now = Date.now();
+      const duplicateToast =
+        lastToastRef.current &&
+        lastToastRef.current.id === payload.id &&
+        now - lastToastRef.current.timestamp < ACTION_TOAST_DEDUP_MS;
+
+      if (!duplicateToast) {
+        setLastAction({
+          status: payload.status,
+          message: payload.message ?? null,
+          actionId: payload.id,
+          actionName: payload.name,
+          timestamp,
+          durationMs,
+          invocationId,
+        });
+        lastToastRef.current = { id: payload.id, timestamp: now };
+      }
 
       const recordAppMetric = useAppStore.getState().recordActionMetric;
       recordAppMetric({
@@ -287,59 +421,83 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
     return base;
   }, [fallbackHotkey, profileStoreState.activeProfileId, profileStoreState.profiles]);
+  const parsedFallbackHotkeys = useMemo(
+    () =>
+      fallbackHotkeys
+        .map((hotkey) => parseHotkey(hotkey))
+        .filter((parsed): parsed is ParsedHotkey => Boolean(parsed)),
+    [fallbackHotkeys],
+  );
+  const isHoldMode = activationMode === 'hold';
 
   useEffect(() => {
     if (!isTauriEnvironment() && typeof window !== 'undefined') {
-      (window as unknown as { __PIE_HOTKEY_MATCHERS__?: string[] }).__PIE_HOTKEY_MATCHERS__ = fallbackHotkeys.map(
-        (key) => key.toLowerCase(),
+      (window as unknown as { __PIE_HOTKEY_MATCHERS__?: string[] }).__PIE_HOTKEY_MATCHERS__ = parsedFallbackHotkeys.map(
+        (parsed) => parsed.original.toLowerCase(),
       );
     }
-  }, [fallbackHotkeys]);
+  }, [parsedFallbackHotkeys]);
 
   useEffect(() => {
-    if (!isTauriEnvironment()) {
-      const matchers = fallbackHotkeys.map((hotkey) => createHotkeyMatcher(hotkey));
+    if (isTauriEnvironment()) {
+      return;
+    }
 
-      const clearMenuState = () => {
-        clearTimer();
-        setIsOpen(false);
-      };
+    if (!parsedFallbackHotkeys.length) {
+      return;
+    }
 
-      const handleKeyDown = (event: KeyboardEvent) => {
+    const clearHoldState = () => {
+      activeHoldHotkeyRef.current = null;
+      pressedKeysRef.current.clear();
+    };
+
+    const clearMenuState = () => {
+      clearTimer();
+      setIsOpen(false);
+      clearHoldState();
+    };
+
+    const matchers = parsedFallbackHotkeys.map((parsed) => (event: KeyboardEvent) => hotkeyMatchesEvent(parsed, event));
+
+    const findMatchingHoldHotkey = () =>
+      parsedFallbackHotkeys.find((parsed) => Array.from(parsed.keySet).every((key) => pressedKeysRef.current.has(key))) ??
+      null;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const normalizedKey = normalizeEventKey(event.key) ?? normalizeEventKey(event.code);
+      if (normalizedKey) {
+        pressedKeysRef.current.add(normalizedKey);
+      }
+
+      if (hasConflictDialogOpen || hasHotkeyConflicts) {
+        if (!isHoldMode && (matchers.some((match) => match(event)) || event.key === 'Escape')) {
+          event.preventDefault();
+          clearMenuState();
+        }
+        return;
+      }
+
+      if (isHoldMode) {
         if (event.repeat) {
           return;
         }
-        if (hasConflictDialogOpen || hasHotkeyConflicts) {
-          if (matchers.some((match) => match(event)) || event.key === 'Escape') {
-            event.preventDefault();
-            clearMenuState();
-          }
-          return;
-        }
-
-        if (matchers.some((match) => match(event))) {
+        const matched = findMatchingHoldHotkey();
+        if (matched && !activeHoldHotkeyRef.current) {
           event.preventDefault();
-          setIsOpen((prev) => {
-            const next = !prev;
-            if (next) {
-              scheduleAutoClose();
-            } else {
-              clearTimer();
-            }
-            return next;
-          });
-          return;
+          activeHoldHotkeyRef.current = matched;
+          lastToggleAtRef.current = Date.now();
+          setIsOpen(true);
         }
-        if (event.key === 'Escape') {
-          clearMenuState();
-        }
-      };
+        return;
+      }
 
-      const toggleEvent = () => {
-        if (hasConflictDialogOpen || hasHotkeyConflicts) {
-          clearMenuState();
-          return;
-        }
+      if (event.repeat) {
+        return;
+      }
+
+      if (matchers.some((match) => match(event))) {
+        event.preventDefault();
         setIsOpen((prev) => {
           const next = !prev;
           if (next) {
@@ -349,56 +507,122 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           }
           return next;
         });
-      };
+        return;
+      }
 
-      const openEvent = () => {
-        if (hasConflictDialogOpen || hasHotkeyConflicts) {
-          clearMenuState();
-          return;
-        }
-        setIsOpen(true);
-        scheduleAutoClose();
-      };
-
-      const closeEvent = () => {
+      if (event.key === 'Escape') {
         clearMenuState();
-      };
+      }
+    };
 
-      const actionEvent = (event: Event) => {
-        const detail = (event as CustomEvent<{
-          id?: string;
-          name?: string;
-          status?: ActionEventStatus;
-          message?: string | null;
-        }>).detail;
-        if (!detail?.id || !detail.name || !detail.status) {
-          return;
+    const handleKeyUp = (event: KeyboardEvent) => {
+      const normalizedKey = normalizeEventKey(event.key) ?? normalizeEventKey(event.code);
+      if (normalizedKey) {
+        pressedKeysRef.current.delete(normalizedKey);
+      }
+
+      if (!isHoldMode) {
+        return;
+      }
+
+      const activeHoldHotkey = activeHoldHotkeyRef.current;
+      if (!activeHoldHotkey) {
+        return;
+      }
+
+      const stillPressed = Array.from(activeHoldHotkey.keySet).every((key) => pressedKeysRef.current.has(key));
+      if (!stillPressed) {
+        activeHoldHotkeyRef.current = null;
+        lastToggleAtRef.current = Date.now();
+        clearTimer();
+        setIsOpen(false);
+      }
+    };
+
+    const handleBlur = () => {
+      if (isHoldMode && activeHoldHotkeyRef.current) {
+        clearMenuState();
+      }
+      pressedKeysRef.current.clear();
+    };
+
+    const toggleEvent = () => {
+      if (hasConflictDialogOpen || hasHotkeyConflicts) {
+        clearMenuState();
+        return;
+      }
+      setIsOpen((prev) => {
+        const next = !prev;
+        if (next) {
+          scheduleAutoClose();
+        } else {
+          clearTimer();
         }
-        recordActionOutcome({
-          id: detail.id,
-          name: detail.name,
-          status: detail.status,
-          message: detail.message ?? null,
-          durationMs: null,
-          invocationId: null,
-        });
-      };
+        return next;
+      });
+    };
 
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('pie-menu:toggle', toggleEvent);
-      window.addEventListener('pie-menu:open', openEvent);
-      window.addEventListener('pie-menu:close', closeEvent);
-      window.addEventListener('pie-menu:action', actionEvent as EventListener);
+    const openEvent = () => {
+      if (hasConflictDialogOpen || hasHotkeyConflicts) {
+        clearMenuState();
+        return;
+      }
+      setIsOpen(true);
+      scheduleAutoClose();
+    };
 
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('pie-menu:toggle', toggleEvent);
-        window.removeEventListener('pie-menu:open', openEvent);
-        window.removeEventListener('pie-menu:close', closeEvent);
-        window.removeEventListener('pie-menu:action', actionEvent as EventListener);
-      };
-    }
-  }, [clearTimer, fallbackHotkeys, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
+    const closeEvent = () => {
+      clearMenuState();
+    };
+
+    const actionEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        id?: string;
+        name?: string;
+        status?: ActionEventStatus;
+        message?: string | null;
+      }>).detail;
+      if (!detail?.id || !detail.name || !detail.status) {
+        return;
+      }
+      recordActionOutcome({
+        id: detail.id,
+        name: detail.name,
+        status: detail.status,
+        message: detail.message ?? null,
+        durationMs: null,
+        invocationId: null,
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('pie-menu:toggle', toggleEvent);
+    window.addEventListener('pie-menu:open', openEvent);
+    window.addEventListener('pie-menu:close', closeEvent);
+    window.addEventListener('pie-menu:action', actionEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('pie-menu:toggle', toggleEvent);
+      window.removeEventListener('pie-menu:open', openEvent);
+      window.removeEventListener('pie-menu:close', closeEvent);
+      window.removeEventListener('pie-menu:action', actionEvent as EventListener);
+      pressedKeysRef.current.clear();
+      activeHoldHotkeyRef.current = null;
+    };
+  }, [
+    clearTimer,
+    hasConflictDialogOpen,
+    hasHotkeyConflicts,
+    isHoldMode,
+    parsedFallbackHotkeys,
+    recordActionOutcome,
+    scheduleAutoClose,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -477,24 +701,43 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         console.error('Failed to resolve active profile', error);
       }
 
-      profileUnlisten = await listen<{ profile: ActiveProfileSnapshot | null }>('profiles://active-changed', (event) => {
-        setActiveProfile(event.payload.profile ?? null);
-      });
+      profileUnlisten = await listen<{ profile: ActiveProfileSnapshot | null }>(
+        'profiles://active-changed',
+        (event) => {
+          setActiveProfile(event.payload.profile ?? null);
+        },
+      );
 
       hotkeyUnlisten = await listen(hotkeyEvent, () => {
+        const now = Date.now();
+        if (now - (lastHotkeyEventAtRef.current ?? 0) < HOTKEY_DEBOUNCE_MS) {
+          lastHotkeyEventAtRef.current = now;
+          return;
+        }
+        lastHotkeyEventAtRef.current = now;
         setIsOpen((prev) => {
           if (hasConflictDialogOpen) {
             clearTimer();
             return false;
           }
 
-          const next = !prev;
-          if (next) {
+          if (!prev) {
+            lastToggleAtRef.current = now;
+            scheduleAutoClose();
+            return true;
+          }
+
+          if (now - lastToggleAtRef.current < HOTKEY_REPRESS_GRACE_MS) {
+            return prev;
+          }
+
+          lastToggleAtRef.current = now;
+          if (autoCloseMs > 0) {
             scheduleAutoClose();
           } else {
             clearTimer();
           }
-          return next;
+          return false;
         });
       });
 
@@ -553,6 +796,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [profileStoreState.activeProfileId, profileStoreState.profiles]);
 
   const toggle = useCallback(() => {
+    const now = Date.now();
     setIsOpen((prev) => {
       if (hasConflictDialogOpen || hasHotkeyConflicts) {
         clearTimer();
@@ -561,8 +805,10 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
       const next = !prev;
       if (next) {
+        lastToggleAtRef.current = now;
         scheduleAutoClose();
       } else {
+        lastToggleAtRef.current = now;
         clearTimer();
       }
       return next;
@@ -575,11 +821,13 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       setIsOpen(false);
       return;
     }
+    lastToggleAtRef.current = Date.now();
     setIsOpen(true);
     scheduleAutoClose();
   }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, scheduleAutoClose]);
 
   const close = useCallback(() => {
+    lastToggleAtRef.current = Date.now();
     setIsOpen(false);
     clearTimer();
   }, [clearTimer]);
