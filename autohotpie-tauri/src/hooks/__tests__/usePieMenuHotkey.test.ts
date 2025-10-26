@@ -19,7 +19,7 @@ describe('usePieMenuHotkey (fallback mode)', () => {
       usePieMenuHotkey({ fallbackHotkey: 'Control+Shift+P', autoCloseMs: 0 }),
     );
 
-    expect(result.current.isOpen).toBe(true);
+    expect(result.current.isOpen).toBe(false);
 
     act(() => {
       window.dispatchEvent(

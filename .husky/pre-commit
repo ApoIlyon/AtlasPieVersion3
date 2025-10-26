@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+cd "$(dirname "$0")/../autohotpie-tauri" || exit 1
+npm run test:unit
