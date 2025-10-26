@@ -26,11 +26,13 @@ jobs:
         working-directory: autohotpie-tauri
         run: npm install
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy,rustfmt
-          targets: ${{ github.event.inputs.tauri_target }}
+      - name: Setup Rust toolchain
+        shell: pwsh
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add clippy rustfmt
+          rustup target add ${{ github.event.inputs.tauri_target }}
 
       - name: Build UI
         working-directory: autohotpie-tauri
