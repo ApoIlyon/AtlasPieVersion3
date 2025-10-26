@@ -53,7 +53,8 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           brew update
-          brew install webkit2gtk@4.1 || true
+          brew tap gcenx/homebrew-webkitgtk || true
+          brew install webkitgtk-4.1 || brew install webkitgtk
 
       - name: Install frontend deps
         working-directory: autohotpie-tauri
@@ -75,7 +76,7 @@ jobs:
           npm run tauri build -- --target ${{ matrix.target }} --ci
 
       - name: Upload artifacts
-        if: always()
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: tauri-${{ matrix.os }}
