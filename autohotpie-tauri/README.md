@@ -13,4 +13,3 @@ AutoHotPie Tauri is the desktop shell for the AutoHotPie profile editor and pie-
 - `npm run cargo:test` — Rust unit tests for the Tauri backend
 - `npm run test:e2e` — Playwright end-to-end suite
 - `npm run check:all` — sequentially runs the three commands above (hooked on pre-push)
-sss
