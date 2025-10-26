@@ -42,3 +42,5 @@ Thumbs.db
 # Cache
 .cache/
 .tmp/
+autohotpie-tauri/tests/e2e/playwright-report/
+autohotpie-tauri/tests/e2e/test-results/
