@@ -27,9 +27,9 @@ jobs:
         run: npm install
 
       - name: Setup Rust toolchain
-        shell: pwsh
+        shell: powershell
         run: |
-          rustup update stable
+          rustup update stable --no-self-update
           rustup default stable
           rustup component add clippy rustfmt
           rustup target add ${{ github.event.inputs.tauri_target }}
