@@ -54,7 +54,7 @@ jobs:
         run: |
           brew update
           brew tap gcenx/homebrew-webkitgtk || true
-          brew install webkitgtk-4.1 || brew install webkitgtk
+          brew install gcenx/homebrew-webkitgtk/webkitgtk-4.1 || brew install gcenx/homebrew-webkitgtk/webkitgtk || true
 
       - name: Install frontend deps
         working-directory: autohotpie-tauri
