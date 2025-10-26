@@ -1,0 +1,79 @@
+name: Check All
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  unit-tests:
+    name: Vitest unit tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            autohotpie-tauri/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('autohotpie-tauri/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+      - name: Install dependencies
+        working-directory: autohotpie-tauri
+        run: npm ci
+      - name: Run vitest
+        working-directory: autohotpie-tauri
+        run: npm run test:unit
+
+  cargo-tests:
+    name: Cargo tests
+    runs-on: windows-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            autohotpie-tauri/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('autohotpie-tauri/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Install frontend deps
+        working-directory: autohotpie-tauri
+        run: npm ci
+      - name: Run cargo test
+        working-directory: autohotpie-tauri/src-tauri
+        run: cargo test
+
+  e2e-tests:
+    name: Playwright E2E
+    runs-on: windows-latest
+    needs: [unit-tests, cargo-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        working-directory: autohotpie-tauri
+        run: npm ci
+      - name: Install Playwright browsers
+        working-directory: autohotpie-tauri
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        working-directory: autohotpie-tauri
+        run: npm run test:e2e
+        env:
+          CI: 'true'

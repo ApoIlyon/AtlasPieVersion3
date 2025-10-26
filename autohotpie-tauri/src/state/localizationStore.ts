@@ -1,0 +1,299 @@
+import { invoke } from '@tauri-apps/api/core';
+import type { UnlistenFn } from '@tauri-apps/api/event';
+import { create } from 'zustand';
+import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import type { LocalizationPack } from '../types/localization';
+
+const FALLBACK_LANGUAGE = 'en';
+
+const FALLBACK_STRINGS: Record<string, string> = {
+  'app.title': 'AutoHotPie',
+  'app.subtitle': 'Automation pies without AutoHotkey',
+  'header.brand': 'AutoHotPie Tauri',
+  'header.title': 'Pie Menu Studio',
+  'header.openLog': 'Open log',
+  'header.versionLoading': 'Loading version…',
+  'nav.dashboard': 'Dashboard',
+  'nav.profiles': 'Profiles',
+  'nav.actions': 'Actions',
+  'nav.settings': 'Settings',
+  'localization.switcher.label': 'Language',
+  'localization.switcher.refresh': 'Refresh',
+  'localization.switcher.updated': 'Localization packs refreshed',
+  'localization.switcher.error': 'Failed to load localization',
+  'localization.switcher.missingLabel': 'Missing entries',
+  'localization.switcher.runtimeLabel': 'Runtime missing',
+  'tray.menu.refresh': 'Refresh localization',
+  'tray.menu.open': 'Open application',
+};
+
+const FALLBACK_PACK: LocalizationPack = {
+  schemaVersion: 1,
+  language: FALLBACK_LANGUAGE,
+  version: '1.0.0',
+  strings: FALLBACK_STRINGS,
+  missingKeys: [],
+  fallbackOf: null,
+};
+
+function toMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Unknown error';
+}
+
+type LocalizationStore = {
+  fallbackLanguage: string;
+  fallbackStrings: Record<string, string>;
+  currentLanguage: string;
+  languages: string[];
+  pack: LocalizationPack;
+  missingKeys: string[];
+  runtimeMissingKeys: string[];
+  isLoading: boolean;
+  isRefreshing: boolean;
+  initialized: boolean;
+  listenerRegistered: boolean;
+  lastUpdated: string | null;
+  error: string | null;
+  unlisten: UnlistenFn | null;
+  packs: Record<string, LocalizationPack>;
+  initialize: () => Promise<void>;
+  setLanguage: (language: string) => Promise<void>;
+  refresh: () => Promise<boolean>;
+  reloadCurrentLanguage: () => Promise<void>;
+  registerListener: () => Promise<void>;
+  unregisterListener: () => void;
+  applyPack: (pack: LocalizationPack, languages?: string[]) => void;
+  translate: (key: string) => string;
+  clearError: () => void;
+};
+
+export const useLocalizationStore = create<LocalizationStore>((set, get) => ({
+  fallbackLanguage: FALLBACK_LANGUAGE,
+  fallbackStrings: FALLBACK_STRINGS,
+  currentLanguage: FALLBACK_LANGUAGE,
+  languages: [FALLBACK_LANGUAGE],
+  pack: FALLBACK_PACK,
+  missingKeys: [],
+  runtimeMissingKeys: [],
+  isLoading: false,
+  isRefreshing: false,
+  initialized: false,
+  listenerRegistered: false,
+  lastUpdated: null,
+  error: null,
+  unlisten: null,
+  packs: { [FALLBACK_LANGUAGE]: FALLBACK_PACK },
+  initialize: async () => {
+    if (get().initialized) {
+      return;
+    }
+
+    if (!isTauriEnvironment()) {
+      set({
+        initialized: true,
+        pack: FALLBACK_PACK,
+        currentLanguage: FALLBACK_LANGUAGE,
+        languages: Array.from(new Set([FALLBACK_LANGUAGE, ...Object.keys(get().packs)])).sort(),
+        missingKeys: [],
+        runtimeMissingKeys: [],
+        lastUpdated: new Date().toISOString(),
+      });
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+
+    try {
+      const languages = await invoke<string[]>('list_localization_languages');
+      const preferred = get().currentLanguage;
+      const available = languages.length ? languages : [FALLBACK_LANGUAGE];
+      const target = available.includes(preferred)
+        ? preferred
+        : available.includes(FALLBACK_LANGUAGE)
+          ? FALLBACK_LANGUAGE
+          : available[0];
+
+      const pack = await invoke<LocalizationPack>('get_localization_pack', {
+        language: target,
+      });
+
+      get().applyPack(pack, languages);
+      set({ initialized: true });
+      await get().registerListener();
+    } catch (error) {
+      console.error('Failed to initialize localization', error);
+      set({
+        error: toMessage(error),
+        pack: FALLBACK_PACK,
+        currentLanguage: FALLBACK_LANGUAGE,
+        languages: [FALLBACK_LANGUAGE],
+        missingKeys: [],
+        runtimeMissingKeys: [],
+        initialized: true,
+      });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  setLanguage: async (language: string) => {
+    if (!isTauriEnvironment()) {
+      const packs = get().packs;
+      const nextPack = packs[language];
+      if (nextPack) {
+        get().applyPack(nextPack);
+        return;
+      }
+
+      const fallback = packs[language] ??
+        (language === FALLBACK_LANGUAGE ? FALLBACK_PACK : undefined);
+
+      if (fallback) {
+        get().applyPack(fallback);
+        return;
+      }
+      set({
+        currentLanguage: language,
+        pack: FALLBACK_PACK,
+        languages: Array.from(new Set([language, ...Object.keys(packs), FALLBACK_LANGUAGE])).sort(),
+      });
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+    try {
+      const pack = await invoke<LocalizationPack>('get_localization_pack', {
+        language,
+      });
+      get().applyPack(pack);
+    } catch (error) {
+      set({ error: toMessage(error) });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  refresh: async () => {
+    if (!isTauriEnvironment()) {
+      get().applyPack(FALLBACK_PACK);
+      return true;
+    }
+
+    set({ isRefreshing: true, error: null });
+    try {
+      await invoke('refresh_localization_packs');
+      await get().reloadCurrentLanguage();
+      return true;
+    } catch (error) {
+      set({ error: toMessage(error), isRefreshing: false });
+      return false;
+    }
+  },
+  reloadCurrentLanguage: async () => {
+    if (!isTauriEnvironment()) {
+      get().applyPack(FALLBACK_PACK);
+      return;
+    }
+
+    try {
+      const current = get().currentLanguage || FALLBACK_LANGUAGE;
+      const pack = await invoke<LocalizationPack>('get_localization_pack', {
+        language: current,
+      });
+      get().applyPack(pack);
+    } catch (error) {
+      console.error('Failed to reload localization pack', error);
+      set({ error: toMessage(error), isRefreshing: false, isLoading: false });
+    }
+  },
+  registerListener: async () => {
+    if (!isTauriEnvironment() || get().listenerRegistered) {
+      return;
+    }
+
+    try {
+      const { listen } = await import('@tauri-apps/api/event');
+      const unlisten = await listen('localization://updated', () => {
+        void get().reloadCurrentLanguage();
+      });
+      set({ listenerRegistered: true, unlisten });
+    } catch (error) {
+      console.error('Failed to subscribe to localization updates', error);
+    }
+  },
+  unregisterListener: () => {
+    const unlisten = get().unlisten;
+    if (unlisten) {
+      try {
+        unlisten();
+      } catch (error) {
+        console.error('Failed to unsubscribe from localization updates', error);
+      }
+    }
+    set({ listenerRegistered: false, unlisten: null });
+  },
+  applyPack: (pack: LocalizationPack, languages?: string[]) => {
+    const nextLanguages = languages && languages.length ? languages : get().languages;
+    const languageSet = new Set(nextLanguages);
+    const resolvedLanguage = pack.language || FALLBACK_LANGUAGE;
+    languageSet.add(resolvedLanguage);
+    const orderedLanguages = Array.from(languageSet).sort();
+
+    set({
+      pack,
+      currentLanguage: resolvedLanguage,
+      languages: orderedLanguages,
+      missingKeys: pack.missingKeys ?? [],
+      runtimeMissingKeys: [],
+      lastUpdated: new Date().toISOString(),
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      packs: {
+        ...get().packs,
+        [resolvedLanguage]: pack,
+      },
+    });
+  },
+  translate: (key: string) => {
+    const { pack, fallbackStrings, fallbackLanguage, missingKeys } = get();
+    const candidate = pack?.strings?.[key];
+    if (candidate) {
+      return candidate;
+    }
+
+    const fallback = fallbackStrings[key] ?? key;
+
+    if (pack && pack.language !== fallbackLanguage && !missingKeys.includes(key)) {
+      const schedule =
+        typeof queueMicrotask === 'function'
+          ? queueMicrotask
+          : (callback: () => void) => {
+              setTimeout(callback, 0);
+            };
+      schedule(() => {
+        set((state) => {
+          if (state.runtimeMissingKeys.includes(key)) {
+            return state;
+          }
+          return {
+            runtimeMissingKeys: [...state.runtimeMissingKeys, key],
+          };
+        });
+      });
+    }
+
+    return fallback;
+  },
+  clearError: () => set({ error: null }),
+}));
+
+if (typeof window !== 'undefined') {
+  (window as typeof window & { __AUTOHOTPIE_LOCALIZATION_STORE__?: typeof useLocalizationStore })
+    .__AUTOHOTPIE_LOCALIZATION_STORE__ = useLocalizationStore;
+}

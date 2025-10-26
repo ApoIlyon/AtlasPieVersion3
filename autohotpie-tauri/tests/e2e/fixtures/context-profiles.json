@@ -1,0 +1,210 @@
+{
+  "profiles": [
+    {
+      "profile": {
+        "id": "default",
+        "name": "Default Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Shift+P",
+        "activationRules": [],
+        "rootMenu": "default-root"
+      },
+      "menus": [
+        {
+          "id": "default-root",
+          "title": "Default",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "launch-calculator",
+              "label": "Launch Calculator",
+              "action": "action-launch-calculator",
+              "order": 0
+            },
+            {
+              "id": "open-notepad",
+              "label": "Open Notepad",
+              "action": "action-open-notepad",
+              "order": 1
+            },
+            {
+              "id": "open-downloads",
+              "label": "Open Downloads",
+              "action": "action-open-downloads",
+              "order": 2
+            },
+            {
+              "id": "mute-audio",
+              "label": "Mute Audio",
+              "action": "action-mute-audio",
+              "order": 3
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-launch-calculator",
+          "name": "Launch Calculator",
+          "kind": "system:command",
+          "payload": {
+            "command": "calc"
+          }
+        },
+        {
+          "id": "action-open-notepad",
+          "name": "Open Notepad",
+          "kind": "system:command",
+          "payload": {
+            "command": "notepad"
+          }
+        },
+        {
+          "id": "action-open-downloads",
+          "name": "Open Downloads",
+          "kind": "system:command",
+          "payload": {
+            "command": "explorer",
+            "args": ["%USERPROFILE%\\Downloads"]
+          }
+        },
+        {
+          "id": "action-mute-audio",
+          "name": "Mute Audio",
+          "kind": "system:command",
+          "payload": {
+            "command": "nircmd.exe",
+            "args": ["mutesysvolume", "2"]
+          }
+        }
+      ]
+    },
+    {
+      "profile": {
+        "id": "vscode",
+        "name": "VS Code Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Alt+V",
+        "activationRules": [
+          {
+            "mode": "process_name",
+            "value": "code.exe"
+          }
+        ],
+        "rootMenu": "vscode-root"
+      },
+      "menus": [
+        {
+          "id": "vscode-root",
+          "title": "VS Code",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "switch-terminal",
+              "label": "Switch Terminal",
+              "action": "action-switch-terminal",
+              "order": 0
+            },
+            {
+              "id": "build-project",
+              "label": "Build Project",
+              "action": "action-build-project",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-switch-terminal",
+          "name": "Switch Terminal",
+          "kind": "system:command",
+          "payload": {
+            "command": "scripts/switch-terminal.ps1"
+          }
+        },
+        {
+          "id": "action-build-project",
+          "name": "Build Project",
+          "kind": "system:command",
+          "payload": {
+            "command": "scripts/build-project.ps1"
+          }
+        }
+      ]
+    },
+    {
+      "profile": {
+        "id": "browser",
+        "name": "Browser Profile",
+        "description": null,
+        "enabled": true,
+        "globalHotkey": "Control+Alt+B",
+        "activationRules": [
+          {
+            "mode": "process_name",
+            "value": "chrome.exe"
+          },
+          {
+            "mode": "window_title",
+            "value": "Mozilla Firefox"
+          }
+        ],
+        "rootMenu": "browser-root"
+      },
+      "menus": [
+        {
+          "id": "browser-root",
+          "title": "Browser",
+          "appearance": {
+            "radius": 220,
+            "innerRadius": 64,
+            "fontSize": 16
+          },
+          "slices": [
+            {
+              "id": "open-devtools",
+              "label": "Open DevTools",
+              "action": "action-open-devtools",
+              "order": 0
+            },
+            {
+              "id": "refresh-tab",
+              "label": "Refresh Tab",
+              "action": "action-refresh-tab",
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "action-open-devtools",
+          "name": "Open DevTools",
+          "kind": "system:command",
+          "payload": {
+            "command": "scripts/open-devtools.ps1"
+          }
+        },
+        {
+          "id": "action-refresh-tab",
+          "name": "Refresh Tab",
+          "kind": "system:command",
+          "payload": {
+            "command": "Refresh"
+          }
+        }
+      ]
+    }
+  ]
+}

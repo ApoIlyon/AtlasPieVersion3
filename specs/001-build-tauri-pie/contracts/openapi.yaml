@@ -1,0 +1,514 @@
+openapi: 3.0.3
+info:
+  title: AutoHotPie Tauri Native Suite API
+  version: 0.1.0
+  description: |
+    Logical contract for Tauri command surface exposed via invoke().
+    All endpoints are modeled as HTTP-style RPC calls for documentation/testing purposes.
+servers:
+  - url: tauri://local
+    description: Logical endpoint representing Tauri command dispatcher.
+paths:
+  /profiles:
+    get:
+      summary: List profiles
+      operationId: listProfiles
+      responses:
+        '200':
+          description: Profiles returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+    post:
+      summary: Create profile
+      operationId: createProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileCreateRequest'
+      responses:
+        '201':
+          description: Profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+  /profiles/{profileId}:
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get profile by ID
+      operationId: getProfile
+      responses:
+        '200':
+          description: Profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update profile
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Archive profile
+      operationId: archiveProfile
+      responses:
+        '204':
+          description: Profile archived
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /profiles/{profileId}/activate:
+    post:
+      summary: Activate profile and register hotkey
+      operationId: activateProfile
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Profile activated
+        '409':
+          description: Hotkey conflict detected
+  /profiles/import:
+    post:
+      summary: Import profiles from JSON
+      operationId: importProfiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportPayload'
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+  /profiles/export:
+    post:
+      summary: Export profiles to JSON
+      operationId: exportProfiles
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profileIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Exported profile bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportBundle'
+  /actions/{actionId}/test:
+    post:
+      summary: Execute action in test mode
+      operationId: testAction
+      parameters:
+        - name: actionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Test execution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+  /settings:
+    get:
+      summary: Retrieve settings bundle
+      operationId: getSettings
+      responses:
+        '200':
+          description: Current settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsBundle'
+    put:
+      summary: Update settings bundle
+      operationId: updateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingsUpdateRequest'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsBundle'
+  /hotkeys/register:
+    post:
+      summary: Register global hotkey
+      operationId: registerHotkey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HotkeyBinding'
+      responses:
+        '204':
+          description: Hotkey registered
+        '409':
+          description: Conflict with existing binding
+  /hotkeys/unregister:
+    post:
+      summary: Unregister global hotkey
+      operationId: unregisterHotkey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                binding:
+                  type: string
+                platform:
+                  type: string
+      responses:
+        '204':
+          description: Hotkey removed
+  /logs/open:
+    post:
+      summary: Open latest log file in OS viewer
+      operationId: openLogs
+      responses:
+        '204':
+          description: Log viewer opened
+  /updates/check:
+    post:
+      summary: Check GitHub releases for updates
+      operationId: checkUpdates
+      responses:
+        '200':
+          description: Update status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateStatus'
+components:
+  schemas:
+    Profile:
+      type: object
+      required: [id, name, hotkey, isActive, pieMenu]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        hotkey:
+          type: string
+        isActive:
+          type: boolean
+        iconId:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        pieMenu:
+          $ref: '#/components/schemas/PieMenu'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProfileCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+      required: [name, hotkey]
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        hotkey:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        pieMenu:
+          $ref: '#/components/schemas/PieMenu'
+    PieMenu:
+      type: object
+      required: [id, segments]
+      properties:
+        id:
+          type: string
+          format: uuid
+        segments:
+          type: array
+          minItems: 2
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PieSlice'
+        maxDepth:
+          type: integer
+          minimum: 1
+          maximum: 3
+        themeToken:
+          type: string
+        animationPreset:
+          type: string
+    PieSlice:
+      type: object
+      required: [id, order, label]
+      properties:
+        id:
+          type: string
+          format: uuid
+        order:
+          type: integer
+        label:
+          type: string
+        description:
+          type: string
+        iconId:
+          type: string
+          nullable: true
+        actionId:
+          type: string
+          format: uuid
+          nullable: true
+        childPieMenuId:
+          type: string
+          format: uuid
+          nullable: true
+        hotkey:
+          type: string
+          nullable: true
+        colorToken:
+          type: string
+    Action:
+      type: object
+      required: [id, type, parameters]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [launch, macro, sequence, system]
+        parameters:
+          type: object
+          additionalProperties: true
+        timeoutMs:
+          type: integer
+        requiresConfirmation:
+          type: boolean
+        lastRunAt:
+          type: string
+          format: date-time
+          nullable: true
+        runCount:
+          type: integer
+    MacroStep:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order:
+          type: integer
+        kind:
+          type: string
+          enum: [key, text, delay, script]
+        payload:
+          type: string
+        duration:
+          type: integer
+    HotkeyBinding:
+      type: object
+      required: [binding, scope, platform]
+      properties:
+        id:
+          type: string
+          format: uuid
+        scope:
+          type: string
+          enum: [profile, global]
+        binding:
+          type: string
+        platform:
+          type: string
+        isEnabled:
+          type: boolean
+        conflictWith:
+          type: string
+          nullable: true
+    SettingsBundle:
+      type: object
+      required: [language, autostart, trayMode, themeVariant, telemetryLevel, updateChannel]
+      properties:
+        language:
+          type: string
+        autostart:
+          type: boolean
+        trayMode:
+          type: string
+        themeVariant:
+          type: string
+        telemetryLevel:
+          type: string
+          enum: [local-only]
+        dataDir:
+          type: string
+        updateChannel:
+          type: string
+          enum: [stable, beta]
+    SettingsUpdateRequest:
+      type: object
+      properties:
+        language:
+          type: string
+        autostart:
+          type: boolean
+        trayMode:
+          type: string
+        themeVariant:
+          type: string
+        dataDir:
+          type: string
+        updateChannel:
+          type: string
+    ImportPayload:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: string
+          description: Base64 encoded JSON file
+    ImportResult:
+      type: object
+      properties:
+        importedProfiles:
+          type: integer
+        skippedProfiles:
+          type: integer
+        warnings:
+          type: array
+          items:
+            type: string
+    ExportBundle:
+      type: object
+      required: [profiles, settings]
+      properties:
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        settings:
+          $ref: '#/components/schemas/SettingsBundle'
+        icons:
+          type: array
+          items:
+            $ref: '#/components/schemas/IconAsset'
+    IconAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          type: string
+          enum: [builtin, user]
+        path:
+          type: string
+        size:
+          type: integer
+        format:
+          type: string
+          enum: [svg, png]
+        checksum:
+          type: string
+    TestResult:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [success, failure]
+        output:
+          type: string
+        durationMs:
+          type: integer
+    UpdateStatus:
+      type: object
+      required: [updateAvailable]
+      properties:
+        updateAvailable:
+          type: boolean
+        latestVersion:
+          type: string
+        releaseNotes:
+          type: string
+        downloadUrl:
+          type: string
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
