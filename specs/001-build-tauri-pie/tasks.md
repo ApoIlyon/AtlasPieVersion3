@@ -137,13 +137,17 @@
 - [ ] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
 - [ ] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) in `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+- [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
 - [ ] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [ ] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [ ] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
 - [ ] T133 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
+- [ ] T133a [US3] Add regression tests for toasts and log-button flows (import/export, autostart) in `autohotpie-tauri/tests/e2e/notifications.spec.ts`
 - [ ] T134 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
 - [ ] T134a [US3] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 - [ ] T134b [US3] Add regression tests for import/export failure scenarios in `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
+- [ ] T134c [US3] Verify backup retention (5 generations) via integration test in `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
 
 **Checkpoint**: Конфигурации мигрируются между машинами, автозапуск работает, обновления и логи доступны из UI.
 
