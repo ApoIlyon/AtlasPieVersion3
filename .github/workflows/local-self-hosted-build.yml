@@ -26,6 +26,10 @@ jobs:
         working-directory: autohotpie-tauri
         run: npm install
 
+      - name: Run check suite
+        working-directory: autohotpie-tauri
+        run: npm run check:all
+
       - name: Setup Rust toolchain
         shell: powershell
         run: |
@@ -41,6 +45,26 @@ jobs:
       - name: Build Tauri bundle
         working-directory: autohotpie-tauri
         run: npm run tauri build -- --target ${{ github.event.inputs.tauri_target }}
+
+      - name: Archive local bundles
+        shell: powershell
+        run: |
+          $target = "${{ github.event.inputs.tauri_target }}"
+          $releaseDir = "autohotpie-tauri/src-tauri/target/$target/release"
+          if (-not (Test-Path $releaseDir)) {
+            throw "Release directory not found: $releaseDir"
+          }
+
+          $outputRoot = "local-build-output/$target"
+          New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
+          Copy-Item -Path (Join-Path $releaseDir '*') -Destination $outputRoot -Recurse -Force
+
+          $zipPath = "local-build-output/tauri-bundle-$target.zip"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path (Join-Path $releaseDir '*') -DestinationPath $zipPath
+
+          Write-Host "Copied bundles to: " (Resolve-Path $outputRoot)
+          Write-Host "Archive created at: " (Resolve-Path $zipPath)
 
       - name: Show output path
         working-directory: autohotpie-tauri/src-tauri
