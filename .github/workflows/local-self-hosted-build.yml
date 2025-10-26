@@ -1,0 +1,47 @@
+name: Local Self-Hosted Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tauri_target:
+        description: "Tauri build target"
+        required: true
+        default: "x86_64-pc-windows-msvc"
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend dependencies
+        working-directory: autohotpie-tauri
+        run: npm install
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+          targets: ${{ github.event.inputs.tauri_target }}
+
+      - name: Build UI
+        working-directory: autohotpie-tauri
+        run: npm run build
+
+      - name: Build Tauri bundle
+        working-directory: autohotpie-tauri
+        run: npm run tauri build -- --target ${{ github.event.inputs.tauri_target }}
+
+      - name: Show output path
+        working-directory: autohotpie-tauri/src-tauri
+        run: |
+          echo "Bundles are under:"
+          Get-ChildItem -Recurse -Directory "target" | Select-Object -First 5
