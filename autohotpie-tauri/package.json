@@ -17,8 +17,7 @@
     "test:pie": "npm run test -- --run usePieMenuHotkey.test.ts && npx playwright test tests/perf/latency.spec.ts tests/perf/menu-latency.spec.ts --config=tests/e2e/playwright.config.ts --reporter=line --workers=1 && npx playwright test --config=tests/e2e/playwright.config.ts tests/e2e/pie-menu.spec.ts tests/e2e/action-execution.spec.ts tests/e2e/hotkey-conflict.spec.ts --reporter=line --workers=1",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "prepare": "husky"
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
