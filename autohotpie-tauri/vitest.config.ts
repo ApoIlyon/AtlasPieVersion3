@@ -20,6 +20,8 @@ export default defineConfig({
     setupFiles: ['./setupTests.ts'],
     css: true,
     reporters: ['default'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**/*.{ts,tsx}'],
+    exclude: ['tests/e2e/**', 'tests/perf/**'],
     coverage: {
       enabled: false,
       provider: 'istanbul',

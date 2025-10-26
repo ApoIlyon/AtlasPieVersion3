@@ -6,8 +6,6 @@ test.describe('App shell smoke', () => {
 
     await expect(page.getByRole('banner').getByRole('heading', { name: 'Pie Menu Studio' })).toBeVisible();
     await expect(page.getByRole('banner').getByText('AutoHotPie Tauri')).toBeVisible();
-    await expect(
-      page.getByRole('main').getByText(/\b(Online|Offline)\b · Last check/, { exact: false })
-    ).toBeVisible();
+    await expect(page.getByTestId('status-last-check')).toBeVisible();
   });
 });

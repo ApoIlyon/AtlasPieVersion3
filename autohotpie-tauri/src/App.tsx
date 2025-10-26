@@ -457,7 +457,7 @@ export function App() {
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
                         {systemStatus.safeMode ? t('dashboard.safeMode') : t('dashboard.normalMode')} · {systemStatus.storageMode}
                       </span>
-                      <span className="text-white/60">
+                      <span className="text-white/60" data-testid="status-last-check">
                         {systemStatus.connectivity.isOffline ? t('dashboard.offline') : t('dashboard.online')} · {t('dashboard.lastCheck')}{' '}
                         {systemStatus.connectivity.lastChecked ?? '—'}
                       </span>
