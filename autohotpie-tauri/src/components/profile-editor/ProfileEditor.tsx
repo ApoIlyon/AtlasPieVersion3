@@ -5,6 +5,7 @@ import { selectProfileHotkeyStatus, useProfileStore } from '../../state/profileS
 import type { ProfileRecord } from '../../state/profileStore';
 import { PieMenu, type PieSliceDefinition } from '../pie/PieMenu';
 import { ContextConditionsPanel } from './ContextConditionsPanel';
+import { useLocalization } from '../../hooks/useLocalization';
 
 export interface ProfileEditorProps {
   profile: ProfileRecord | null;
@@ -286,7 +287,10 @@ function HotkeyCaptureButton({ value, placeholder, disabled, onStart, onCapture,
     });
   }, [disabled, onStart]);
 
-  const label = isRecording ? 'Press shortcut…' : value || placeholder || 'Press to set';
+  const { t } = useLocalization();
+  const label = isRecording
+    ? t('profileEditor.captureListening')
+    : value || placeholder || t('profileEditor.capturePrompt');
 
   return (
     <div className="flex w-full flex-col gap-1">
@@ -306,23 +310,21 @@ function HotkeyCaptureButton({ value, placeholder, disabled, onStart, onCapture,
         <span className={clsx(!value && !isRecording && 'text-white/40')}>{label}</span>
       </button>
       {isRecording && (
-        <span className="text-[11px] uppercase tracking-[0.25em] text-white/40">Listening for key combination…</span>
+        <span className="text-[11px] uppercase tracking-[0.25em] text-white/40">{t('profileEditor.captureListening')}</span>
       )}
     </div>
   );
 }
 
 function CreateProfilePlaceholder({ onClose }: { onClose?: () => void }) {
+  const { t } = useLocalization();
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Profile Editor</p>
-          <h3 className="mt-2 text-3xl font-semibold text-white">Create Automation Profile</h3>
-          <p className="mt-3 max-w-xl text-sm text-white/60">
-            Define profile metadata, assign a global hotkey, and scaffold the root pie menu. Backend
-            persistence will hook into this surface once profile commands are available.
-          </p>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40">{t('profileEditor.createPlaceholder.label')}</p>
+          <h3 className="mt-2 text-3xl font-semibold text-white">{t('profileEditor.createPlaceholder.title')}</h3>
+          <p className="mt-3 max-w-xl text-sm text-white/60">{t('profileEditor.createPlaceholder.descriptionA')}</p>
         </div>
         {onClose && (
           <button
@@ -330,22 +332,16 @@ function CreateProfilePlaceholder({ onClose }: { onClose?: () => void }) {
             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/20 hover:bg-white/10"
             onClick={onClose}
           >
-            Close
+            {t('common.close')}
           </button>
         )}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-sm text-white/60">
-            Start by giving the profile a name and optional description. You can set a global hotkey
-            for quick activation and choose whether the profile is enabled by default.
-          </p>
+          <p className="text-sm text-white/60">{t('profileEditor.createPlaceholder.descriptionB')}</p>
         </div>
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-sm text-white/60">
-            Once created, you will be able to add menus and slices, attach actions, and nest child pie
-            menus to build complex hierarchies.
-          </p>
+          <p className="text-sm text-white/60">{t('profileEditor.createPlaceholder.descriptionC')}</p>
         </div>
       </div>
     </div>
@@ -353,19 +349,18 @@ function CreateProfilePlaceholder({ onClose }: { onClose?: () => void }) {
 }
 
 function SelectProfilePlaceholder({ onClose }: { onClose?: () => void }) {
+  const { t } = useLocalization();
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-white/10 bg-white/5 p-16 text-center text-white/60">
-      <div className="text-lg font-semibold text-white">Select a profile to begin editing</div>
-      <p className="max-w-md text-sm text-white/60">
-        Choose a profile from the dashboard to explore its menus, slices, and nested pie structure.
-      </p>
+      <div className="text-lg font-semibold text-white">{t('profileEditor.selectPlaceholder.title')}</div>
+      <p className="max-w-md text-sm text-white/60">{t('profileEditor.selectPlaceholder.body')}</p>
       {onClose && (
         <button
           type="button"
           className="rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/20"
           onClick={onClose}
         >
-          Close
+          {t('common.close')}
         </button>
       )}
     </div>
@@ -377,21 +372,8 @@ interface ProfileEditorContentProps {
   onClose?: () => void;
 }
 
-export function ProfileEditor({ profile, mode = 'view', onClose }: ProfileEditorProps) {
-  const resolvedMode: 'view' | 'create' = profile ? 'view' : mode;
-
-  if (resolvedMode === 'create') {
-    return <CreateProfilePlaceholder onClose={onClose} />;
-  }
-
-  if (!profile) {
-    return <SelectProfilePlaceholder onClose={onClose} />;
-  }
-
-  return <ProfileEditorContent profile={profile} onClose={onClose} />;
-}
-
 function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
+  const { t } = useLocalization();
   const menus = profile.menus ?? [];
   const activationRules = profile.profile.activationRules ?? [];
   const profileStore = useProfileStore();
@@ -407,6 +389,12 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const [hotkeyMessage, setHotkeyMessage] = useState<string | null>(null);
   const [hotkeySubmitting, setHotkeySubmitting] = useState(false);
   const validationErrors = profileStore.validationErrors ?? [];
+  const profileHotkeyConflicts = profileHotkeyStatus?.conflicts ?? [];
+  const shouldShowHotkeyConflicts = Boolean(
+    profileHotkeyStatus &&
+      !profileHotkeyStatus.registered &&
+      profileHotkeyConflicts.length > 0,
+  );
 
   const rootMenuId = useMemo(() => {
     if (!menus.length) {
@@ -438,16 +426,22 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const pieSlices = useMemo<PieSliceDefinition[]>(() => {
     return currentSlices.map((slice, index) => ({
       id: slice.id,
-      label: slice.label || `Slice ${index + 1}`,
+      label: slice.label || t('profileEditor.sliceLabelFallback').replace('{index}', String(index + 1)),
       order: slice.order ?? index,
       disabled: !slice.action && !slice.childMenu,
     }));
-  }, [currentSlices]);
+  }, [currentSlices, t]);
 
-  const breadcrumbItems: BreadcrumbItem[] = [{ id: 'profile-root', label: profile.profile.name ?? 'Profile' }];
+  const breadcrumbItems: BreadcrumbItem[] = [{
+    id: 'profile-root',
+    label: profile.profile.name || t('profileEditor.breadcrumbProfile'),
+  }];
   menuPath.forEach((menuId, index) => {
     const menu = menus.find((item) => item.id === menuId);
-    breadcrumbItems.push({ id: `menu-${index}-${menuId}`, label: menu?.title || `Menu ${index + 1}` });
+    breadcrumbItems.push({
+      id: `menu-${index}-${menuId}`,
+      label: menu?.title || t('profileEditor.breadcrumbMenu').replace('{index}', String(index + 1)),
+    });
   });
 
   const selectedSlice = useMemo(() => {
@@ -529,11 +523,11 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (!hotkeyValidation.isValid) {
-        setHotkeyMessage('Resolve hotkey validation issues before saving.');
+        setHotkeyMessage(t('profileEditor.hotkeyErrorValidation'));
         return;
       }
       if (hasStructureViolations) {
-        setHotkeyMessage('Fix menu validation errors before saving hotkey changes.');
+        setHotkeyMessage(t('profileEditor.hotkeyErrorStructure'));
         return;
       }
       clearError();
@@ -551,7 +545,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
         });
 
         if (!saved) {
-          setHotkeyMessage('Profile save blocked by validation errors. Review alerts below.');
+          setHotkeyMessage(t('profileEditor.hotkeySaveBlocked'));
           return;
         }
 
@@ -562,12 +556,12 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
             event: 'profiles://activate',
           });
           if (success) {
-            setHotkeyMessage('Hotkey registered successfully.');
+            setHotkeyMessage(t('profileEditor.hotkeySavedRegistered'));
           } else {
-            setHotkeyMessage('Hotkey saved but requires conflict resolution.');
+            setHotkeyMessage(t('profileEditor.hotkeySavedConflicts'));
           }
         } else {
-          setHotkeyMessage('Hotkey cleared for this profile.');
+          setHotkeyMessage(t('profileEditor.hotkeyCleared'));
         }
       } catch {
         setHotkeyMessage(null);
@@ -582,12 +576,9 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Profile Editor</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40">{t('profileEditor.headerLabel')}</p>
           <h3 className="mt-2 text-3xl font-semibold text-white">{profile.profile.name}</h3>
-          <p className="mt-3 max-w-2xl text-sm text-white/60">
-            Navigate nested pie menus, manage slices, and preview the menu structure with contextual
-            breadcrumbs.
-          </p>
+          <p className="mt-3 max-w-2xl text-sm text-white/60">{t('profileEditor.headerDescription')}</p>
         </div>
         {onClose && (
           <button
@@ -595,7 +586,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/20 hover:bg-white/10"
             onClick={onClose}
           >
-            Close
+            {t('common.close')}
           </button>
         )}
       </div>
@@ -624,13 +615,13 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
       <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 lg:grid-cols-[360px,1fr]">
         <div className="space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-white/40">Global Hotkey</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.hotkeyTitle')}</p>
             <form className="mt-2 space-y-3" onSubmit={handleHotkeySubmit}>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <div className="w-full sm:flex-1">
                   <HotkeyCaptureButton
                     value={hotkeyValue}
-                    placeholder="Ctrl+Alt+Space"
+                    placeholder={t('profileEditor.hotkeyPlaceholder')}
                     disabled={isSubmitting || hotkeySubmitting}
                     onStart={() => {
                       clearError();
@@ -648,11 +639,11 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                       setHotkeyMessage(
                         validation.severity && validation.severity !== 'info'
                           ? null
-                          : `Captured ${accelerator}. Save to apply.`,
+                          : t('profileEditor.hotkeyCaptured').replace('{accelerator}', accelerator),
                       );
                     }}
                     onCancel={() => {
-                      setHotkeyMessage('Capture cancelled.');
+                      setHotkeyMessage(t('profileEditor.hotkeyCaptureCancelled'));
                     }}
                   />
                 </div>
@@ -668,7 +659,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                       hasStructureViolations
                     }
                   >
-                    {isSubmitting || hotkeySubmitting ? 'Saving…' : 'Save hotkey'}
+                    {isSubmitting || hotkeySubmitting ? t('profileEditor.saving') : t('profileEditor.saveHotkeyButton')}
                   </button>
                   <button
                     type="button"
@@ -686,9 +677,9 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                           },
                         });
                         if (saved) {
-                          setHotkeyMessage('Hotkey cleared for this profile.');
+                          setHotkeyMessage(t('profileEditor.hotkeyCleared'));
                         } else {
-                          setHotkeyMessage('Unable to clear hotkey while validation errors persist.');
+                          setHotkeyMessage(t('profileEditor.hotkeyClearFailed'));
                         }
                       })();
                     }}
@@ -696,7 +687,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                       isSubmitting || hotkeySubmitting || hasStructureViolations
                     }
                   >
-                    Clear
+                    {t('common.clear')}
                   </button>
                 </div>
               </div>
@@ -718,34 +709,34 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               {hotkeyError && <p className="text-xs text-red-400">{hotkeyError}</p>}
               {hasStructureViolations && (
                 <p className="text-xs text-red-400">
-                  Resolve menu validation issues (slice counts or nesting depth) before saving hotkey changes.
+                  {t('profileEditor.hotkeyStructureWarning')}
                 </p>
               )}
             </form>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/40">How to choose a shortcut</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.hotkeyTipsTitle')}</p>
             <ul className="mt-2 space-y-2 text-xs text-white/60">
-              <li>• Prefer combinations like Ctrl+Alt+Key or Cmd+Option+Key.</li>
-              <li>• Keep profile hotkeys unique to avoid conflicts.</li>
-              <li>• Leave empty to disable the hotkey for this profile.</li>
+              <li>{t('profileEditor.hotkeyTip1')}</li>
+              <li>{t('profileEditor.hotkeyTip2')}</li>
+              <li>{t('profileEditor.hotkeyTip3')}</li>
             </ul>
           </div>
-          {profileHotkeyStatus && !profileHotkeyStatus.registered && (
+          {shouldShowHotkeyConflicts && (
             <div className="space-y-2 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-xs text-white/70">
               <div className="flex items-center justify-between">
-                <p className="uppercase tracking-[0.25em] text-white/50">Conflicts detected</p>
+                <p className="uppercase tracking-[0.25em] text-white/50">{t('profileEditor.conflictsTitle')}</p>
                 <button
                   type="button"
                   className="text-[11px] uppercase tracking-[0.25em] text-white/50 transition hover:text-white/80"
                   onClick={clearProfileHotkeyStatus}
                 >
-                  Dismiss
+                  {t('profileEditor.conflictsDismiss')}
                 </button>
               </div>
-              <p>Resolve the issues below before re-registering this shortcut:</p>
+              <p>{t('profileEditor.conflictsDescription')}</p>
               <ul className="space-y-1">
-                {profileHotkeyStatus.conflicts.map((conflict, index) => (
+                {profileHotkeyConflicts.map((conflict, index) => (
                   <li key={`${conflict.code}-${index}`} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2">
                     <span className="font-semibold text-white/80">{conflict.code}</span>
                     {conflict.message ? ` — ${conflict.message}` : null}
@@ -758,30 +749,30 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
 
         <div className="space-y-4 text-sm">
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Profile Summary</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">{t('profileEditor.summaryTitle')}</p>
             <div className="mt-3 grid grid-cols-2 gap-3 text-center">
               <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
                 <p className="text-2xl font-semibold text-white">{menus.length}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">Menus</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryMenus')}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
                 <p className="text-2xl font-semibold text-white">{activationRules.length}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">Rules</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryRules')}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
                 <p className="text-2xl font-semibold text-white">{overallDepth}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">Depth</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryDepth')}</p>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
                 <p className="text-2xl font-semibold text-white">{currentSlices.length}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">Slices here</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summarySlicesHere')}</p>
               </div>
             </div>
           </div>
 
           {validationErrors.length > 0 && (
             <div className="space-y-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-              <p className="uppercase tracking-[0.25em] text-red-200/80">Backend validation errors</p>
+              <p className="uppercase tracking-[0.25em] text-red-200/80">{t('profileEditor.backendErrorsTitle')}</p>
               <ul className="space-y-2">
                 {validationErrors.map((error, index) => (
                   <li
@@ -797,16 +788,19 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
 
           {(depthExceeded || sliceCountExceeded || sliceCountTooLow) && (
             <div className="space-y-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-              <p className="uppercase tracking-[0.25em] text-red-200/80">Validation alerts</p>
-              {depthExceeded && <p>Menu depth {overallDepth} exceeds maximum {MENU_DEPTH_MAX}. Remove nesting or flatten menus.</p>}
+              <p className="uppercase tracking-[0.25em] text-red-200/80">{t('profileEditor.validationTitle')}</p>
+              {depthExceeded && (
+                <p>{t('profileEditor.validationDepth').replace('{depth}', String(overallDepth)).replace('{maxDepth}', String(MENU_DEPTH_MAX))}</p>
+              )}
               {sliceCountExceeded && (
-                <p>
-                  This menu has {currentSlices.length} slices. Reduce to {SLICE_MAX} or fewer to avoid runtime errors.
-                </p>
+                <p>{t('profileEditor.validationSliceMax').replace('{count}', String(currentSlices.length)).replace('{max}', String(SLICE_MAX))}</p>
               )}
               {sliceCountTooLow && (
                 <p>
-                  This menu has {currentSlices.length} slice{currentSlices.length === 1 ? '' : 's'}. Add {slicesMissing} more to reach the minimum of {SLICE_MIN}.
+                  {t('profileEditor.validationSliceMin')
+                    .replace('{count}', String(currentSlices.length))
+                    .replace('{missing}', String(slicesMissing))
+                    .replace('{min}', String(SLICE_MIN))}
                 </p>
               )}
             </div>
@@ -825,17 +819,17 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
               />
             ) : (
-              <div className="text-sm text-white/60">No menu data available.</div>
+              <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
             )}
           </div>
           <div className="grid grid-cols-2 gap-3 text-center">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
               <p className="text-2xl font-semibold text-white">{menus.length}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">Menus</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryMenus')}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
               <p className="text-2xl font-semibold text-white">{activationRules.length}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">Rules</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryRules')}</p>
             </div>
           </div>
         </div>
@@ -843,13 +837,15 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
         <div className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <div className="flex items-center justify-between">
-              <h4 className="text-lg font-semibold text-white">Slices</h4>
-              <span className="text-xs uppercase tracking-[0.25em] text-white/40">{currentSlices.length} total</span>
+              <h4 className="text-lg font-semibold text-white">{t('profileEditor.slicesTitle')}</h4>
+              <span className="text-xs uppercase tracking-[0.25em] text-white/40">
+                {t('profileEditor.slicesTotal').replace('{count}', String(currentSlices.length))}
+              </span>
             </div>
             <div className="mt-4 space-y-3">
               {currentSlices.length === 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60">
-                  This menu has no slices yet.
+                  {t('profileEditor.slicesEmpty')}
                 </div>
               )}
               {currentSlices.map((slice) => (
@@ -868,11 +864,11 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                       className="text-left text-sm font-medium text-white"
                       onClick={() => handleSliceSelect(slice.id)}
                     >
-                      {slice.label || 'Untitled slice'}
+                      {slice.label || t('profileEditor.sliceUntitled')}
                     </button>
                     <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
                       <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
-                        Order {slice.order ?? 0}
+                        {t('profileEditor.sliceOrder').replace('{order}', String(slice.order ?? 0))}
                       </span>
                       {slice.hotkey && (
                         <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
@@ -885,16 +881,16 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                           className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-white/60 transition hover:border-white/20 hover:bg-white/10"
                           onClick={() => handleSliceNavigate(slice.id)}
                         >
-                          Nested
+                          {t('profileEditor.sliceNestedButton')}
                         </button>
                       )}
                     </div>
                   </div>
                   {slice.action && (
-                    <p className="mt-2 text-xs text-white/60">Action: {slice.action}</p>
+                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceAction').replace('{action}', String(slice.action))}</p>
                   )}
                   {!slice.action && !slice.childMenu && (
-                    <p className="mt-2 text-xs text-white/60">No action assigned yet.</p>
+                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
                   )}
                 </div>
               ))}
@@ -902,28 +898,26 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h4 className="text-lg font-semibold text-white">Slice Details</h4>
-            {!selectedSlice && (
-              <p className="mt-3 text-sm text-white/60">Select a slice to view details and navigate nested menus.</p>
-            )}
+            <h4 className="text-lg font-semibold text-white">{t('profileEditor.sliceDetailsTitle')}</h4>
+            {!selectedSlice && <p className="mt-3 text-sm text-white/60">{t('profileEditor.sliceDetailsEmpty')}</p>}
             {selectedSlice && (
               <div className="mt-4 space-y-4 text-sm text-white/70">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Label</p>
-                  <p className="mt-1 text-base text-white">{selectedSlice.label || 'Untitled slice'}</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsLabel')}</p>
+                  <p className="mt-1 text-base text-white">{selectedSlice.label || t('profileEditor.sliceUntitled')}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Action</p>
-                  <p className="mt-1 text-base text-white/70">{selectedSlice.action || 'Not assigned'}</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsAction')}</p>
+                  <p className="mt-1 text-base text-white/70">{selectedSlice.action || t('profileEditor.sliceNotAssigned')}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Hotkey</p>
-                  <p className="mt-1 text-base text-white/70">{selectedSlice.hotkey || 'Not set'}</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsHotkey')}</p>
+                  <p className="mt-1 text-base text-white/70">{selectedSlice.hotkey || t('profileEditor.sliceNotSet')}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Nested Menu</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsNested')}</p>
                   <p className="mt-1 text-base text-white/70">
-                    {selectedSlice.childMenu ? 'Linked' : 'None'}
+                    {selectedSlice.childMenu ? t('profileEditor.sliceNestedLinked') : t('profileEditor.sliceNestedNone')}
                   </p>
                   {selectedSlice.childMenu && menus.some((menu) => menu.id === selectedSlice.childMenu) && (
                     <button
@@ -931,7 +925,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                       className="mt-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium uppercase tracking-[0.3em] text-white/70 transition hover:border-white/20 hover:bg-white/10"
                       onClick={() => handleSliceNavigate(selectedSlice.id)}
                     >
-                      Open Nested Menu
+                      {t('profileEditor.sliceOpenNested')}
                     </button>
                   )}
                 </div>
@@ -944,4 +938,16 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   );
 }
 
-export default ProfileEditor;
+export function ProfileEditor({ profile, mode = 'view', onClose }: ProfileEditorProps) {
+  const resolvedMode: 'view' | 'create' = profile ? 'view' : mode;
+
+  if (resolvedMode === 'create') {
+    return <CreateProfilePlaceholder onClose={onClose} />;
+  }
+
+  if (!profile) {
+    return <SelectProfilePlaceholder onClose={onClose} />;
+  }
+
+  return <ProfileEditorContent profile={profile} onClose={onClose} />;
+}

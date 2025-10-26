@@ -6,6 +6,7 @@ import {
   type ProfileRecord,
   useProfileStore,
 } from '../../state/profileStore';
+import { useLocalization } from '../../hooks/useLocalization';
 
 interface ScreenArea {
   x: number;
@@ -35,38 +36,32 @@ interface ContextConditionsPanelProps {
   profile: ProfileRecord;
 }
 
-const MODE_OPTIONS: Array<{
-  value: ActivationMatchMode;
-  label: string;
-  hint: string;
-}> = [
-  { value: 'always', label: 'Always active', hint: 'Fallback rule that always matches.' },
-  {
-    value: 'process_name',
-    label: 'Process name',
-    hint: 'Matches executable names like notepad.exe or code.exe.',
+const MODE_KEYS: Record<ActivationMatchMode, { label: string; hint: string }> = {
+  always: {
+    label: 'contextPanel.mode.always.label',
+    hint: 'contextPanel.mode.always.hint',
   },
-  {
-    value: 'window_title',
-    label: 'Window title',
-    hint: 'Matches window captions and document titles.',
+  process_name: {
+    label: 'contextPanel.mode.processName.label',
+    hint: 'contextPanel.mode.processName.hint',
   },
-  {
-    value: 'window_class',
-    label: 'Window class',
-    hint: 'Advanced matching using OS window class names.',
+  window_title: {
+    label: 'contextPanel.mode.windowTitle.label',
+    hint: 'contextPanel.mode.windowTitle.hint',
   },
-  {
-    value: 'screen_area',
-    label: 'Screen region',
-    hint: 'Activates within a specific rectangle (x/y + width/height).',
+  window_class: {
+    label: 'contextPanel.mode.windowClass.label',
+    hint: 'contextPanel.mode.windowClass.hint',
   },
-  {
-    value: 'custom',
-    label: 'Custom (backend)',
-    hint: 'Reserved for backend-driven matching strategies.',
+  screen_area: {
+    label: 'contextPanel.mode.screenArea.label',
+    hint: 'contextPanel.mode.screenArea.hint',
   },
-];
+  custom: {
+    label: 'contextPanel.mode.custom.label',
+    hint: 'contextPanel.mode.custom.hint',
+  },
+};
 
 function generateRuleId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -263,6 +258,7 @@ function validateDraft(draft: RuleDraft): string[] {
 }
 
 export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps) {
+  const { t } = useLocalization();
   const { updateProfileActivationRules, validationErrors, clearValidationErrors } = useProfileStore(
     (state) => ({
       updateProfileActivationRules: state.updateProfileActivationRules,
@@ -328,7 +324,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
 
   async function handleSave() {
     if (overallIssues.length > 0) {
-      setMessages(['Resolve validation errors before saving.']);
+      setMessages([t('contextPanel.validationErrorsBeforeSave')]);
       return;
     }
     setIsSaving(true);
@@ -340,7 +336,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
         ruleDrafts.map((draft) => encodeRule(draft)),
       );
       if (saved) {
-        setMessages(['Context rules saved successfully.']);
+        setMessages([t('contextPanel.savedMessage')]);
       }
     } catch (error: unknown) {
       console.error('Failed to save context rules', error);
@@ -400,11 +396,8 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
     <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h4 className="text-lg font-semibold text-white">Context conditions</h4>
-          <p className="mt-1 text-sm text-white/60">
-            Define where this profile is considered active. All rules must pass for activation unless the
-            fallback rule is used.
-          </p>
+          <h4 className="text-lg font-semibold text-white">{t('contextPanel.title')}</h4>
+          <p className="mt-1 text-sm text-white/60">{t('contextPanel.description')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <select
@@ -420,11 +413,11 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
             }}
           >
             <option value="" disabled>
-              Add rule
+              {t('contextPanel.addRuleOption')}
             </option>
-            {MODE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {(Object.keys(MODE_KEYS) as ActivationMatchMode[]).map((mode) => (
+              <option key={mode} value={mode}>
+                {t(MODE_KEYS[mode].label)}
               </option>
             ))}
           </select>
@@ -433,14 +426,14 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
             className="rounded-2xl border border-white/10 px-3 py-2 text-sm text-white/70 transition hover:border-white/20 hover:bg-white/10"
             onClick={() => handleAddRule('process_name')}
           >
-            Quick add
+            {t('contextPanel.quickAdd')}
           </button>
         </div>
       </div>
 
       {ruleDrafts.length === 0 && (
         <div className="rounded-2xl border border-dashed border-white/20 bg-black/20 px-4 py-6 text-center text-sm text-white/60">
-          No context rules configured. Add one to restrict activation to specific apps or regions.
+          {t('contextPanel.emptyState')}
         </div>
       )}
 
@@ -448,12 +441,12 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
         <div className="grid gap-3 lg:grid-cols-[260px,1fr]">
           <div className="space-y-2">
             {ruleDrafts.map((draft, index) => {
-              const option = MODE_OPTIONS.find((item) => item.value === draft.mode);
+              const option = MODE_KEYS[draft.mode];
               const summary = draft.mode === 'screen_area'
                 ? draft.screenArea
                   ? `${draft.screenArea.x},${draft.screenArea.y} ${draft.screenArea.width}×${draft.screenArea.height}`
-                  : 'Region not set'
-                : draft.pattern || 'No pattern';
+                  : t('contextPanel.screenAreaNotSet')
+                : draft.pattern || t('contextPanel.noPattern');
               return (
                 <div
                   key={draft.id}
@@ -469,15 +462,17 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                     className="w-full text-left"
                     onClick={() => setActiveRuleId(draft.id)}
                   >
-                    <p className="text-sm font-semibold text-white">{option?.label ?? draft.mode}</p>
+                    <p className="text-sm font-semibold text-white">{option ? t(option.label) : draft.mode}</p>
                     <p className="mt-1 text-xs text-white/60">{summary}</p>
                     <div className="mt-2 flex flex-wrap gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-white/40">
-                      {draft.isRegex && <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">Regex</span>}
+                      {draft.isRegex && (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{t('contextPanel.tagRegex')}</span>
+                      )}
                       {draft.caseSensitive && (
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">Case sensitive</span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{t('contextPanel.tagCaseSensitive')}</span>
                       )}
                       {draft.negate && (
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">Negated</span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{t('contextPanel.tagNegated')}</span>
                       )}
                     </div>
                   </button>
@@ -490,7 +485,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                         onClick={() => handleMove(draft.id, 'up')}
                         disabled={index === 0}
                       >
-                        Up
+                        {t('contextPanel.moveUp')}
                       </button>
                       <button
                         type="button"
@@ -498,7 +493,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                         onClick={() => handleMove(draft.id, 'down')}
                         disabled={index === ruleDrafts.length - 1}
                       >
-                        Down
+                        {t('contextPanel.moveDown')}
                       </button>
                     </div>
                     <button
@@ -506,8 +501,8 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                       className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-200 hover:border-red-500/40"
                       onClick={() => handleDelete(draft.id)}
                     >
-                      Delete
-                    </button>
+                        {t('contextPanel.delete')}
+                      </button>
                   </div>
                 </div>
               );
@@ -515,13 +510,11 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            {!activeRule && (
-              <p className="text-sm text-white/60">Select a rule to edit its conditions.</p>
-            )}
+            {!activeRule && <p className="text-sm text-white/60">{t('contextPanel.noRuleSelected')}</p>}
             {activeRule && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs uppercase tracking-[0.3em] text-white/40">Match mode</label>
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/40">{t('contextPanel.matchModeLabel')}</label>
                   <select
                     className="mt-1 w-full rounded-2xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white/80 transition hover:border-white/20"
                     value={activeRule.mode}
@@ -537,25 +530,25 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                       }));
                     }}
                   >
-                    {MODE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {(Object.keys(MODE_KEYS) as ActivationMatchMode[]).map((mode) => (
+                      <option key={mode} value={mode}>
+                        {t(MODE_KEYS[mode].label)}
                       </option>
                     ))}
                   </select>
                   <p className="mt-1 text-xs text-white/50">
-                    {MODE_OPTIONS.find((option) => option.value === activeRule.mode)?.hint}
+                    {t(MODE_KEYS[activeRule.mode].hint)}
                   </p>
                 </div>
 
                 {activeRule.mode !== 'always' && activeRule.mode !== 'screen_area' && (
                   <div>
-                    <label className="text-xs uppercase tracking-[0.3em] text-white/40">Pattern</label>
+                    <label className="text-xs uppercase tracking-[0.3em] text-white/40">{t('contextPanel.patternLabel')}</label>
                     <input
                       type="text"
                       className="mt-1 w-full rounded-2xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white/80 focus:border-accent focus:ring-0"
                       value={activeRule.pattern}
-                      placeholder="Example: code.exe"
+                      placeholder={t('contextPanel.patternPlaceholder')}
                       onChange={(event) => {
                         const value = event.target.value;
                         upsertRule((draft) => ({ ...draft, pattern: value }));
@@ -597,7 +590,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                       />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-[0.3em] text-white/40">Width</label>
+                      <label className="text-xs uppercase tracking-[0.3em] text-white/40">{t('contextPanel.fieldWidth')}</label>
                       <input
                         type="number"
                         min={1}
@@ -615,7 +608,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                       />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-[0.3em] text-white/40">Height</label>
+                      <label className="text-xs uppercase tracking-[0.3em] text-white/40">{t('contextPanel.fieldHeight')}</label>
                       <input
                         type="number"
                         min={1}
@@ -645,7 +638,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                         upsertRule((draft) => ({ ...draft, isRegex }));
                       }}
                     />
-                    Regex pattern
+                    {t('contextPanel.toggleRegex')}
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -656,7 +649,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                         upsertRule((draft) => ({ ...draft, caseSensitive }));
                       }}
                     />
-                    Case sensitive
+                    {t('contextPanel.toggleCaseSensitive')}
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -667,7 +660,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
                         upsertRule((draft) => ({ ...draft, negate }));
                       }}
                     />
-                    Negate match
+                    {t('contextPanel.toggleNegate')}
                   </label>
                 </div>
 
@@ -699,7 +692,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-white/50">
-          {ruleDrafts.length} rule{ruleDrafts.length === 1 ? '' : 's'} configured. Order defines evaluation priority.
+          {t('contextPanel.rulesConfigured').replace('{count}', String(ruleDrafts.length))}
         </p>
         <div className="flex gap-2">
           <button
@@ -711,7 +704,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
             }}
             disabled={!hasChanges || isSaving}
           >
-            Reset
+            {t('contextPanel.reset')}
           </button>
           <button
             type="button"
@@ -719,7 +712,7 @@ export function ContextConditionsPanel({ profile }: ContextConditionsPanelProps)
             onClick={() => void handleSave()}
             disabled={!hasChanges || isSaving || overallIssues.length > 0}
           >
-            {isSaving ? 'Saving…' : 'Save rules'}
+            {isSaving ? t('contextPanel.saving') : t('contextPanel.save')}
           </button>
         </div>
       </div>

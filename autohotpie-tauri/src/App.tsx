@@ -153,6 +153,27 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+
+  const loadedProfilesText = t('dashboard.loadedProfiles').replace('{count}', String(profiles.length));
+
+  const statusMessages: string[] = [];
+  if (isLoading) {
+    statusMessages.push(t('dashboard.loadingSettings'));
+  } else if (!settings) {
+    statusMessages.push(t('dashboard.settingsMissing'));
+  }
+  if (profilesLoading) {
+    statusMessages.push(t('dashboard.loadingProfiles'));
+  } else if (profilesInitialized) {
+    statusMessages.push(loadedProfilesText);
+  }
+
+  const previewHotkeyLabel = 'Ctrl + Shift + P';
+  const previewBodyTemplate = t('dashboard.previewBody');
+  const previewBodyParts = previewBodyTemplate.split('{hotkey}');
+  const previewBodyBefore = previewBodyParts[0] ?? previewBodyTemplate;
+  const previewBodyAfter = previewBodyParts[1] ?? '';
+
   useEffect(() => {
     if (!profilesInitialized) {
       void loadProfiles();
@@ -420,12 +441,10 @@ export function App() {
         <section className="rounded-3xl border border-white/5 bg-white/10/10 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           {activeSection === 'dashboard' && (
             <>
-              <h2 className="text-2xl font-semibold text-white">Welcome</h2>
+              <h2 className="text-2xl font-semibold text-white">{t('dashboard.welcomeTitle')}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-                This is the placeholder UI shell for the AutoHotPie Tauri application. Phase 1
-                tasks will flesh out the Tailwind token system, React state containers, and
-                routing needed to render the pie menu designer, contextual profile editor, and
-                settings surfaces inspired by <span className="text-accent">kando-2.0.0</span>.
+                {t('dashboard.welcomeBody.p1')}{' '}
+                <span className="text-accent">kando-2.0.0</span>.
               </p>
 
               <div className="mt-6 space-y-4">
@@ -436,10 +455,10 @@ export function App() {
                   ) : (
                     <>
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
-                        {systemStatus.safeMode ? 'Safe Mode' : 'Normal Mode'} · {systemStatus.storageMode}
+                        {systemStatus.safeMode ? t('dashboard.safeMode') : t('dashboard.normalMode')} · {systemStatus.storageMode}
                       </span>
                       <span className="text-white/60">
-                        {systemStatus.connectivity.isOffline ? 'Offline' : 'Online'} · Last check{' '}
+                        {systemStatus.connectivity.isOffline ? t('dashboard.offline') : t('dashboard.online')} · {t('dashboard.lastCheck')}{' '}
                         {systemStatus.connectivity.lastChecked ?? '—'}
                       </span>
                     </>
@@ -454,15 +473,11 @@ export function App() {
                 {!error && (
                   <>
                     <p className="text-sm text-white/70">
-                      {isLoading && 'Loading settings…'}
-                      {!isLoading && !settings && 'Settings not loaded yet.'}
-                      {profilesLoading && ' Loading profiles…'}
-                      {!profilesLoading && profilesInitialized &&
-                        ` Loaded ${profiles.length} profile${profiles.length === 1 ? '' : 's'}.`}
+                      {statusMessages.join(' ')}
                     </p>
                     {settings && (
                       <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/40">
-                        Global source: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
+                        {t('dashboard.globalSource')}: {settings.global?.app ? (settings.global as Record<string, any>).app?.sourceFileName ?? 'N/A' : 'N/A'}
                       </p>
                     )}
                     {profilesError && (
@@ -477,11 +492,11 @@ export function App() {
 
                 <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
                   <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">Pie Menu Preview</h3>
+                    <h3 className="text-lg font-semibold text-white">{t('dashboard.previewTitle')}</h3>
                     <p className="mt-2 text-sm text-white/70">
-                      Press <span className="font-semibold text-text-primary">Ctrl + Shift + P</span> to
-                      toggle a preview of the pie menu. Once contextual routing is connected,
-                      the preview will reflect the active profile and slice configuration.
+                      {previewBodyBefore}
+                      <span className="font-semibold text-text-primary">{previewHotkeyLabel}</span>
+                      {previewBodyAfter}
                     </p>
 
                     <div className="mt-6 flex flex-col items-center gap-4">
@@ -497,20 +512,20 @@ export function App() {
                         centerContent={
                           lastSafeModeReason ? (
                             <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
-                              Safe Mode
+                              {t('dashboard.safeModeBadge')}
                             </span>
                           ) : null
                         }
                       />
                       {menuSlices.length === 0 && (
-                        <p className="text-sm text-white/60">Add actions to your first profile to preview the menu.</p>
+                        <p className="text-sm text-white/60">{t('dashboard.previewEmpty')}</p>
                       )}
                       {lastAction && (
                         <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                          <p className="font-semibold text-white">Last action:</p>
+                          <p className="font-semibold text-white">{t('dashboard.lastAction')}</p>
                           <p className="mt-1 text-sm">{lastAction.actionName}</p>
                           <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                            Status: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
+                            {t('dashboard.lastActionStatus')}: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
                           </p>
                           {lastAction.message && (
                             <p className="mt-1 text-white/60">{lastAction.message}</p>
@@ -521,15 +536,14 @@ export function App() {
                   </div>
 
                   <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">Contextual Profiles</h3>
+                    <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
                     <p className="mt-2 text-sm text-white/70">
-                      Active profile will be selected automatically based on context rules. When
-                      available, we will display the active profile info here.
+                      {t('dashboard.contextualBody')}
                     </p>
                     <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                      <p>Active profile: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
-                      <p>Match mode: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
-                      <p>Safe mode: {status.safeMode ? 'Enabled' : 'Disabled'}</p>
+                      <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
+                      <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
+                      <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
                     </div>
                   </div>
                 </div>

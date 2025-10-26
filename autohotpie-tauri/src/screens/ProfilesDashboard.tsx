@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import type { ProfileRecord } from '../state/profileStore';
+import { useLocalization } from '../hooks/useLocalization';
 
 export interface ProfilesDashboardProps {
   profiles: ProfileRecord[];
@@ -33,21 +34,18 @@ function computeMetrics(record: ProfileRecord): ProfileMetrics {
   return { menus, slices, nested };
 }
 
-function EmptyState({ onCreate }: { onCreate?: () => void }) {
+function EmptyState({ onCreate, t }: { onCreate?: () => void; t: (key: string) => string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-white/10 bg-white/5 p-12 text-center text-white/60">
-      <div className="text-lg font-semibold text-white">No profiles yet</div>
-      <p className="max-w-md text-sm text-white/60">
-        Create your first automation profile to start designing pie menus, assign hotkeys, and
-        organize actions for different contexts.
-      </p>
+      <div className="text-lg font-semibold text-white">{t('profilesDashboard.emptyTitle')}</div>
+      <p className="max-w-md text-sm text-white/60">{t('profilesDashboard.emptyBody')}</p>
       {onCreate && (
         <button
           type="button"
           className="rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/20"
           onClick={onCreate}
         >
-          Create Profile
+          {t('profilesDashboard.emptyCreateButton')}
         </button>
       )}
     </div>
@@ -80,6 +78,7 @@ export function ProfilesDashboard({
   onOpenEditor,
   onActivateProfile,
 }: ProfilesDashboardProps) {
+  const { t } = useLocalization();
   const sortedProfiles = useMemo(() => {
     return profiles
       .filter((record): record is ProfileRecord => Boolean(record && record.profile))
@@ -91,11 +90,9 @@ export function ProfilesDashboard({
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Profiles</p>
-          <h2 className="mt-2 text-3xl font-semibold text-white">Automation Profiles</h2>
-          <p className="mt-2 text-sm text-white/60">
-            Manage pie menu presets, activation rules, and global hotkeys for each workflow.
-          </p>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40">{t('profilesDashboard.sectionLabel')}</p>
+          <h2 className="mt-2 text-3xl font-semibold text-white">{t('profilesDashboard.sectionTitle')}</h2>
+          <p className="mt-2 text-sm text-white/60">{t('profilesDashboard.sectionDescription')}</p>
         </div>
         {onCreateProfile && (
           <button
@@ -103,7 +100,7 @@ export function ProfilesDashboard({
             className="rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm font-medium text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] transition hover:border-white/20 hover:bg-white/20"
             onClick={onCreateProfile}
           >
-            New Profile
+            {t('profilesDashboard.newProfileButton')}
           </button>
         )}
       </div>
@@ -117,12 +114,20 @@ export function ProfilesDashboard({
       {isLoading ? (
         <LoadingState />
       ) : sortedProfiles.length === 0 ? (
-        <EmptyState onCreate={onCreateProfile} />
+        <EmptyState onCreate={onCreateProfile} t={t} />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {sortedProfiles.map((record) => {
             const metrics = computeMetrics(record);
             const isActive = record.profile.id === activeProfileId;
+            const rulesCount = record.profile.activationRules?.length ?? 0;
+            const rulesLabel = rulesCount > 0
+              ? t(rulesCount === 1 ? 'profilesDashboard.ruleSingle' : 'profilesDashboard.ruleMultiple').replace(
+                  '{count}',
+                  String(rulesCount),
+                )
+              : t('profilesDashboard.noRules');
+            const hotkeyValue = record.profile.globalHotkey || '—';
             return (
               <div
                 key={record.profile.id}
@@ -142,36 +147,34 @@ export function ProfilesDashboard({
                       )}
                     </div>
                     <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.35em] text-white/60">
-                      {isActive ? 'Active' : 'Ready'}
+                      {isActive ? t('profilesDashboard.statusActive') : t('profilesDashboard.statusReady')}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.25em] text-white/50">
                     <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                      Hotkey {record.profile.globalHotkey || '—'}
+                      {t('profilesDashboard.hotkeyLabel')} {hotkeyValue}
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                      {record.profile.enabled ? 'Enabled' : 'Disabled'}
+                      {record.profile.enabled ? t('profilesDashboard.enabled') : t('profilesDashboard.disabled')}
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                      {(record.profile.activationRules?.length ?? 0) > 0
-                        ? `${record.profile.activationRules?.length ?? 0} rule${(record.profile.activationRules?.length ?? 0) === 1 ? '' : 's'}`
-                        : 'No rules'}
+                      {rulesLabel}
                     </span>
                   </div>
 
                   <div className="mt-2 grid grid-cols-3 gap-3 text-center">
                     <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
                       <p className="text-2xl font-semibold text-white">{metrics.menus}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">Menus</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profilesDashboard.metricMenus')}</p>
                     </div>
                     <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
                       <p className="text-2xl font-semibold text-white">{metrics.slices}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">Slices</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profilesDashboard.metricSlices')}</p>
                     </div>
                     <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
                       <p className="text-2xl font-semibold text-white">{metrics.nested}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">Nested</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profilesDashboard.metricNested')}</p>
                     </div>
                   </div>
                 </div>
@@ -183,7 +186,7 @@ export function ProfilesDashboard({
                       className="w-full rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/20"
                       onClick={() => onOpenEditor(record.profile.id)}
                     >
-                      Open Editor
+                      {t('profilesDashboard.openEditor')}
                     </button>
                   )}
                   {onActivateProfile && !isActive && (
@@ -192,12 +195,12 @@ export function ProfilesDashboard({
                       className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
                       onClick={() => onActivateProfile(record.profile.id)}
                     >
-                      Set Active
+                      {t('profilesDashboard.setActive')}
                     </button>
                   )}
                   {isActive && (
                     <div className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 text-center text-sm font-medium text-white/70">
-                      Currently Active
+                      {t('profilesDashboard.currentlyActive')}
                     </div>
                   )}
                 </div>
