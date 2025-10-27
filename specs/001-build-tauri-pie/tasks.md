@@ -131,14 +131,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T127 [P] [US3] Implement import/export service with schema validation in `autohotpie-tauri/src-tauri/src/services/import_export.rs`
-- [ ] T128 [US3] Add Tauri commands for import/export workflows in `autohotpie-tauri/src-tauri/src/commands/import_export.rs`
-- [ ] T129 [P] [US3] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
-- [ ] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-- [ ] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
+- [x] T127 [P] [US3] Implement import/export service with schema validation in `autohotpie-tauri/src-tauri/src/services/import_export.rs`
+- [x] T128 [US3] Add Tauri commands for import/export workflows in `autohotpie-tauri/src-tauri/src/commands/import_export.rs`
+- [x] T129 [P] [US3] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
+- [x] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+- [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+  - _Deferred until macOS/Linux environments are available for FR-009/FR-022 validation._
 - [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) in `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+  - _Deferred: awaiting macOS verification window to satisfy FR-022 requirements._
 - [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
+  - _Deferred: pending Linux smoke-test target alignment with FR-022._
 - [ ] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [ ] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [ ] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`

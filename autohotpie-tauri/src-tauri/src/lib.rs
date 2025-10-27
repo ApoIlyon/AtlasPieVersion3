@@ -8,6 +8,11 @@ mod storage;
 pub fn run() {
     let app = tauri::Builder::<tauri::Wry>::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| commands::init(app).map_err(|err| err.into()))
         .invoke_handler(tauri::generate_handler![
@@ -16,6 +21,9 @@ pub fn run() {
             commands::actions::save_actions,
             commands::actions::run_action,
             commands::actions::test_action,
+            commands::import_export::export_profiles,
+            commands::import_export::import_profiles,
+            commands::import_export::save_export_bundle,
             commands::profiles::list_profiles,
             commands::profiles::get_profile,
             commands::profiles::save_profile,
@@ -31,6 +39,9 @@ pub fn run() {
             commands::hotkeys::unregister_hotkey,
             commands::hotkeys::list_hotkeys,
             commands::hotkeys::check_hotkey,
+            commands::autostart::get_autostart_status,
+            commands::autostart::set_autostart_enabled,
+            commands::autostart::open_autostart_location,
             commands::system::run_pie_menu,
             commands::system::system_get_status,
             commands::system::get_active_profile,
