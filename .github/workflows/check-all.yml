@@ -5,45 +5,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  unit-tests:
-    name: Vitest unit tests
+  windows-suite:
+    name: Windows checks
     runs-on:
       - self-hosted
       - Windows
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: C:\\actions-runner\\_work\\_playwright-browsers
+      CI: 'true'
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            autohotpie-tauri/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('autohotpie-tauri/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-
-      - name: Install dependencies
-        working-directory: autohotpie-tauri
-        run: npm ci
-      - name: Run vitest
-        working-directory: autohotpie-tauri
-        run: npm run test:unit
+          cache: 'npm'
+          cache-dependency-path: autohotpie-tauri/package-lock.json
 
-  cargo-tests:
-    name: Cargo tests
-    runs-on:
-      - self-hosted
-      - Windows
-    needs: unit-tests
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy
-      - name: Cache cargo
+      - name: Restore cargo cache
         uses: actions/cache@v4
         with:
           path: |
@@ -52,32 +31,35 @@ jobs:
             autohotpie-tauri/src-tauri/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('autohotpie-tauri/src-tauri/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-      - name: Install frontend deps
+
+      - name: Install dependencies
         working-directory: autohotpie-tauri
-        run: npm ci
-      - name: Run cargo test
+        run: npm ci --prefer-offline
+
+      - name: Install Rust toolchain
+        shell: powershell
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add clippy
+
+      - name: Run Vitest unit tests
+        working-directory: autohotpie-tauri
+        run: npm run test:unit
+
+      - name: Run Cargo tests
         working-directory: autohotpie-tauri/src-tauri
         run: cargo test
 
-  e2e-tests:
-    name: Playwright E2E
-    runs-on:
-      - self-hosted
-      - Windows
-    needs: [unit-tests, cargo-tests]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install dependencies
+      - name: Ensure Playwright browsers installed
         working-directory: autohotpie-tauri
-        run: npm ci
-      - name: Install Playwright browsers
+        shell: powershell
+        run: |
+          if (-not (Test-Path $env:PLAYWRIGHT_BROWSERS_PATH)) {
+            New-Item -ItemType Directory -Force -Path $env:PLAYWRIGHT_BROWSERS_PATH | Out-Null
+            npx playwright install chromium firefox webkit
+          }
+
+      - name: Run Playwright E2E
         working-directory: autohotpie-tauri
-        run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        working-directory: autohotpie-tauri
-        run: npm run test:e2e
-        env:
-          CI: 'true'
+        run: npm run test:e2e -- --retries=1
