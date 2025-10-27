@@ -3,9 +3,11 @@
 pub mod actions;
 pub mod hotkeys;
 pub mod localization;
+pub mod import_export;
 pub mod profiles;
 pub mod settings;
 pub mod system;
+pub mod autostart;
 
 use self::hotkeys::HotkeyState;
 use crate::domain::{Action, ActionId};

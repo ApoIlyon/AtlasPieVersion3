@@ -12,7 +12,7 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 use serde::Deserialize;
 
-const PROFILES_STORE_EVENT: &str = "profiles://store-changed";
+pub(crate) const PROFILES_STORE_EVENT: &str = "profiles://store-changed";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -187,7 +187,7 @@ pub fn open_profiles_backups<R: Runtime>(
         .map_err(|err| AppError::Message(format!("failed to open backups directory: {err}")))
 }
 
-fn emit_profiles_changed<R: Runtime>(
+pub(crate) fn emit_profiles_changed<R: Runtime>(
     app: &AppHandle<R>,
     state: &State<'_, AppState>,
 ) -> Result<()> {

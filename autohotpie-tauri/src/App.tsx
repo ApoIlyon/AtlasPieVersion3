@@ -22,6 +22,8 @@ import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
+import { SettingsImportExport } from './screens/SettingsImportExport';
+import { SettingsAutostart } from './screens/SettingsAutostart';
 import { useLocalization } from './hooks/useLocalization';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
@@ -589,8 +591,9 @@ export function App() {
           )}
 
           {activeSection === 'settings' && (
-            <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
-              Settings panel under construction.
+            <div className="space-y-10">
+              <SettingsImportExport />
+              <SettingsAutostart />
             </div>
           )}
         </section>
