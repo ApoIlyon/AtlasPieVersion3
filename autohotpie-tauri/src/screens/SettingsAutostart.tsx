@@ -42,7 +42,7 @@ export function SettingsAutostart() {
     void initialize();
   }, [initialize]);
 
-  const statusLabel = useMemo(() => {
+  const statusLabel = (() => {
     if (!info) {
       return t('settings.autostart.status.unsupported');
     }
@@ -54,7 +54,7 @@ export function SettingsAutostart() {
       default:
         return info.message ?? t('settings.autostart.status.unsupported');
     }
-  }, [info, t]);
+  })();
 
   const statusTone: 'success' | 'warning' | 'danger' = useMemo(() => {
     if (!info || info.status === 'unsupported') {
