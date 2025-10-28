@@ -20,7 +20,7 @@ default = []
 tray-icon = ["tauri/tray-icon"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = ["config-toml"] }
+tauri-build = { version = "2", features = ["config-json", "updater"] }
 
 [dependencies]
 # Keep Tauri minimal for tests; opt-in to tray via crate feature.
