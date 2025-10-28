@@ -7,11 +7,8 @@ on:
 jobs:
   windows-suite:
     name: Windows checks
-    runs-on:
-      - self-hosted
-      - Windows
+    runs-on: windows-latest
     env:
-      PLAYWRIGHT_BROWSERS_PATH: C:\\actions-runner\\_work\\_playwright-browsers
       CI: 'true'
     steps:
       - uses: actions/checkout@v4
@@ -22,19 +19,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: autohotpie-tauri/package-lock.json
 
-      - name: Restore cargo cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            autohotpie-tauri/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('autohotpie-tauri/src-tauri/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
       - name: Install dependencies
         working-directory: autohotpie-tauri
-        run: npm ci --prefer-offline
+        run: npm ci
 
       - name: Install Rust toolchain
         shell: powershell
@@ -51,14 +38,9 @@ jobs:
         working-directory: autohotpie-tauri/src-tauri
         run: cargo test
 
-      - name: Ensure Playwright browsers installed
+      - name: Install Playwright browsers
         working-directory: autohotpie-tauri
-        shell: powershell
-        run: |
-          if (-not (Test-Path $env:PLAYWRIGHT_BROWSERS_PATH)) {
-            New-Item -ItemType Directory -Force -Path $env:PLAYWRIGHT_BROWSERS_PATH | Out-Null
-            npx playwright install chromium firefox webkit
-          }
+        run: npx playwright install chromium firefox webkit
 
       - name: Run Playwright E2E
         working-directory: autohotpie-tauri
@@ -81,6 +63,10 @@ jobs:
       - name: Install dependencies
         working-directory: autohotpie-tauri
         run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: autohotpie-tauri
+        run: npx playwright install webkit
 
       - name: Install Rust toolchain
         run: |
