@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "autohotpie-tauri"
 version = "0.1.2"
 description = "A Tauri App"
