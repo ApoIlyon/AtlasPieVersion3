@@ -9,8 +9,8 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 const OWNER_ENV: &str = "AUTOHOTPIE_UPDATE_OWNER";
 const REPO_ENV: &str = "AUTOHOTPIE_UPDATE_REPO";
 const TOKEN_ENV: &str = "AUTOHOTPIE_UPDATE_TOKEN";
-const OWNER_DEFAULT: &str = "Atlas-Engineering";
-const REPO_DEFAULT: &str = "AutoHotPie";
+const OWNER_DEFAULT: &str = "Apollyon";
+const REPO_DEFAULT: &str = "AtlasPieVersion3";
 const RELEASES_ENDPOINT: &str = "https://api.github.com/repos";
 const USER_AGENT: &str = "autohotpie-tauri/1.0";
 const MIN_CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60); // 1 hour throttle
