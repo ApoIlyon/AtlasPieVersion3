@@ -76,14 +76,24 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($notes)) {
             $notes = "Release notes will be added later."
           }
-          if ([string]::IsNullOrWhiteSpace($Env:GITHUB_OUTPUT)) {
-            $Env:GITHUB_OUTPUT = Join-Path $Env:RUNNER_TEMP 'github_output.txt'
+          $outputPath = $Env:GITHUB_OUTPUT
+          if ([string]::IsNullOrWhiteSpace($outputPath)) {
+            $tempRoot = if ([string]::IsNullOrWhiteSpace($Env:RUNNER_TEMP)) { Join-Path $PWD '..\_temp' } else { $Env:RUNNER_TEMP }
+            if (-not (Test-Path $tempRoot)) {
+              New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+            }
+            $outputPath = Join-Path $tempRoot 'github_output.txt'
+            $Env:GITHUB_OUTPUT = $outputPath
           }
-          if (-not (Test-Path $Env:GITHUB_OUTPUT)) {
-            New-Item -ItemType File -Path $Env:GITHUB_OUTPUT -Force | Out-Null
+          $outputDir = Split-Path $outputPath -Parent
+          if (-not (Test-Path $outputDir)) {
+            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
           }
-          Add-Content -Path $Env:GITHUB_OUTPUT -Encoding UTF8 -Value "title=$title"
-          Add-Content -Path $Env:GITHUB_OUTPUT -Encoding UTF8 -Value "notes=$notes"
+          if (-not (Test-Path $outputPath)) {
+            New-Item -ItemType File -Path $outputPath -Force | Out-Null
+          }
+          Add-Content -Path $outputPath -Encoding UTF8 -Value "title=$title"
+          Add-Content -Path $outputPath -Encoding UTF8 -Value "notes=$notes"
 
       - name: Verify version consistency
         working-directory: autohotpie-tauri
