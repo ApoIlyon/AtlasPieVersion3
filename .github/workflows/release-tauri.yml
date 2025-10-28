@@ -20,6 +20,9 @@ jobs:
       - self-hosted
       - Windows
       - X64
+    defaults:
+      run:
+        shell: powershell
     env:
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
       TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -66,7 +69,6 @@ jobs:
       - name: Prepare release metadata
         id: metadata
         working-directory: autohotpie-tauri
-        shell: powershell
         run: |
           $title = "${{ github.event.inputs.title }}"
           if ([string]::IsNullOrWhiteSpace($title)) {
@@ -88,7 +90,6 @@ jobs:
 
       - name: Verify version consistency
         working-directory: autohotpie-tauri
-        shell: pwsh
         run: |
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
           $cargo = Get-Content src-tauri/Cargo.toml -Raw
