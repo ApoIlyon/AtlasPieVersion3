@@ -49,6 +49,8 @@ pub fn run() {
             commands::system::subscribe_action_events,
             commands::system::get_version,
             commands::system::open_logs,
+            commands::updates::get_update_status,
+            commands::updates::check_updates,
             commands::localization::list_localization_languages,
             commands::localization::get_localization_pack,
             commands::localization::refresh_localization_packs

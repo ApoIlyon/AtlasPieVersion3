@@ -8,5 +8,6 @@ pub mod autostart;
 pub mod profile_router;
 pub mod storage_guard;
 pub mod system_status;
+pub mod update_checker;
 pub mod tray;
 pub mod window_info;

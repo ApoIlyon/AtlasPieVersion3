@@ -51,8 +51,23 @@ Logs rotate daily under the same directory; the **Log** button opens the current
 2. Export via **Profiles Dashboard → Export** to create a JSON archive compatible across platforms.
 
 ## Update Check Workflow
-- App checks GitHub releases on menu open (hourly throttle).
-- If a new version exists, notification shows **Download Update** linking to the latest installer.
+- Приложение автоматически опрашивает GitHub-релизы каждые 6 часов (минимальный интервал — 1 час).
+- В разделе **Settings → Updates** отображается текущая/последняя версия, время проверки и релизные заметки.
+- Кнопка **Check for updates** запускает стандартную проверку (учитывая троттлинг), а **Force refresh** игнорирует кеш и выполняет запрос немедленно.
+- При найденном обновлении кнопка **Open release page** открывает страницу релиза для загрузки установщика.
+- В браузерном превью (без Tauri) раздел показывает заглушку о доступности функции только в десктопной сборке.
+- Источник релизов задаётся переменными окружения `AUTOHOTPIE_UPDATE_OWNER` и `AUTOHOTPIE_UPDATE_REPO`; без них используется `Atlas-Engineering/AutoHotPie`.
+- GitHub API токен для повышения лимита запросов (и приватных репозиториев) задаётся через `AUTOHOTPIE_UPDATE_TOKEN`.
+
+## Выпуск релизов
+
+1. Обновите версию в `package.json` и `src-tauri/tauri.conf.json` (а затем синхронизируйте `Cargo.toml`). Версия должна следовать SemVer.
+2. Закоммитьте и запушьте изменения.
+3. В GitHub откройте **Actions → Release Tauri (Windows)**, запустите workflow вручную (`Run workflow`) и укажите:
+   - `version` — то же значение, что в исходниках.
+   - `title`/`notes` — при необходимости (по умолчанию используется шаблон `AtlasPie vX.Y.Z`).
+4. Workflow соберёт Windows-инсталлятор, подготовит `latest.json` и опубликует GitHub Release в репозитории `Apollyon/AtlasPieVersion3`.
+5. Убедитесь, что в разделе Settings → Secrets & variables → Actions заданы `TAURI_PRIVATE_KEY`, `TAURI_KEY_PASSWORD` и `AUTOHOTPIE_UPDATE_TOKEN`.
 
 ## Troubleshooting
 - Global hotkey conflicts: see **Settings → Hotkeys**; reassign or disable conflicting bindings.

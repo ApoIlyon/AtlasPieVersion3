@@ -24,6 +24,7 @@ import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
 import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
+import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
@@ -594,6 +595,7 @@ export function App() {
             <div className="space-y-10">
               <SettingsImportExport />
               <SettingsAutostart />
+              <SettingsUpdates />
             </div>
           )}
         </section>

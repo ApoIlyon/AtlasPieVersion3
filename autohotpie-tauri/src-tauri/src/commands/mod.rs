@@ -8,6 +8,7 @@ pub mod profiles;
 pub mod settings;
 pub mod system;
 pub mod autostart;
+pub mod updates;
 
 use self::hotkeys::HotkeyState;
 use crate::domain::{Action, ActionId};
@@ -20,10 +21,12 @@ use crate::services::tray;
 use crate::services::{
     action_events::ActionEventsChannel,
     audit_log::AuditLogger,
-    connectivity, localization as localization_service,
+    connectivity,
+    localization as localization_service,
     profile_router::{self, ProfileRouterState},
     storage_guard,
     system_status::SystemStatus,
+    update_checker::{self, UpdateChecker},
     window_info,
 };
 use crate::storage::profile_repository::{ProfileRecoveryInfo, ProfileStore};
@@ -147,6 +150,10 @@ pub struct SystemState {
     pub status: Arc<Mutex<SystemStatus>>,
 }
 
+pub struct UpdatesState {
+    pub checker: Arc<UpdateChecker>,
+}
+
 pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     let handle = app.handle();
     let storage = StorageManager::new(handle.clone())?;
@@ -186,6 +193,11 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
 
     localization_service::init(&handle)?;
 
+    let checker = Arc::new(UpdateChecker::new(version.clone())?);
+
+    update_checker::emit_status(&handle, &checker.cached_status());
+    update_checker::start_polling(handle.clone(), checker.clone());
+
     app.manage(AppState {
         storage: storage.clone(),
         audit,
@@ -196,6 +208,8 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         profiles_recovery: Mutex::new(recovery.clone()),
         actions: Mutex::new(actions_map),
     });
+
+    app.manage(UpdatesState { checker });
 
     if let Some(info) = recovery {
         if let Err(err) = handle.emit(

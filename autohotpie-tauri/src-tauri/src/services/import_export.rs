@@ -6,11 +6,9 @@ use crate::services::audit_log::AuditLogger;
 use crate::storage::profile_repository::{ProfileRecord, ProfileStore, PROFILES_SCHEMA_VERSION};
 use crate::storage::StorageManager;
 use base64::{engine::general_purpose, Engine as _};
-use pathdiff::diff_paths;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs;
-use std::io;
 use std::path::{Component, Path, PathBuf};
 use time::OffsetDateTime;
 use uuid::Uuid;
@@ -102,7 +100,7 @@ impl<'a> ImportExportService<'a> {
 
     pub fn process_import_bundle(
         &self,
-        mut bundle: ImportExportBundle,
+        bundle: ImportExportBundle,
     ) -> Result<(ProfileStore, Settings, ImportResult), AppError> {
         if bundle.schema_version != BUNDLE_SCHEMA_VERSION {
             return Err(AppError::Message(format!(
