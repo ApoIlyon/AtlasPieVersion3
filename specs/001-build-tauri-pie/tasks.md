@@ -138,19 +138,26 @@
 - [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
   - _Deferred until macOS/Linux environments are available for FR-009/FR-022 validation._
-- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) in `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
   - _Deferred: awaiting macOS verification window to satisfy FR-022 requirements._
-- [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
+- [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
   - _Deferred: pending Linux smoke-test target alignment with FR-022._
+- [ ] T130e [US3] Sync autostart status, read-only баннер и Retry flow с frontend store/UI (desktop-only guard, инструкции, View instructions link) в `autohotpie-tauri/src/state/autostartStore.ts` и `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
+- [ ] T130e.1 [US3] Cover автозапуск (Enabled/Disabled/Unsupported/Errored) и read-only overlay Playwright тестом в `autohotpie-tauri/tests/e2e/autostart.spec.ts`
+- [ ] T130f [US3] Document autostart status API responses, read-only flow и troubleshooting steps в `specs/001-build-tauri-pie/quickstart.md`
 - [x] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [x] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [x] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
-- [ ] T133 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
-- [ ] T133a [US3] Add regression tests for toasts and log-button flows (import/export, autostart) in `autohotpie-tauri/tests/e2e/notifications.spec.ts`
-- [ ] T134 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`
-- [ ] T134a [US3] Handle read-only data directory (prompt for alternative path/temporary storage) in `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
-- [ ] T134b [US3] Add regression tests for import/export failure scenarios in `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
-- [ ] T134c [US3] Verify backup retention (5 generations) via integration test in `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
+- [ ] T133 [P] [US3] Create Log Panel (auto-refresh 5s, level filters, search, open-file fallback) в `autohotpie-tauri/src/components/log/LogPanel.tsx` и связать кнопку "Log" из `autohotpie-tauri/src/App.tsx`
+- [ ] T133a [US3] Add regression tests for Log Panel (filter/search, read error toast, desktop guard) и уведомления import/export/autostart в `autohotpie-tauri/tests/e2e/notifications.spec.ts`
+- [ ] T133b [US3] Add backend command to read current audit log (UTF-8, rotation-aware) для UI viewer в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [ ] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [ ] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
+- [ ] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
+- [ ] T134b [US3] Add regression tests for import/export failure scenarios в `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
+- [ ] T134c [US3] Verify backup retention (5 generations) via integration test в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
+- [ ] T134c.1 [US3] Extend backup integration test to assert FIFO rotation и запись события в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
+- [ ] T134d [US3] Add documentation section on log access & troubleshooting в `specs/001-build-tauri-pie/quickstart.md`
 
 **Checkpoint**: Конфигурации мигрируются между машинами, автозапуск работает, обновления и логи доступны из UI.
 
@@ -161,17 +168,20 @@
 **Purpose**: Final refinements impacting multiple stories.
 
 - [ ] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
-- [ ] T037 [P] Tune pie menu performance and memory usage in `autohotpie-tauri/src/components/pie/PieMenu.tsx` and `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T037 Execute accessibility & localization sweep plus cross-platform smoke run via `autohotpie-tauri/tests/e2e/`
-- [ ] T037a [P] Benchmark hotkey → action latency and memory footprint per NFRs in `autohotpie-tauri/tests/perf/latency.spec.ts`
-- [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) in `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
-- [ ] T037c [P] Instrument FPS measurement for pie menu rendering to confirm compliance with `NFR-003` in `autohotpie-tauri/tests/perf/fps.spec.ts`
+- [ ] T037 [P] Tune pie menu performance и memory usage с профилированием React Profiler и `tracing` метрик в `autohотpie-tauri/src/components/pie/PieMenu.tsx` и `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [ ] T037 Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohotpie-tauri/tests/e2e/`
+- [ ] T037a [P] Benchmark hotkey → pie меню → action latency (p95 < 200 мс) и peak memory (<150 МБ) в `autohotpie-tauri/tests/perf/latency.spec.ts` с выводом отчётов в `autohotpie-tauri/tests/perf/reports`
+- [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
+- [ ] T037c [P] Instrument FPS measurement (>60 FPS) и frame time графики в `autohotpie-tauri/tests/perf/fps.spec.ts`, сохранять CSV/PNG в `tests/perf/reports`
+- [ ] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`
+- [ ] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` статус покрытия FR-012/FR-013/FR-024 после внедрения лог-панели и автозапуска
 - [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
+- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohotpie-tauri/tests/e2e/offline.spec.ts`
 
 ---
 
 ## Dependencies & Execution Order
-
+- **Phase Dependencies**
 ### Phase Dependencies
 - **Setup (Phase 1)**: No dependencies — start immediately.
 - **Foundational (Phase 2)**: Depends on Phase 1 completion — blocks all user stories.
