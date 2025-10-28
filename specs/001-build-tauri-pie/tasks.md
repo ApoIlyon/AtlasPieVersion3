@@ -142,9 +142,9 @@
   - _Deferred: awaiting macOS verification window to satisfy FR-022 requirements._
 - [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage in `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
   - _Deferred: pending Linux smoke-test target alignment with FR-022._
-- [ ] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
+- [x] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [x] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [x] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
 - [ ] T133 [P] [US3] Create log viewer panel styled like kando in `autohotpie-tauri/src/components/log/LogPanel.tsx`
 - [ ] T133a [US3] Add regression tests for toasts and log-button flows (import/export, autostart) in `autohotpie-tauri/tests/e2e/notifications.spec.ts`
 - [ ] T134 [US3] Add command to open latest log file in `autohotpie-tauri/src-tauri/src/commands/logs.rs`

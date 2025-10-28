@@ -4,6 +4,16 @@ export interface Settings {
   global: Record<string, unknown>;
 }
 
+export interface UpdateStatus {
+  currentVersion: string;
+  latestVersion: string | null;
+  isUpdateAvailable: boolean;
+  downloadUrl: string | null;
+  releaseNotes: string | null;
+  lastChecked: string | null;
+  error: string | null;
+}
+
 export interface ConnectivitySnapshot {
   isOffline: boolean;
   lastChecked: string | null;
