@@ -46,6 +46,46 @@ jobs:
         working-directory: autohotpie-tauri
         run: npm run test:e2e -- --retries=1
 
+  linux-suite:
+    name: Linux checks
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: autohotpie-tauri/package-lock.json
+
+      - name: Install dependencies
+        working-directory: autohotpie-tauri
+        run: npm ci
+
+      - name: Install Rust toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add clippy
+
+      - name: Run Vitest unit tests
+        working-directory: autohotpie-tauri
+        run: npm run test:unit
+
+      - name: Install Playwright browsers and dependencies
+        working-directory: autohotpie-tauri
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run Cargo tests
+        working-directory: autohotpie-tauri/src-tauri
+        run: cargo test
+
+      - name: Run Playwright E2E
+        working-directory: autohotpie-tauri
+        run: npm run test:e2e -- --retries=1
+
   macos-suite:
     name: macOS smoke checks
     runs-on: macos-latest
