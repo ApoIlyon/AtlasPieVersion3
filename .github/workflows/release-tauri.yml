@@ -76,6 +76,9 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($notes)) {
             $notes = "Release notes will be added later."
           }
+          if ([string]::IsNullOrWhiteSpace($Env:GITHUB_OUTPUT)) {
+            $Env:GITHUB_OUTPUT = Join-Path $Env:RUNNER_TEMP 'github_output.txt'
+          }
           if (-not (Test-Path $Env:GITHUB_OUTPUT)) {
             New-Item -ItemType File -Path $Env:GITHUB_OUTPUT -Force | Out-Null
           }
