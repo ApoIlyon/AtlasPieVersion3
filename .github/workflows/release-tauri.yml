@@ -76,6 +76,9 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($notes)) {
             $notes = "Release notes will be added later."
           }
+          if (-not (Test-Path $Env:GITHUB_OUTPUT)) {
+            New-Item -ItemType File -Path $Env:GITHUB_OUTPUT -Force | Out-Null
+          }
           "title=$title" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
           "notes=$notes" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
 
