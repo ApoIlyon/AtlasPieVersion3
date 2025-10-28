@@ -66,13 +66,13 @@ jobs:
       - name: Prepare release metadata
         id: metadata
         working-directory: autohotpie-tauri
-        shell: pwsh
+        shell: powershell
         run: |
-          $title = '${{ github.event.inputs.title }}'
+          $title = "${{ github.event.inputs.title }}"
           if ([string]::IsNullOrWhiteSpace($title)) {
             $title = "AtlasPie v${{ github.event.inputs.version }}"
           }
-          $notes = '${{ github.event.inputs.notes }}'
+          $notes = "${{ github.event.inputs.notes }}"
           if ([string]::IsNullOrWhiteSpace($notes)) {
             $notes = "Release notes will be added later."
           }
