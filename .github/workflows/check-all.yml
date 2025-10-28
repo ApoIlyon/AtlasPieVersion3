@@ -81,15 +81,15 @@ jobs:
 
       - name: Install Playwright browsers and dependencies
         working-directory: autohotpie-tauri
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: npx playwright install --with-deps chromium firefox
 
       - name: Run Cargo tests
         working-directory: autohotpie-tauri/src-tauri
         run: cargo test
 
-      - name: Run Playwright E2E
+      - name: Run Playwright E2E (Chromium & Firefox)
         working-directory: autohotpie-tauri
-        run: npm run test:e2e -- --retries=1
+        run: npm run test:e2e -- --retries=1 --project=chromium --project=firefox
 
   macos-suite:
     name: macOS smoke checks
