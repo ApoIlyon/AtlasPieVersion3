@@ -44,7 +44,11 @@ For macOS nightly coverage, run the Playwright suite locally or via scheduled CI
 - macOS: `~/Library/Application Support/AutoHotPie`
 - Linux: `~/.config/AutoHotPie`
 
-Logs rotate daily under the same directory; the **Log** button opens the current file.
+Logs rotate daily under the same directory. В разделе **Settings → Logs** доступна Log Panel:
+- автообновление каждые 5 секунд;
+- фильтрация по уровням (INFO/WARN/ERROR/ACTION) и строковый поиск;
+- кнопки **Refresh** и **Open log file** (Tauri desktop only).
+При ошибке чтения отображается toast с рекомендацией открыть файл напрямую из проводника.
 
 ## Import/Export Profiles
 1. Use **Settings → Profiles → Import** to select a JSON bundle.
@@ -70,6 +74,12 @@ Logs rotate daily under the same directory; the **Log** button opens the current
 5. Убедитесь, что в разделе Settings → Secrets & variables → Actions заданы `TAURI_PRIVATE_KEY`, `TAURI_KEY_PASSWORD` и `AUTOHOTPIE_UPDATE_TOKEN`.
 
 ## Troubleshooting
+- **Autostart status**: раздел **Settings → Autostart** показывает Enabled/Disabled/Unsupported/Errored.
+  - Используйте **Retry** для повторного включения.
+  - Кнопка **View instructions** открывает соответствующий раздел этого quickstart.
+- **Read-only mode**: если каталог данных недоступен для записи, приложение переходит в режим «только чтение».
+  - Разблокируйте доступ или выберите альтернативный путь, затем перезапустите приложение.
+  - Пока режим активен, Log Panel и автозапуск доступны только для чтения.
 - Global hotkey conflicts: see **Settings → Hotkeys**; reassign or disable conflicting bindings.
 - Missing tray icon on Linux: ensure `libayatana-appindicator3` installed; fallback UI enabled otherwise.
 - Accessibility prompts on macOS: enable permissions under **System Settings → Privacy & Security → Accessibility**.
