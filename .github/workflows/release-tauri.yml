@@ -109,8 +109,9 @@ jobs:
 
       - name: Build and publish release
         uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
         with:
-          github_token: ${{ secrets.RELEASE_PAT }}
           projectPath: autohotpie-tauri
           tagName: v${{ github.event.inputs.version }}
           releaseName: ${{ steps.metadata.outputs.title }}
