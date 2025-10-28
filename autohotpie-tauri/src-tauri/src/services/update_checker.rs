@@ -9,7 +9,7 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 const OWNER_ENV: &str = "AUTOHOTPIE_UPDATE_OWNER";
 const REPO_ENV: &str = "AUTOHOTPIE_UPDATE_REPO";
 const TOKEN_ENV: &str = "AUTOHOTPIE_UPDATE_TOKEN";
-const OWNER_DEFAULT: &str = "Apollyon";
+const OWNER_DEFAULT: &str = "ApoIlyon";
 const REPO_DEFAULT: &str = "AtlasPieVersion3";
 const RELEASES_ENDPOINT: &str = "https://api.github.com/repos";
 const USER_AGENT: &str = "autohotpie-tauri/1.0";
