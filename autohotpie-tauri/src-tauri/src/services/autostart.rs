@@ -178,7 +178,7 @@ mod linux {
         Ok(())
     }
 
-    pub fn open_location<R: Runtime>(app: &AppHandle<R>) -> Result<(), AppError> {
+    pub fn open_location<R: Runtime>(_app: &AppHandle<R>) -> Result<(), AppError> {
         let dir = autostart_dir()?;
         fs::create_dir_all(&dir)?;
 
