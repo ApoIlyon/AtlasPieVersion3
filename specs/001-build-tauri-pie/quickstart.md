@@ -74,12 +74,15 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 5. Убедитесь, что в разделе Settings → Secrets & variables → Actions заданы `TAURI_PRIVATE_KEY`, `TAURI_KEY_PASSWORD` и `AUTOHOTPIE_UPDATE_TOKEN`.
 
 ## Troubleshooting
-- **Autostart status**: раздел **Settings → Autostart** показывает Enabled/Disabled/Unsupported/Errored.
-  - Используйте **Retry** для повторного включения.
-  - Кнопка **View instructions** открывает соответствующий раздел этого quickstart.
-- **Read-only mode**: если каталог данных недоступен для записи, приложение переходит в режим «только чтение».
+- **Autostart statuses** (Settings → Autostart):
+  - **Enabled** — автозапуск успешно настроен (кнопка Disable доступна).
+  - **Disabled** — автозапуск отключён, используйте **Enable autostart** для включения.
+  - **Unsupported** — текущая сборка не поддерживает автозапуск (браузерный превью или отсутствует плагин ОС).
+  - **Errored** — переключение не удалось. Нажмите **Retry** для повторной попытки; сообщение ошибки отображается под статусом.
+- **Read-only mode**: если каталог данных недоступен для записи, появляется баннер «Read-only safeguard».
   - Разблокируйте доступ или выберите альтернативный путь, затем перезапустите приложение.
-  - Пока режим активен, Log Panel и автозапуск доступны только для чтения.
+  - Пока режим активен, управление автозапуском и логами заблокировано.
+- **View instructions**: кнопка открывает раздел quickstart (#troubleshooting) в системном браузере. В десктопной сборке используется tauri-plugin-opener, в браузере ссылка открывается в новой вкладке.
 - Global hotkey conflicts: see **Settings → Hotkeys**; reassign or disable conflicting bindings.
 - Missing tray icon on Linux: ensure `libayatana-appindicator3` installed; fallback UI enabled otherwise.
 - Accessibility prompts on macOS: enable permissions under **System Settings → Privacy & Security → Accessibility**.

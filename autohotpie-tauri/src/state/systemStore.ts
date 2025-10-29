@@ -194,3 +194,8 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     set({ hotkeyStatus: status, lastEventAt: new Date().toISOString() });
   },
 }));
+
+if (typeof window !== 'undefined') {
+  (window as typeof window & { __AUTOHOTPIE_SYSTEM_STORE__?: typeof useSystemStore }).__AUTOHOTPIE_SYSTEM_STORE__ =
+    useSystemStore;
+}

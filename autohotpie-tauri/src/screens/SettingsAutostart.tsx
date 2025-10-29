@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import clsx from 'clsx';
+import { open } from '@tauri-apps/plugin-opener';
 import { useAutostartStore } from '../state/autostartStore';
 import { useLocalization } from '../hooks/useLocalization';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import { useSystemStore } from '../state/systemStore';
 
 function StatusBadge({ label, tone }: { label: string; tone: 'success' | 'warning' | 'danger' }) {
   const toneClasses: Record<typeof tone, string> = {
@@ -17,6 +19,7 @@ function StatusBadge({ label, tone }: { label: string; tone: 'success' | 'warnin
         'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.3em]',
         toneClasses[tone],
       )}
+      data-testid="autostart-status"
     >
       {label}
     </span>
@@ -25,16 +28,22 @@ function StatusBadge({ label, tone }: { label: string; tone: 'success' | 'warnin
 
 export function SettingsAutostart() {
   const { t } = useLocalization();
-  const { info, isLoading, isUpdating, error, initialize, setEnabled, openLocation, clearError } = useAutostartStore(
+  const isDesktop = isTauriEnvironment();
+  const storageMode = useSystemStore((state) => state.status.storageMode);
+  const showReadOnlyBanner = storageMode === 'read_only';
+  const { info, isLoading, isUpdating, error, initialize, refresh, setEnabled, openLocation, clearError, setErrored } =
+    useAutostartStore(
     (state) => ({
       info: state.info,
       isLoading: state.isLoading,
       isUpdating: state.isUpdating,
       error: state.error,
       initialize: state.initialize,
+      refresh: state.refresh,
       setEnabled: state.setEnabled,
       openLocation: state.openLocation,
       clearError: state.clearError,
+      setErrored: state.setErrored,
     }),
   );
 
@@ -51,6 +60,8 @@ export function SettingsAutostart() {
         return t('settings.autostart.status.enabled');
       case 'disabled':
         return t('settings.autostart.status.disabled');
+      case 'errored':
+        return t('settings.autostart.status.errored');
       default:
         return info.message ?? t('settings.autostart.status.unsupported');
     }
@@ -60,19 +71,47 @@ export function SettingsAutostart() {
     if (!info || info.status === 'unsupported') {
       return 'warning';
     }
+    if (info.status === 'errored') {
+      return 'danger';
+    }
     return info.status === 'enabled' ? 'success' : 'danger';
   }, [info]);
 
-  if (!isTauriEnvironment()) {
-    return (
-      <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
-        {t('settings.autostart.error.desktopOnly')}
-      </div>
-    );
-  }
+  const actionDisabled = !isDesktop || isLoading || showReadOnlyBanner;
+  const canEnable = !actionDisabled && !isUpdating && info?.status !== 'enabled';
+  const canDisable = !actionDisabled && !isUpdating && info?.status === 'enabled';
+  const canOpenLocation = !actionDisabled && !isUpdating && info?.status !== 'unsupported' && info?.status !== 'errored';
+
+  const messageVariant = info?.status === 'errored' ? 'danger' : 'warning';
+
+  const handleRetry = () => {
+    clearError();
+    void refresh();
+  };
+
+  const handleInstructions = async () => {
+    const url = 'https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting';
+    if (isDesktop) {
+      try {
+        await open(url);
+      } catch (instructionError) {
+        setErrored(toMessage(instructionError));
+      }
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  };
 
   return (
     <div className="space-y-8">
+      {!isDesktop && (
+        <div
+          className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6 text-sm text-white/70"
+          data-testid="autostart-desktop-guard"
+        >
+          {t('settings.autostart.error.desktopOnly')}
+        </div>
+      )}
       <header className="space-y-4">
         <h2 className="text-2xl font-semibold text-white">{t('settings.autostart.title')}</h2>
         <p className="max-w-2xl text-sm text-white/70">{t('settings.autostart.description')}</p>
@@ -86,9 +125,9 @@ export function SettingsAutostart() {
               type="button"
               className={clsx(
                 'rounded-full border border-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/15',
-                info?.status === 'enabled' && 'opacity-40',
+                (!canEnable || info?.status === 'enabled') && 'opacity-40',
               )}
-              disabled={isUpdating || info?.status === 'enabled'}
+              disabled={!canEnable}
               onClick={() => {
                 void setEnabled(true);
               }}
@@ -99,9 +138,9 @@ export function SettingsAutostart() {
               type="button"
               className={clsx(
                 'rounded-full border border-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/15',
-                info?.status !== 'enabled' && 'opacity-40',
+                (!canDisable || info?.status !== 'enabled') && 'opacity-40',
               )}
-              disabled={isUpdating || info?.status !== 'enabled'}
+              disabled={!canDisable}
               onClick={() => {
                 void setEnabled(false);
               }}
@@ -111,12 +150,31 @@ export function SettingsAutostart() {
             <button
               type="button"
               className="rounded-full border border-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/15"
-              disabled={isLoading || isUpdating || info?.status === 'unsupported'}
+              disabled={!canOpenLocation}
               onClick={() => {
                 void openLocation();
               }}
             >
               {t('settings.autostart.openLocation')}
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-accent/40 bg-accent/20 px-5 py-2 text-sm font-medium text-accent transition hover:border-accent hover:bg-accent/30"
+              disabled={isLoading}
+              onClick={handleRetry}
+              data-testid="autostart-retry"
+            >
+              {t('settings.autostart.retry')}
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-white/10 px-5 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/15"
+              onClick={() => {
+                void handleInstructions();
+              }}
+              data-testid="autostart-instructions"
+            >
+              {t('settings.autostart.viewInstructions')}
             </button>
           </div>
         </div>
@@ -130,15 +188,36 @@ export function SettingsAutostart() {
             </div>
           )}
           {info?.message && info.status !== 'unsupported' && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200">
+            <div
+              className={clsx(
+                'rounded-2xl border p-4 text-xs',
+                messageVariant === 'danger'
+                  ? 'border-rose-500/30 bg-rose-500/10 text-rose-100'
+                  : 'border-amber-500/30 bg-amber-500/10 text-amber-200',
+              )}
+              data-testid="autostart-status-message"
+            >
               {info.message}
             </div>
           )}
         </div>
       </section>
 
+      {showReadOnlyBanner && (
+        <div
+          className="rounded-3xl border border-rose-500/40 bg-rose-500/10 p-6 text-sm text-rose-100 shadow-[0_0_20px_rgba(190,18,60,0.25)]"
+          data-testid="autostart-readonly-banner"
+        >
+          <h3 className="text-base font-semibold uppercase tracking-[0.3em]">{t('settings.autostart.readOnly.title')}</h3>
+          <p className="mt-2 text-sm text-rose-50/90">{t('settings.autostart.readOnly.description')}</p>
+        </div>
+      )}
+
       {error && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+        <div
+          className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100"
+          data-testid="autostart-error"
+        >
           <div className="flex items-start justify-between gap-4">
             <p>{error}</p>
             <button
@@ -156,3 +235,13 @@ export function SettingsAutostart() {
 }
 
 export default SettingsAutostart;
+
+function toMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Unknown error';
+}

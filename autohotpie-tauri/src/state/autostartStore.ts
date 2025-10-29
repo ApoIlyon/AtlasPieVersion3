@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { create } from 'zustand';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 
-export type AutostartStatus = 'enabled' | 'disabled' | 'unsupported';
+export type AutostartStatus = 'enabled' | 'disabled' | 'unsupported' | 'errored';
 
 export interface AutostartInfo {
   status: AutostartStatus;
@@ -20,6 +20,7 @@ interface AutostartState {
   setEnabled: (enable: boolean) => Promise<void>;
   openLocation: () => Promise<void>;
   clearError: () => void;
+  setErrored: (message: string) => void;
 }
 
 function desktopOnlyError(): string {
@@ -48,7 +49,14 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
   },
   async refresh() {
     if (!isTauriEnvironment()) {
-      set({ error: desktopOnlyError() });
+      set({
+        info: {
+          status: 'unsupported',
+          launcherPath: null,
+          message: desktopOnlyError(),
+        },
+        error: null,
+      });
       return;
     }
     set({ isLoading: true, error: null });
@@ -56,7 +64,16 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
       const info = await invoke<AutostartInfo>('get_autostart_status');
       set({ info, isLoading: false });
     } catch (error) {
-      set({ error: toMessage(error), isLoading: false });
+      const message = toMessage(error);
+      set({
+        info: {
+          status: 'errored',
+          launcherPath: null,
+          message,
+        },
+        error: message,
+        isLoading: false,
+      });
     }
   },
   async setEnabled(enable) {
@@ -69,7 +86,16 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
       const info = await invoke<AutostartInfo>('set_autostart_enabled', { enable });
       set({ info, isUpdating: false });
     } catch (error) {
-      set({ error: toMessage(error), isUpdating: false });
+      const message = toMessage(error);
+      set({
+        info: {
+          status: 'errored',
+          launcherPath: null,
+          message,
+        },
+        error: message,
+        isUpdating: false,
+      });
     }
   },
   async openLocation() {
@@ -86,6 +112,16 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
   clearError() {
     set({ error: null });
   },
+  setErrored(message) {
+    set({
+      info: {
+        status: 'errored',
+        launcherPath: null,
+        message,
+      },
+      error: message,
+    });
+  },
 }));
 
 function toMessage(error: unknown): string {
@@ -96,4 +132,9 @@ function toMessage(error: unknown): string {
     return error;
   }
   return 'Unknown error';
+}
+
+if (typeof window !== 'undefined') {
+  (window as typeof window & { __AUTOHOTPIE_AUTOSTART_STORE__?: typeof useAutostartStore }).__AUTOHOTPIE_AUTOSTART_STORE__ =
+    useAutostartStore;
 }
