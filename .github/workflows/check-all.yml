@@ -3,9 +3,21 @@ name: Check All
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "Which platform suite to run"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - windows
+          - linux
+          - macos
 
 jobs:
   windows-suite:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'windows'
     name: Windows checks
     runs-on: windows-latest
     env:
@@ -47,6 +59,7 @@ jobs:
         run: npm run test:e2e -- --retries=1
 
   linux-suite:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'linux'
     name: Linux checks
     runs-on: ubuntu-latest
     env:
@@ -92,6 +105,7 @@ jobs:
         run: npm run test:e2e -- --retries=1 --project=chromium --project=firefox
 
   macos-suite:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'macos'
     name: macOS smoke checks
     runs-on: macos-latest
     env:
