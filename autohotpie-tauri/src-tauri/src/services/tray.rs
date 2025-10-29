@@ -37,6 +37,19 @@ const PROFILE_OPEN_APP_ID: &str = "tray.profiles.open-app";
 static TRAY_STATE: once_cell::sync::Lazy<Arc<Mutex<Option<TrayController>>>> =
     once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(None)));
 
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+static MENU_ICON_STATE: once_cell::sync::Lazy<Arc<Mutex<MenuIconState>>> =
+    once_cell::sync::Lazy::new(|| Arc::new(Mutex::new(MenuIconState::default())));
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+#[derive(Default)]
+struct MenuIconState {
+    active: bool,
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+use serde_json::json;
+
 #[cfg(feature = "tray-icon")]
 pub async fn ensure_tray_state<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let mut guard = TRAY_STATE.lock().await;
@@ -126,6 +139,17 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 let menu = controller.rebuild_menu(tray.app_handle()).await?;
                 tray.set_menu(Some(menu))?;
             }
+
+            #[cfg(target_os = "macos")]
+            {
+                let state = {
+                    let guard = MENU_ICON_STATE.lock().await;
+                    guard.active
+                };
+                update_menu_icon(tray, state);
+                emit_menu_state(tray.app_handle(), state);
+            }
+
             Ok(())
         }
 
@@ -217,7 +241,7 @@ fn on_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
             ..
         } => {
             if matches!(button, MouseButton::Left) && matches!(event, ClickType::Single) {
-                show_main(tray);
+                toggle_main_window(tray);
             } else if button == MouseButton::Right {
                 tauri::async_runtime::block_on(async {
                     if let Some(controller) = TRAY_STATE.lock().await.clone() {
@@ -241,11 +265,33 @@ fn on_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
 }
 
 #[cfg(feature = "tray-icon")]
+fn toggle_main_window<R: Runtime>(tray: &TrayIcon<R>) {
+    if let Some(window) = tray.app_handle().get_webview_window("main") {
+        let is_visible = window.is_visible().unwrap_or(true);
+        if is_visible {
+            let _ = window.hide();
+            #[cfg(target_os = "macos")]
+            {
+                emit_active(tray.app_handle(), false);
+                update_menu_icon(tray, false);
+            }
+        } else {
+            show_main(tray);
+        }
+    }
+}
+
+#[cfg(feature = "tray-icon")]
 fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
     if let Some(window) = tray.app_handle().get_webview_window("main") {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        #[cfg(target_os = "macos")]
+        {
+            emit_active(tray.app_handle(), true);
+            update_menu_icon(tray, true);
+        }
     }
 }
 
@@ -253,8 +299,7 @@ fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
 fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let toggle_item = MenuItemBuilder::new("Toggle Pie Menu")
         .id(MENU_TOGGLE_ID)
-        .accelerator("Command+Shift+P")?
-        .build(app)?;
+        .accelerator("Command+Shift+P")?;
 
     let menu = MenuBuilder::new(app).item(&toggle_item)?.build()?;
 
@@ -262,8 +307,34 @@ fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     app.on_menu_event(|handle, event| {
         if event.id().as_ref() == MENU_TOGGLE_ID {
             let _ = handle.emit("hotkeys://trigger", ());
+            emit_active(&handle.app_handle(), true);
+            if let Some(tray) = handle.tray_handle().get("main") {
+                update_menu_icon(&tray, true);
+            }
         }
     });
 
     Ok(())
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+fn emit_active<R: Runtime>(app: &AppHandle<R>, active: bool) {
+    tauri::async_runtime::block_on(async {
+        let mut state = MENU_ICON_STATE.lock().await;
+        state.active = active;
+    });
+    emit_menu_state(app, active);
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+fn emit_menu_state<R: Runtime>(app: &AppHandle<R>, active: bool) {
+    let _ = app.emit("menu-bar://state", json!({ "active": active }));
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+fn update_menu_icon<R: Runtime>(tray: &TrayIcon<R>, active: bool) {
+    if let Some(icon) = tray.app_handle().default_window_icon() {
+        let _ = tray.set_icon(Some(icon));
+    }
+    let _ = tray.set_icon_as_template(!active);
 }

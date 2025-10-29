@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { listen } from '@tauri-apps/api/event';
 import { useLocalization } from '../../hooks/useLocalization';
 import type { LastActionState } from '../../hooks/usePieMenuHotkey';
 
@@ -22,6 +23,7 @@ export function MenuBarToggle({
 }: MenuBarToggleProps) {
   const { t } = useLocalization();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isActiveIcon, setIsActiveIcon] = useState(isPieMenuOpen);
 
   const status = useMemo(() => {
     if (lastSafeModeReason) {
@@ -62,6 +64,22 @@ export function MenuBarToggle({
     }
   }, [status.tone]);
 
+  useEffect(() => {
+    setIsActiveIcon(isPieMenuOpen);
+  }, [isPieMenuOpen]);
+
+  useEffect(() => {
+    const unlistenPromise = listen<{ active: boolean }>('menu-bar://state', (event) => {
+      setIsActiveIcon(event.payload.active);
+    });
+
+    return () => {
+      void unlistenPromise.then((unlisten) => {
+        unlisten();
+      });
+    };
+  }, []);
+
   const translatedLastActionStatus = lastAction
     ? (() => {
         switch (lastAction.status) {
@@ -77,7 +95,13 @@ export function MenuBarToggle({
       })()
     : '';
   const translatedLastActionMessage = lastAction?.message ?? t('menuBar.status.completedFallback');
-  const shortcut = 'Command + Shift + P';
+
+  const shortcut = useMemo(() => {
+    if (navigator.platform.toLowerCase().includes('mac')) {
+      return 'Command + Shift + P';
+    }
+    return t('menuBar.shortcutFallback');
+  }, [t]);
 
   return (
     <div className="pointer-events-none fixed left-6 top-6 z-50 flex flex-col gap-3">
@@ -90,7 +114,7 @@ export function MenuBarToggle({
             setDetailsOpen(true);
           }}
         >
-          {t('menuBar.toggleButton')}
+          {isActiveIcon ? t('menuBar.toggleButtonActive') : t('menuBar.toggleButton')}
         </button>
         <button
           type="button"
@@ -147,7 +171,7 @@ export function MenuBarToggle({
                   setDetailsOpen(true);
                 }}
               >
-                {t('menuBar.buttons.open')}
+                {isActiveIcon ? t('menuBar.buttons.focus') : t('menuBar.buttons.open')}
               </button>
               <button
                 type="button"
