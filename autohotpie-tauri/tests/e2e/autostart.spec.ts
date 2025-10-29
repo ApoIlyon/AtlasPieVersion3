@@ -102,13 +102,15 @@ test.describe('US3 - Autostart settings', () => {
       if (!store) {
         return;
       }
-      store.getState().refresh = async () => {
-        store.setState({
-          info: { status: 'disabled', launcherPath: null, message: null },
-          error: null,
-          isLoading: false,
-        });
-      };
+      store.setState({
+        refresh: async () => {
+          store.setState({
+            info: { status: 'disabled', launcherPath: null, message: null },
+            error: null,
+            isLoading: false,
+          });
+        },
+      });
     });
 
     await retryButton.click();
