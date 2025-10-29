@@ -41,14 +41,25 @@ async function setAutostartState(page: Page, info: AutostartInfo, extras?: Parti
   );
 }
 
+async function openAutostartSection(page: Page) {
+  await page.goto('/');
+
+  const settingsButton = page.getByRole('button', { name: 'Settings' });
+  await expect(settingsButton).toBeVisible();
+  await settingsButton.click();
+
+  const autostartHeading = page.getByRole('heading', { name: AUTOSTART_HEADING });
+  await expect(autostartHeading).toBeVisible();
+  return autostartHeading;
+}
+
 test.describe('US3 - Autostart settings', () => {
   test('renders status transitions and read-only guard in desktop mode', async ({ page }) => {
     await page.addInitScript(() => {
       (window as typeof window & { __TAURI__?: Record<string, never> }).__TAURI__ = {};
     });
 
-    await page.goto('/');
-    const autostartHeading = page.getByRole('heading', { name: AUTOSTART_HEADING });
+    const autostartHeading = await openAutostartSection(page);
     await autostartHeading.scrollIntoViewIfNeeded();
 
     const statusBadge = page.getByTestId('autostart-status');
@@ -108,8 +119,7 @@ test.describe('US3 - Autostart settings', () => {
   });
 
   test('opens quickstart instructions in browser preview', async ({ page }) => {
-    await page.goto('/');
-    const autostartHeading = page.getByRole('heading', { name: AUTOSTART_HEADING });
+    const autostartHeading = await openAutostartSection(page);
     await autostartHeading.scrollIntoViewIfNeeded();
 
     const instructionsButton = page.getByTestId('autostart-instructions');
