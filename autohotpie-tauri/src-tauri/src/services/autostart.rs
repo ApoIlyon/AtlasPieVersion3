@@ -141,7 +141,7 @@ impl AutostartService {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use super::{AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
+    use super::{first_non_empty, AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
     use std::{env, fs, path::Path, path::PathBuf, process::Command};
 
     const AUTOSTART_SUBDIR: &str = "autostart";
