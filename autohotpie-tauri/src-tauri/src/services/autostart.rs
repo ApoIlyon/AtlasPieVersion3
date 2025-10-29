@@ -12,12 +12,12 @@ pub enum AutostartStatus {
     Unsupported,
 }
 
-fn first_non_empty<'a>(primary: Option<&'a String>, fallback: Option<&'a String>) -> Option<&'a str> {
-    fn normalized(value: &String) -> Option<&str> {
+fn first_non_empty<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> Option<&'a str> {
+    fn normalized(value: &str) -> Option<&str> {
         if value.trim().is_empty() {
             None
         } else {
-            Some(value.as_str())
+            Some(value)
         }
     }
 
@@ -236,7 +236,7 @@ mod linux {
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
-        let identifier = first_non_empty(config.identifier.as_ref(), config.product_name.as_ref())
+        let identifier = first_non_empty(config.identifier.as_deref(), config.product_name.as_deref())
             .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
