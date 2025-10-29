@@ -12,6 +12,20 @@ pub enum AutostartStatus {
     Unsupported,
 }
 
+fn first_non_empty<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> Option<&'a str> {
+    fn normalized(value: &str) -> Option<&str> {
+        if value.trim().is_empty() {
+            None
+        } else {
+            Some(value)
+        }
+    }
+
+    primary
+        .and_then(normalized)
+        .or_else(|| fallback.and_then(normalized))
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AutostartInfo {
@@ -127,7 +141,7 @@ impl AutostartService {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use super::{AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
+    use super::{first_non_empty, AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
     use std::{env, fs, path::Path, path::PathBuf, process::Command};
 
     const AUTOSTART_SUBDIR: &str = "autostart";
@@ -222,19 +236,11 @@ mod linux {
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
-        let identifier = config
-            .identifier
-            .as_ref()
-            .filter(|value| !value.is_empty())
-            .map(String::as_str)
-            .or_else(|| {
-                config
-                    .product_name
-                    .as_ref()
-                    .filter(|value| !value.is_empty())
-                    .map(String::as_str)
-            })
-            .unwrap_or("autohotpie-tauri");
+        let identifier = first_non_empty(
+            Some(config.identifier.as_str()),
+            config.product_name.as_ref().map(|name| name.as_str()),
+        )
+        .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
             .chars()
