@@ -12,6 +12,20 @@ pub enum AutostartStatus {
     Unsupported,
 }
 
+fn first_non_empty<'a>(primary: Option<&'a String>, fallback: Option<&'a String>) -> Option<&'a str> {
+    fn normalized(value: &String) -> Option<&str> {
+        if value.trim().is_empty() {
+            None
+        } else {
+            Some(value.as_str())
+        }
+    }
+
+    primary
+        .and_then(normalized)
+        .or_else(|| fallback.and_then(normalized))
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AutostartInfo {
@@ -222,17 +236,14 @@ mod linux {
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
-        let identifier = config
             .identifier
             .clone()
             .filter(|value| !value.is_empty())
             .or_else(|| {
                 config
                     .product_name
-                    .clone()
-                    .filter(|value| !value.is_empty())
-            })
-            .unwrap_or_else(|| "autohotpie-tauri".to_string());
+        let identifier = first_non_empty(config.identifier.as_ref(), config.product_name.as_ref())
+            .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
             .chars()
