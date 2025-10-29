@@ -224,17 +224,15 @@ mod linux {
         let config = app.config();
         let identifier = config
             .identifier
-            .as_ref()
-            .map(|value| value.as_str())
+            .clone()
             .filter(|value| !value.is_empty())
             .or_else(|| {
                 config
                     .product_name
-                    .as_ref()
-                    .map(|value| value.as_str())
+                    .clone()
                     .filter(|value| !value.is_empty())
             })
-            .unwrap_or("autohotpie-tauri");
+            .unwrap_or_else(|| "autohotpie-tauri".to_string());
 
         let sanitized: String = identifier
             .chars()
