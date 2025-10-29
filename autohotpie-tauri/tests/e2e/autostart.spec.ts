@@ -41,6 +41,14 @@ async function setAutostartState(page: Page, info: AutostartInfo, extras?: Parti
   );
 }
 
+async function waitForAutostartStore(page: Page) {
+  await page.waitForFunction(
+    () => Boolean(window.__AUTOHOTPIE_AUTOSTART_STORE__),
+    undefined,
+    { timeout: 5_000 },
+  );
+}
+
 async function openAutostartSection(page: Page) {
   await page.goto('/');
 
@@ -50,6 +58,7 @@ async function openAutostartSection(page: Page) {
 
   const autostartHeading = page.getByRole('heading', { name: AUTOSTART_HEADING });
   await expect(autostartHeading).toBeVisible();
+  await waitForAutostartStore(page);
   return autostartHeading;
 }
 
@@ -68,11 +77,14 @@ test.describe('US3 - Autostart settings', () => {
     const retryButton = page.getByTestId('autostart-retry');
 
     await setAutostartState(page, { status: 'disabled', launcherPath: null, message: null });
+    await setAutostartState(page, { status: 'disabled', launcherPath: null, message: null });
+    await waitForAutostartStore(page);
     await expect(statusBadge).toHaveText('Autostart is currently disabled.');
     await expect(enableButton).toBeEnabled();
     await expect(disableButton).toBeDisabled();
 
     await setAutostartState(page, { status: 'enabled', launcherPath: '/tmp/launcher', message: null });
+    await waitForAutostartStore(page);
     await expect(statusBadge).toHaveText('Autostart is currently enabled.');
     await expect(enableButton).toBeDisabled();
     await expect(disableButton).toBeEnabled();
