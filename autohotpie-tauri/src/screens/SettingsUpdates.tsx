@@ -88,7 +88,7 @@ export function SettingsUpdates() {
     return STATUS_COLORS.current;
   }, [status]);
 
-  const badgeLabel = useMemo(() => {
+  const badgeLabel = (() => {
     if (!status) {
       return t('settings.updates.error');
     }
@@ -102,7 +102,7 @@ export function SettingsUpdates() {
       return t('settings.updates.error');
     }
     return t('settings.updates.status.current');
-  }, [status, t]);
+  })();
 
   const lastCheckedLabel = formatTimestamp(status?.lastChecked ?? null, t('settings.updates.lastChecked.never'));
 
