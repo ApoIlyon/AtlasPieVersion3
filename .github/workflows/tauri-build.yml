@@ -4,9 +4,21 @@ on:
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "Target platform to build"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - windows
+          - macos
+          - linux
 
 jobs:
   build-windows:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'windows'
     runs-on: windows-latest
 
     env:
@@ -73,6 +85,7 @@ jobs:
             autohotpie-tauri/src-tauri/target/**/*.zip
 
   build-macos:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'macos'
     runs-on: macos-latest
 
     env:
@@ -123,6 +136,7 @@ jobs:
             autohotpie-tauri/src-tauri/target/**/*.app
 
   build-linux:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'linux'
     runs-on: ubuntu-latest
 
     env:
