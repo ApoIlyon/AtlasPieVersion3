@@ -236,8 +236,11 @@ mod linux {
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
-        let identifier = first_non_empty(config.identifier.as_deref(), config.product_name.as_deref())
-            .unwrap_or("autohotpie-tauri");
+        let identifier = first_non_empty(
+            Some(config.identifier.as_str()),
+            config.product_name.as_ref().map(|name| name.as_str()),
+        )
+        .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
             .chars()
