@@ -236,12 +236,6 @@ mod linux {
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
-            .identifier
-            .clone()
-            .filter(|value| !value.is_empty())
-            .or_else(|| {
-                config
-                    .product_name
         let identifier = first_non_empty(config.identifier.as_ref(), config.product_name.as_ref())
             .unwrap_or("autohotpie-tauri");
 
