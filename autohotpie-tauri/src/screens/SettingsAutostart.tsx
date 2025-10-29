@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import clsx from 'clsx';
-import { open } from '@tauri-apps/plugin-opener';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostartStore } from '../state/autostartStore';
 import { useLocalization } from '../hooks/useLocalization';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
@@ -93,7 +93,7 @@ export function SettingsAutostart() {
     const url = 'https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting';
     if (isDesktop) {
       try {
-        await open(url);
+        await openUrl(url);
       } catch (instructionError) {
         setErrored(toMessage(instructionError));
       }
