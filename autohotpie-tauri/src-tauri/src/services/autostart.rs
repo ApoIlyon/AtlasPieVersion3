@@ -224,12 +224,14 @@ mod linux {
         let config = app.config();
         let identifier = config
             .identifier
-            .as_deref()
+            .as_ref()
+            .map(|value| value.as_str())
             .filter(|value| !value.is_empty())
             .or_else(|| {
                 config
                     .product_name
-                    .as_deref()
+                    .as_ref()
+                    .map(|value| value.as_str())
                     .filter(|value| !value.is_empty())
             })
             .unwrap_or("autohotpie-tauri");
