@@ -225,8 +225,15 @@ mod linux {
         let identifier = config
             .identifier
             .as_ref()
-            .and_then(|value| if value.is_empty() { None } else { Some(value.as_str()) })
-            .or_else(|| config.product_name.as_ref().and_then(|value| if value.is_empty() { None } else { Some(value.as_str()) }))
+            .filter(|value| !value.is_empty())
+            .map(String::as_str)
+            .or_else(|| {
+                config
+                    .product_name
+                    .as_ref()
+                    .filter(|value| !value.is_empty())
+                    .map(String::as_str)
+            })
             .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
