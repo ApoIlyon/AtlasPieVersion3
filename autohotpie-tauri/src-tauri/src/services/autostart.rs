@@ -221,11 +221,12 @@ mod linux {
     }
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
-        let identifier = app
-            .config()
+        let config = app.config();
+        let identifier = config
             .identifier
-            .as_deref()
-            .or_else(|| app.config().product_name.as_deref())
+            .as_ref()
+            .and_then(|value| if value.is_empty() { None } else { Some(value.as_str()) })
+            .or_else(|| config.product_name.as_ref().and_then(|value| if value.is_empty() { None } else { Some(value.as_str()) }))
             .unwrap_or("autohotpie-tauri");
 
         let sanitized: String = identifier
@@ -250,8 +251,9 @@ mod linux {
         app
             .config()
             .product_name
-            .clone()
+            .as_ref()
             .filter(|name| !name.is_empty())
+            .map(|name| name.clone())
             .unwrap_or_else(|| "autohotpie".into())
     }
 
@@ -259,7 +261,9 @@ mod linux {
         let name = app
             .config()
             .product_name
-            .clone()
+            .as_ref()
+            .filter(|name| !name.is_empty())
+            .map(|name| name.clone())
             .unwrap_or_else(|| "AutoHotPie".into());
 
         let exec_str = exec.to_string_lossy();
