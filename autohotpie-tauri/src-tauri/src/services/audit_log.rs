@@ -1,8 +1,10 @@
 use crate::domain::ActionEventPayload;
 use crate::storage::StorageManager;
+use serde::Serialize;
 use serde_json::json;
+use std::cmp::Ordering;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Write};
+use std::io::{self, BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use time::format_description::FormatItem;
@@ -14,6 +16,23 @@ const LOG_FILE_PREFIX: &str = "AHP-Audit";
 const DATE_FORMAT: &[FormatItem<'static>] = format_description!("[year][month][day]");
 const TIMESTAMP_FORMAT: &[FormatItem<'static>] =
     format_description!("[year]-[month]-[day]T[hour]:[minute]:[second]Z");
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuditLogRecord {
+    pub timestamp: String,
+    pub level: String,
+    pub message: String,
+    pub raw: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuditLogSnapshot {
+    pub entries: Vec<AuditLogRecord>,
+    pub file_path: String,
+    pub truncated: bool,
+}
 
 #[derive(Clone)]
 pub struct AuditLogger {
@@ -83,6 +102,77 @@ impl AuditLogger {
             .map_err(|_| io::Error::new(io::ErrorKind::Other, "audit logger poisoned"))?;
         Ok(guard.log_dir.join(log_filename(&guard.current_date)))
     }
+
+    pub fn read_recent(&self, limit: usize) -> io::Result<AuditLogSnapshot> {
+        if limit == 0 {
+            return Ok(AuditLogSnapshot {
+                entries: Vec::new(),
+                file_path: String::new(),
+                truncated: false,
+            });
+        }
+
+        let guard = self
+            .inner
+            .lock()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "audit logger poisoned"))?;
+        let log_dir = guard.log_dir.clone();
+        let current_file = log_dir.join(log_filename(&guard.current_date));
+        drop(guard);
+
+        let mut files = collect_log_files(&log_dir)?;
+        if files.is_empty() {
+            if !current_file.exists() {
+                let _ = File::create(&current_file);
+            }
+            files.push(current_file.clone());
+        }
+
+        let mut collected: Vec<AuditLogRecord> = Vec::new();
+        let mut truncated = false;
+
+        for path in files.iter().rev() {
+            if collected.len() >= limit {
+                truncated = true;
+                break;
+            }
+
+            let file = match File::open(path) {
+                Ok(file) => file,
+                Err(err) if err.kind() == io::ErrorKind::NotFound => continue,
+                Err(err) => return Err(err),
+            };
+
+            let reader = BufReader::new(file);
+            let mut lines: Vec<String> = Vec::new();
+            for line in reader.lines() {
+                match line {
+                    Ok(text) => lines.push(text),
+                    Err(err) => {
+                        eprintln!("failed to read audit log line: {err}");
+                        continue;
+                    }
+                }
+            }
+
+            for line in lines.into_iter().rev() {
+                let record = parse_log_line(&line);
+                collected.push(record);
+                if collected.len() >= limit {
+                    truncated = true;
+                    break;
+                }
+            }
+        }
+
+        collected.reverse();
+
+        Ok(AuditLogSnapshot {
+            entries: collected,
+            file_path: current_file.to_string_lossy().to_string(),
+            truncated,
+        })
+    }
 }
 
 impl AuditLoggerInner {
@@ -111,6 +201,56 @@ fn format_date(datetime: OffsetDateTime) -> io::Result<String> {
             format!("failed to format date: {err}"),
         )
     })
+}
+
+fn collect_log_files(dir: &Path) -> io::Result<Vec<PathBuf>> {
+    let mut entries: Vec<PathBuf> = fs::read_dir(dir)?
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| match entry.file_type() {
+            Ok(file_type) if file_type.is_file() => Some(entry.path()),
+            _ => None,
+        })
+        .collect();
+
+    entries.sort_by(|a, b| match (a.file_name(), b.file_name()) {
+        (Some(name_a), Some(name_b)) => match (name_a.to_str(), name_b.to_str()) {
+            (Some(str_a), Some(str_b)) => str_a.cmp(str_b),
+            (Some(_), None) => Ordering::Greater,
+            (None, Some(_)) => Ordering::Less,
+            (None, None) => Ordering::Equal,
+        },
+        (Some(_), None) => Ordering::Greater,
+        (None, Some(_)) => Ordering::Less,
+        (None, None) => Ordering::Equal,
+    });
+
+    Ok(entries)
+}
+
+fn parse_log_line(line: &str) -> AuditLogRecord {
+    if let Some(stripped) = line.strip_prefix('[') {
+        if let Some(timestamp_end) = stripped.find("] [") {
+            let timestamp = stripped[..timestamp_end].to_string();
+            let rest = &stripped[timestamp_end + 3..];
+            if let Some(level_end) = rest.find("] ") {
+                let level = rest[..level_end].to_string();
+                let message = rest[level_end + 2..].to_string();
+                return AuditLogRecord {
+                    timestamp,
+                    level,
+                    message,
+                    raw: line.to_string(),
+                };
+            }
+        }
+    }
+
+    AuditLogRecord {
+        timestamp: String::from("unknown"),
+        level: String::from("INFO"),
+        message: line.to_string(),
+        raw: line.to_string(),
+    }
 }
 
 fn format_timestamp(datetime: OffsetDateTime) -> io::Result<String> {

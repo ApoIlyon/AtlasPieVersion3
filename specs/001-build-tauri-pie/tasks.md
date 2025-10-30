@@ -148,9 +148,9 @@
 - [x] T131 [P] [US3] Port GitHub update checker logic in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [x] T131a [US3] Schedule periodic release polling with offline fallback and caching in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 - [x] T132 [US3] Surface update notifications in `autohotpie-tauri/src/screens/SettingsUpdates.tsx`
-- [ ] T133 [P] [US3] Create Log Panel (auto-refresh 5s, level filters, search, open-file fallback) в `autohotpie-tauri/src/components/log/LogPanel.tsx` и связать кнопку "Log" из `autohotpie-tauri/src/App.tsx`
-- [ ] T133a [US3] Add regression tests for Log Panel (filter/search, read error toast, desktop guard) и уведомления import/export/autostart в `autohotpie-tauri/tests/e2e/notifications.spec.ts`
-- [ ] T133b [US3] Add backend command to read current audit log (UTF-8, rotation-aware) для UI viewer в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [x] T133 [P] [US3] Create Log Panel (auto-refresh 5s, level filters, search, open-file fallback) в `autohotpie-tauri/src/components/log/LogPanel.tsx` и связать кнопку "Log" из `autohotpie-tauri/src/App.tsx`
+- [x] T133a [US3] Add regression tests for Log Panel (filter/search, read error toast, desktop guard) и уведомления import/export/autostart в `autohotpie-tauri/tests/e2e/notifications.spec.ts`
+- [x] T133b [US3] Add backend command to read current audit log (UTF-8, rotation-aware) для UI viewer в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
 - [ ] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
 - [ ] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 - [ ] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
