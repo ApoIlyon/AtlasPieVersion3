@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { create } from 'zustand';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
-import type { AuditLogRecord, AuditLogSnapshot } from '../types/logs';
+import type { AuditLogRecord, AuditLogSnapshot } from '@/types/logs';
 
 const DEFAULT_LEVELS: LogLevel[] = ['INFO', 'WARN', 'ERROR', 'ACTION'];
 const REFRESH_LIMIT = 500;
