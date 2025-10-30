@@ -26,6 +26,7 @@ import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
+import { LogPanel } from './components/log/LogPanel';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -156,6 +157,7 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
 
   const loadedProfilesText = t('dashboard.loadedProfiles').replace('{count}', String(profiles.length));
 
@@ -340,11 +342,8 @@ export function App() {
     };
   }, []);
 
-  const openLogViewer = useCallback(() => {
-    if (!isTauriEnvironment()) {
-      return;
-    }
-    void invoke('open_logs');
+  const openLogPanel = useCallback(() => {
+    setIsLogPanelOpen(true);
   }, []);
 
   const navItems = useMemo(
@@ -406,7 +405,7 @@ export function App() {
             <button
               type="button"
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
-              onClick={openLogViewer}
+              onClick={openLogPanel}
             >
               {t('header.openLog')}
             </button>
@@ -653,6 +652,7 @@ export function App() {
 
       <ActionToast action={lastAction} onDismiss={clearLastAction} />
       <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
+      <LogPanel isOpen={isLogPanelOpen} onClose={() => setIsLogPanelOpen(false)} />
       {isLinux && (
         <LinuxFallbackPanel
           isPieMenuOpen={isPieMenuVisible}

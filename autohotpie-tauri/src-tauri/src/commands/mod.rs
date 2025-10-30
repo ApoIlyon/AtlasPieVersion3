@@ -4,6 +4,7 @@ pub mod actions;
 pub mod hotkeys;
 pub mod localization;
 pub mod import_export;
+pub mod logs;
 pub mod profiles;
 pub mod settings;
 pub mod system;
