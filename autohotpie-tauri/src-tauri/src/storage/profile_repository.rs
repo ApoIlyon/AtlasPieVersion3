@@ -109,15 +109,14 @@ pub(crate) fn build_default_profile_record(
             name: name.trim().to_string(),
             description: None,
             enabled: true,
-            global_hotkey: global_hotkey
-                .and_then(|value| {
-                    let trimmed = value.trim();
-                    if trimmed.is_empty() {
-                        None
-                    } else {
-                        Some(trimmed.to_string())
-                    }
-                }),
+            global_hotkey: global_hotkey.and_then(|value| {
+                let trimmed = value.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                }
+            }),
             activation_rules: Vec::new(),
             root_menu: root_menu_id,
         },
@@ -313,7 +312,9 @@ fn normalize_activation_rule(mut rule: ActivationRule) -> ActivationRule {
         if raw.starts_with("json:") {
             if let Some(payload) = parse_rule_payload(&raw[5..]) {
                 flags = payload.flags;
-                normalized_value = payload.serialized.map(|serialized| format!("json:{serialized}"));
+                normalized_value = payload
+                    .serialized
+                    .map(|serialized| format!("json:{serialized}"));
             } else {
                 normalized_value = None;
             }
@@ -512,7 +513,10 @@ impl ProfileRepository {
     pub fn load(&self) -> Result<ProfileStore, ProfileStoreLoadError> {
         if !self.file_path.exists() {
             let mut store = ProfileStore::default();
-            store.profiles.push(build_default_profile_record("Default Profile", Some("Control+Shift+P")));
+            store.profiles.push(build_default_profile_record(
+                "Default Profile",
+                Some("Control+Shift+P"),
+            ));
             store.active_profile_id = store.profiles.first().map(|record| record.profile.id);
             normalize_profile_store(&mut store);
             self.save(&store)

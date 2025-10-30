@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useLocalization } from '../../hooks/useLocalization';
 import { useLogStore, LogLevel } from '../../state/logStore';
 import { isTauriEnvironment } from '../../utils/tauriEnvironment';
+import { useSystemStore } from '../../state/systemStore';
 
 interface LogPanelProps {
   isOpen: boolean;
@@ -32,6 +33,9 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
   const setAutoRefresh = useLogStore((state) => state.setAutoRefresh);
   const refresh = useLogStore((state) => state.refresh);
   const lastUpdated = useLogStore((state) => state.lastUpdated);
+  const storageMode = useSystemStore((state) => state.status.storageMode);
+  const instructionUrl = useSystemStore((state) => state.readOnlyInstructionUrl);
+  const isReadOnly = storageMode === 'read_only';
 
   const levelLabels = useMemo(
     () => ({
@@ -48,15 +52,15 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
       return;
     }
 
-    if (!isTauriEnvironment()) {
+    if (!isTauriEnvironment() || isReadOnly) {
       return;
     }
 
     void refresh();
-  }, [isOpen, refresh]);
+  }, [isOpen, isReadOnly, refresh]);
 
   useEffect(() => {
-    if (!isOpen || !autoRefresh || !isTauriEnvironment()) {
+    if (!isOpen || !autoRefresh || !isTauriEnvironment() || isReadOnly) {
       return undefined;
     }
 
@@ -65,7 +69,7 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
     }, REFRESH_INTERVAL_MS);
 
     return () => window.clearInterval(id);
-  }, [isOpen, autoRefresh, refresh]);
+  }, [autoRefresh, isOpen, isReadOnly, refresh]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -83,18 +87,18 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
   }, [isOpen, onClose]);
 
   const handleOpenFile = useCallback(async () => {
-    if (!isTauriEnvironment()) {
+    if (!isTauriEnvironment() || isReadOnly) {
       return;
     }
 
     try {
-      await invoke('open_logs');
+      await invoke('open_latest_log');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Failed to open log file', err);
       useLogStore.setState({ error: message });
     }
-  }, []);
+  }, [isReadOnly]);
 
   const levelIsActive = useCallback(
     (level: LogLevel) =>
@@ -105,15 +109,34 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
   const renderBody = () => {
     if (!isTauriEnvironment()) {
       return (
-        <div className="py-16 text-center text-white/70">
+        <div className="py-16 text-center text-white/70" data-testid="log-desktop-guard">
           <p>{t('logPanel.desktopOnly')}</p>
+        </div>
+      );
+    }
+
+    if (isReadOnly) {
+      return (
+        <div className="space-y-4 py-12 text-center" data-testid="log-readonly-guard">
+          <p className="text-sm text-white/70">{t('logPanel.readOnlyGuard')}</p>
+          {instructionUrl && (
+            <a
+              href={instructionUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/15"
+              data-testid="log-readonly-instructions"
+            >
+              {t('logPanel.readOnlyInstructions')}
+            </a>
+          )}
         </div>
       );
     }
 
     if (isLoading) {
       return (
-        <div className="py-16 text-center text-white/60">
+        <div className="py-16 text-center text-white/60" data-testid="log-loading">
           {t('logPanel.loading')}
         </div>
       );
@@ -121,18 +144,19 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
 
     if (!entries.length) {
       return (
-        <div className="py-16 text-center text-white/50">
+        <div className="py-16 text-center text-white/50" data-testid="log-empty">
           {search.trim().length ? t('logPanel.noMatches') : t('logPanel.noEntries')}
         </div>
       );
     }
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-2" data-testid="log-entries">
         {entries.map((entry, index) => (
           <div
             key={`${entry.timestamp}-${entry.raw}-${index}`}
             className="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20"
+            data-testid="log-entry"
           >
             <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-white/50">
               <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] text-white/70">
@@ -201,30 +225,33 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10"
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10 disabled:opacity-40"
                   onClick={() => {
                     const next = !autoRefresh;
                     setAutoRefresh(next);
                   }}
+                  disabled={isReadOnly}
+                  title={isReadOnly ? t('logPanel.readOnlyGuard') : undefined}
                 >
                   {autoRefresh ? t('logPanel.autoRefreshOn') : t('logPanel.autoRefreshOff')}
                 </button>
                 <button
                   type="button"
-                  className="rounded-full border border-white/10 bg-emerald-500/20 px-4 py-2 text-xs uppercase tracking-[0.3em] text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500/25"
+                  className="rounded-full border border-white/10 bg-emerald-500/20 px-4 py-2 text-xs uppercase tracking-[0.3em] text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500/25 disabled:opacity-40"
                   onClick={() => {
                     void refresh();
                   }}
-                  disabled={isRefreshing}
+                  disabled={isRefreshing || isReadOnly}
+                  title={isReadOnly ? t('logPanel.readOnlyGuard') : undefined}
                 >
                   {isRefreshing ? t('logPanel.refreshing') : t('logPanel.refresh')}
                 </button>
                 <button
                   type="button"
-                  className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/15"
+                  className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/15 disabled:opacity-40"
                   onClick={handleOpenFile}
-                  disabled={!isTauriEnvironment()}
-                  title={!isTauriEnvironment() ? t('logPanel.desktopOnly') : undefined}
+                  disabled={!isTauriEnvironment() || isReadOnly}
+                  title={!isTauriEnvironment() ? t('logPanel.desktopOnly') : isReadOnly ? t('logPanel.readOnlyGuard') : undefined}
                 >
                   {t('logPanel.openFile')}
                 </button>
@@ -246,6 +273,7 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder={t('logPanel.searchPlaceholder')}
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  data-testid="log-search"
                 />
                 <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs uppercase tracking-[0.3em] text-white/30">
                   {entries.length}
@@ -263,6 +291,7 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
                         ? 'border-white/20 bg-white/20 text-white shadow-[0_0_20px_rgba(148,163,184,0.35)]'
                         : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10',
                     )}
+                    data-testid={`log-level-${level.toLowerCase()}`}
                   >
                     {levelLabels[level as keyof typeof levelLabels] ?? level}
                   </button>
@@ -271,7 +300,10 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
             </div>
 
             {error && (
-              <div className="mt-6 rounded-2xl border border-rose-400/40 bg-rose-500/15 p-4 text-sm text-rose-100">
+              <div
+                className="mt-6 rounded-2xl border border-rose-400/40 bg-rose-500/15 p-4 text-sm text-rose-100"
+                data-testid="log-error"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <span>{error}</span>
                   <button

@@ -151,9 +151,9 @@
 - [x] T133 [P] [US3] Create Log Panel (auto-refresh 5s, level filters, search, open-file fallback) в `autohotpie-tauri/src/components/log/LogPanel.tsx` и связать кнопку "Log" из `autohotpie-tauri/src/App.tsx`
 - [x] T133a [US3] Add regression tests for Log Panel (filter/search, read error toast, desktop guard) и уведомления import/export/autostart в `autohotpie-tauri/tests/e2e/notifications.spec.ts`
 - [x] T133b [US3] Add backend command to read current audit log (UTF-8, rotation-aware) для UI viewer в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
-- [ ] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
-- [ ] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
-- [ ] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
+- [x] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [x] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
+- [x] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
 - [ ] T134b [US3] Add regression tests for import/export failure scenarios в `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
 - [ ] T134c [US3] Verify backup retention (5 generations) via integration test в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
 - [ ] T134c.1 [US3] Extend backup integration test to assert FIFO rotation и запись события в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`

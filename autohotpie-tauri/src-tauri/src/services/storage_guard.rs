@@ -7,6 +7,13 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Runtime};
 use tokio::time::interval;
 
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StorageModePayload {
+    mode: StorageMode,
+    instruction_url: Option<String>,
+}
+
 const STORAGE_EVENT: &str = "system://storage-mode";
 const CHECK_INTERVAL: Duration = Duration::from_secs(30);
 
@@ -63,7 +70,11 @@ async fn update_mode<R: Runtime>(
     if guard.storage_mode != mode {
         guard.set_storage_mode(mode.clone());
         drop(guard);
-        let _ = app.emit(STORAGE_EVENT, mode);
+        let payload = StorageModePayload {
+            mode,
+            instruction_url: Some("https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting".to_string()),
+        };
+        let _ = app.emit(STORAGE_EVENT, payload);
     }
 
     Ok(())

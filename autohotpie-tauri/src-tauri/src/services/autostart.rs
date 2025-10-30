@@ -85,9 +85,8 @@ impl AutostartService {
         }
 
         #[cfg(not(target_os = "linux"))]
-        let plugin = Self::manager(app).ok_or_else(|| {
-            AppError::Message("autostart plugin not available".into())
-        })?;
+        let plugin = Self::manager(app)
+            .ok_or_else(|| AppError::Message("autostart plugin not available".into()))?;
 
         #[cfg(not(target_os = "linux"))]
         {
@@ -126,7 +125,9 @@ impl AutostartService {
     fn unsupported_message() -> Option<String> {
         #[cfg(target_os = "linux")]
         {
-            Some("Autostart is unavailable because no systemd/xdg integration is configured.".into())
+            Some(
+                "Autostart is unavailable because no systemd/xdg integration is configured.".into(),
+            )
         }
         #[cfg(any(target_os = "windows", target_os = "macos"))]
         {
@@ -160,7 +161,10 @@ mod linux {
                 } else {
                     AutostartInfo {
                         status: AutostartStatus::Disabled,
-                        message: Some("Autostart entry not found. Enable to create an XDG desktop entry.".into()),
+                        message: Some(
+                            "Autostart entry not found. Enable to create an XDG desktop entry."
+                                .into(),
+                        ),
                         launcher_path,
                     }
                 }
@@ -227,7 +231,8 @@ mod linux {
             return Ok(base);
         }
 
-        let home = env::var_os("HOME").ok_or_else(|| AppError::Message("HOME environment variable is not set".into()))?;
+        let home = env::var_os("HOME")
+            .ok_or_else(|| AppError::Message("HOME environment variable is not set".into()))?;
         let mut base = PathBuf::from(home);
         base.push(".config");
         base.push(AUTOSTART_SUBDIR);
@@ -257,12 +262,13 @@ mod linux {
     }
 
     fn current_executable() -> Result<PathBuf, AppError> {
-        std::env::current_exe().map_err(|err| AppError::Message(format!("failed to resolve current executable: {err}")))
+        std::env::current_exe().map_err(|err| {
+            AppError::Message(format!("failed to resolve current executable: {err}"))
+        })
     }
 
     fn icon_name<R: Runtime>(app: &AppHandle<R>) -> String {
-        app
-            .config()
+        app.config()
             .product_name
             .as_ref()
             .filter(|name| !name.is_empty())

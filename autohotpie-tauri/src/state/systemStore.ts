@@ -14,10 +14,11 @@ type SystemStore = {
   lastEventAt: string | null;
   activeProfile: ActiveProfileSnapshot | null;
   hotkeyStatus: HotkeyConflictSnapshot | null;
+  readOnlyInstructionUrl: string | null;
   init: () => Promise<void>;
   setOffline: (isOffline: boolean, timestamp?: string) => void;
   setWindowSnapshot: (snapshot: WindowSnapshot) => void;
-  setStorageMode: (mode: StorageMode) => void;
+  setStorageMode: (mode: StorageMode, instructionUrl?: string | null) => void;
   setActiveProfile: (profile: ActiveProfileSnapshot | null) => void;
   setHotkeyStatus: (status: HotkeyConflictSnapshot | null) => void;
 };
@@ -53,6 +54,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
   lastEventAt: null,
   activeProfile: null,
   hotkeyStatus: null,
+  readOnlyInstructionUrl: null,
   init: async () => {
     if (get().initialized) {
       return;
@@ -127,8 +129,8 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
       get().setWindowSnapshot(event.payload);
     });
 
-    listen<{ mode: StorageMode }>('system://storage-mode', (event) => {
-      get().setStorageMode(event.payload.mode);
+    listen<{ mode: StorageMode; instructionUrl?: string | null }>('system://storage-mode', (event) => {
+      get().setStorageMode(event.payload.mode, event.payload.instructionUrl ?? null);
     });
 
     listen<{ profile: ActiveProfileSnapshot | null }>('profiles://active-changed', (event) => {
@@ -177,13 +179,14 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
       };
     });
   },
-  setStorageMode: (mode) => {
+  setStorageMode: (mode, instructionUrl) => {
     set((state) => ({
       status: {
         ...state.status,
         storageMode: mode,
         safeMode: mode === 'read_only',
       },
+      readOnlyInstructionUrl: instructionUrl ?? state.readOnlyInstructionUrl,
       lastEventAt: new Date().toISOString(),
     }));
   },

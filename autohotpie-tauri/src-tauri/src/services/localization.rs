@@ -17,10 +17,16 @@ const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 static BUILTIN_PACKS: Lazy<Vec<LocalizationPack>> = Lazy::new(|| {
     vec![
-        parse_builtin_pack(include_str!("../../resources/localization/en.json"), Some("en"))
-            .expect("failed to parse builtin en localization pack"),
-        parse_builtin_pack(include_str!("../../resources/localization/ru.json"), Some("ru"))
-            .expect("failed to parse builtin ru localization pack"),
+        parse_builtin_pack(
+            include_str!("../../resources/localization/en.json"),
+            Some("en"),
+        )
+        .expect("failed to parse builtin en localization pack"),
+        parse_builtin_pack(
+            include_str!("../../resources/localization/ru.json"),
+            Some("ru"),
+        )
+        .expect("failed to parse builtin ru localization pack"),
     ]
 });
 
@@ -155,16 +161,10 @@ fn recompute_missing_keys(cache: &mut HashMap<String, LocalizationPack>) {
             continue;
         }
 
-        let baseline_keys = snapshot
-            .get(&fallback_lang)
-            .cloned()
-            .unwrap_or_default();
+        let baseline_keys = snapshot.get(&fallback_lang).cloned().unwrap_or_default();
         let pack_keys: HashSet<String> = pack.strings.keys().cloned().collect();
 
-        let mut missing: Vec<String> = baseline_keys
-            .difference(&pack_keys)
-            .cloned()
-            .collect();
+        let mut missing: Vec<String> = baseline_keys.difference(&pack_keys).cloned().collect();
         missing.sort();
         pack.missing_keys = missing;
     }
@@ -270,7 +270,10 @@ fn language_code_from_path(path: &Path) -> Option<String> {
         .map(|value| value.to_string())
 }
 
-fn parse_builtin_pack(data: &str, fallback_language: Option<&str>) -> anyhow::Result<LocalizationPack> {
+fn parse_builtin_pack(
+    data: &str,
+    fallback_language: Option<&str>,
+) -> anyhow::Result<LocalizationPack> {
     let mut pack: LocalizationPack = serde_json::from_str(data)?;
     if pack.language.is_empty() {
         if let Some(code) = fallback_language {
@@ -282,7 +285,9 @@ fn parse_builtin_pack(data: &str, fallback_language: Option<&str>) -> anyhow::Re
 
 fn ensure_builtin_languages(cache: &mut HashMap<String, LocalizationPack>) {
     for pack in BUILTIN_PACKS.iter() {
-        cache.entry(pack.language.clone()).or_insert_with(|| pack.clone());
+        cache
+            .entry(pack.language.clone())
+            .or_insert_with(|| pack.clone());
     }
 }
 
@@ -312,7 +317,10 @@ fn apply_migrations(mut pack: LocalizationPack) -> LocalizationPack {
     pack
 }
 
-fn finalize_pack(language: &str, cache: &HashMap<String, LocalizationPack>) -> Option<LocalizationPack> {
+fn finalize_pack(
+    language: &str,
+    cache: &HashMap<String, LocalizationPack>,
+) -> Option<LocalizationPack> {
     fn resolve_chain(
         code: &str,
         cache: &HashMap<String, LocalizationPack>,

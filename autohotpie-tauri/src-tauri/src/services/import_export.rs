@@ -82,8 +82,9 @@ impl<'a> ImportExportService<'a> {
     }
 
     pub fn encode_bundle(&self, bundle: &ImportExportBundle) -> Result<String, AppError> {
-        let json = serde_json::to_string_pretty(bundle)
-            .map_err(|err| AppError::Message(format!("failed to serialize export bundle: {err}")))?;
+        let json = serde_json::to_string_pretty(bundle).map_err(|err| {
+            AppError::Message(format!("failed to serialize export bundle: {err}"))
+        })?;
         Ok(general_purpose::STANDARD.encode(json.as_bytes()))
     }
 
@@ -91,8 +92,9 @@ impl<'a> ImportExportService<'a> {
         let bytes = general_purpose::STANDARD
             .decode(encoded)
             .map_err(|err| AppError::Message(format!("failed to decode bundle payload: {err}")))?;
-        let json = String::from_utf8(bytes)
-            .map_err(|err| AppError::Message(format!("bundle payload is not valid UTF-8: {err}")))?;
+        let json = String::from_utf8(bytes).map_err(|err| {
+            AppError::Message(format!("bundle payload is not valid UTF-8: {err}"))
+        })?;
         let bundle: ImportExportBundle = serde_json::from_str(&json)
             .map_err(|err| AppError::Message(format!("failed to parse bundle JSON: {err}")))?;
         Ok(bundle)
@@ -139,11 +141,7 @@ impl<'a> ImportExportService<'a> {
         ))
     }
 
-    fn filter_profiles(
-        &self,
-        store: &ProfileStore,
-        filter: Option<&[ProfileId]>,
-    ) -> ProfileStore {
+    fn filter_profiles(&self, store: &ProfileStore, filter: Option<&[ProfileId]>) -> ProfileStore {
         match filter {
             None => store.clone(),
             Some(ids) if ids.is_empty() => store.clone(),
@@ -180,7 +178,8 @@ impl<'a> ImportExportService<'a> {
     fn validate_profile_records(&self, records: &[ProfileRecord]) -> Result<(), AppError> {
         let mut errors = Vec::new();
         for record in records {
-            if let Err(mut validation_errors) = validate_profile(&record.profile, &record.menus, &record.actions)
+            if let Err(mut validation_errors) =
+                validate_profile(&record.profile, &record.menus, &record.actions)
             {
                 errors.append(&mut validation_errors);
             }
@@ -329,9 +328,8 @@ impl<'a> ImportExportService<'a> {
     pub fn parse_profile_ids(ids: &[String]) -> Result<Vec<ProfileId>, AppError> {
         let mut result = Vec::with_capacity(ids.len());
         for raw in ids {
-            let uuid = Uuid::parse_str(raw).map_err(|err| {
-                AppError::Message(format!("invalid profile id '{raw}': {err}"))
-            })?;
+            let uuid = Uuid::parse_str(raw)
+                .map_err(|err| AppError::Message(format!("invalid profile id '{raw}': {err}")))?;
             result.push(ProfileId::from(uuid));
         }
         Ok(result)
