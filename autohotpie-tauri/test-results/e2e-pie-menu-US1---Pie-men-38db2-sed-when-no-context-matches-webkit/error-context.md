@@ -52,32 +52,34 @@
           - generic [ref=e48]:
             - heading "dashboard.previewTitle" [level=3] [ref=e49]
             - paragraph [ref=e50]: dashboard.previewBodyCtrl + Shift + P
-            - generic [ref=e52]:
-              - button "Launch Calculator" [ref=e54] [cursor=pointer]:
-                - generic [ref=e55]: Launch Calculator
-              - button "Open Notepad" [ref=e56] [cursor=pointer]:
-                - generic [ref=e57]: Open Notepad
-              - button "Open Downloads" [ref=e58] [cursor=pointer]:
-                - generic [ref=e59]: Open Downloads
-              - button "Mute Audio" [ref=e60] [cursor=pointer]:
-                - generic [ref=e61]: Mute Audio
-          - generic [ref=e62]:
-            - heading "dashboard.contextualTitle" [level=3] [ref=e63]
-            - paragraph [ref=e64]: dashboard.contextualBody
-            - generic [ref=e65]:
-              - paragraph [ref=e66]: "dashboard.contextualActiveProfile: Default Profile"
-              - paragraph [ref=e67]: "dashboard.contextualMatchMode: fallback"
-              - paragraph [ref=e68]: "dashboard.contextualSafeMode: dashboard.disabled"
-  - generic [ref=e70]:
-    - generic [ref=e71]:
-      - button "Launch Calculator" [ref=e73] [cursor=pointer]:
-        - generic [ref=e74]: Launch Calculator
-      - button "Open Notepad" [ref=e75] [cursor=pointer]:
-        - generic [ref=e76]: Open Notepad
-      - button "Open Downloads" [ref=e77] [cursor=pointer]:
-        - generic [ref=e78]: Open Downloads
-      - button "Mute Audio" [ref=e79] [cursor=pointer]:
-        - generic [ref=e80]: Mute Audio
-    - generic [ref=e81]: Launch Calculator
-    - paragraph [ref=e82]: "Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть."
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - button "Launch Calculator" [ref=e54] [cursor=pointer]:
+                  - generic [ref=e55]: Launch Calculator
+                - button "Open Notepad" [ref=e56] [cursor=pointer]:
+                  - generic [ref=e57]: Open Notepad
+                - button "Open Downloads" [ref=e58] [cursor=pointer]:
+                  - generic [ref=e59]: Open Downloads
+                - button "Mute Audio" [ref=e60] [cursor=pointer]:
+                  - generic [ref=e61]: Mute Audio
+              - generic [ref=e62]:
+                - paragraph [ref=e63]: dashboard.lastAction
+                - paragraph [ref=e64]: Launch Calculator
+                - paragraph [ref=e65]: "dashboard.lastActionStatus: success · 8:02:46 PM"
+          - generic [ref=e66]:
+            - heading "dashboard.contextualTitle" [level=3] [ref=e67]
+            - paragraph [ref=e68]: dashboard.contextualBody
+            - generic [ref=e69]:
+              - paragraph [ref=e70]: "dashboard.contextualActiveProfile: Default Profile"
+              - paragraph [ref=e71]: "dashboard.contextualMatchMode: fallback"
+              - paragraph [ref=e72]: "dashboard.contextualSafeMode: dashboard.disabled"
+  - status [ref=e74]:
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]: SUCCESS
+        - button "CLOSE" [ref=e79] [cursor=pointer]
+      - heading "Action completed" [level=4] [ref=e80]
+      - paragraph [ref=e81]: Launch Calculator
+      - paragraph [ref=e82]: Action completed successfully.
+      - paragraph [ref=e83]: 8:02:46 PM
 ```

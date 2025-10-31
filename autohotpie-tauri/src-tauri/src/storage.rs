@@ -70,6 +70,7 @@ struct StoredSettings {
 impl StorageManager {
     /// Constructs a storage manager rooted at a specific base directory.
     /// This is primarily intended for tests where an `AppHandle` is not available.
+    #[allow(dead_code)]
     pub fn with_base_dir(base_dir: PathBuf) -> io::Result<Self> {
         let settings_path = base_dir.join(SETTINGS_FILE_NAME);
         let backups_path = base_dir.join(BACKUP_DIR_NAME);

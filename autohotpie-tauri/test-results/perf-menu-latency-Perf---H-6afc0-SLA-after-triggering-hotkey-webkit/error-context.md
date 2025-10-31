@@ -68,4 +68,16 @@
               - paragraph [ref=e66]: "dashboard.contextualActiveProfile: Default Profile"
               - paragraph [ref=e67]: "dashboard.contextualMatchMode: fallback"
               - paragraph [ref=e68]: "dashboard.contextualSafeMode: dashboard.disabled"
+  - generic [ref=e70]:
+    - generic [ref=e71]:
+      - button "Launch Calculator" [ref=e73] [cursor=pointer]:
+        - generic [ref=e74]: Launch Calculator
+      - button "Open Notepad" [ref=e75] [cursor=pointer]:
+        - generic [ref=e76]: Open Notepad
+      - button "Open Downloads" [ref=e77] [cursor=pointer]:
+        - generic [ref=e78]: Open Downloads
+      - button "Mute Audio" [ref=e79] [cursor=pointer]:
+        - generic [ref=e80]: Mute Audio
+    - generic [ref=e81]: Launch Calculator
+    - paragraph [ref=e82]: "Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть."
 ```

@@ -1,5 +1,9 @@
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Runtime};
+#[cfg(not(target_os = "linux"))]
+use tauri::{Manager, State};
+#[cfg(target_os = "windows")]
 use tauri_plugin_opener::OpenerExt; // for app.opener()
+#[cfg(not(target_os = "linux"))]
 use tauri_plugin_autostart::AutoLaunchManager;
 
 use crate::commands::AppError;
@@ -160,6 +164,7 @@ impl AutostartService {
         }
     }
 
+    #[cfg(not(target_os = "linux"))]
     fn manager<'a, R: Runtime>(app: &'a AppHandle<R>) -> Option<State<'a, AutoLaunchManager>> {
         app.try_state::<AutoLaunchManager>()
     }
