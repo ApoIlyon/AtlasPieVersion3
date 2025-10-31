@@ -14,7 +14,20 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .setup(|app| commands::init(app).map_err(|err| err.into()))
+        .setup(|app| {
+            // Initialize commands/state
+            commands::init(app)?;
+
+            // Create a basic tray icon for desktop platforms
+            #[cfg(not(mobile))]
+            {
+                use tauri::tray::TrayIconBuilder;
+                // Create tray without custom icon to avoid PNG decoding in dev; system will use app icon
+                let _ = TrayIconBuilder::new().tooltip("AutoHotPie").build(app);
+            }
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::actions::list_actions,
             commands::actions::recent_action_events,

@@ -50,6 +50,16 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 - кнопки **Refresh** и **Open log file** (Tauri desktop only).
 При ошибке чтения отображается toast с рекомендацией открыть файл напрямую из проводника.
 
+### Logs & Troubleshooting
+
+- **Open latest log**: в UI нажмите кнопку **Log → Open log file**; в десктопной сборке вызывается `open_latest_log` и откроется файл в системном проводнике.
+- **Расположение файлов**: см. раздел выше «Configuration & Data Paths». Логи лежат рядом с настройками, ротация — ежедневно (лимит 50 MB).
+- **Если кнопка не работает**:
+  - Проверьте, что приложение запущено как desktop (не браузерный превью).
+  - Убедитесь, что директория доступна для записи (см. Read-only mode ниже).
+  - Откройте вручную: откройте указанный путь и файл `audit-*.log`.
+- **Read-only mode**: когда директория недоступна для записи, лог-панель и destructive‑действия блокируются. Разрешите доступ или смените каталог данных и перезапустите приложение.
+
 ## Import/Export Profiles
 1. Use **Settings → Profiles → Import** to select a JSON bundle.
 2. Export via **Profiles Dashboard → Export** to create a JSON archive compatible across platforms.

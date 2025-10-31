@@ -154,10 +154,10 @@
 - [x] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
 - [x] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 - [x] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
-- [ ] T134b [US3] Add regression tests for import/export failure scenarios в `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
-- [ ] T134c [US3] Verify backup retention (5 generations) via integration test в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
-- [ ] T134c.1 [US3] Extend backup integration test to assert FIFO rotation и запись события в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
-- [ ] T134d [US3] Add documentation section on log access & troubleshooting в `specs/001-build-tauri-pie/quickstart.md`
+- [x] T134b [US3] Add regression tests for import/export failure scenarios в `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
+- [x] T134c [US3] Verify backup retention (5 generations) via integration test в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
+- [x] T134c.1 [US3] Extend backup integration test to assert FIFO rotation и запись события в `autohotpie-tauri/src-tauri/tests/integration/profile_backups.rs`
+- [x] T134d [US3] Add documentation section on log access & troubleshooting в `specs/001-build-tauri-pie/quickstart.md`
 
 **Checkpoint**: Конфигурации мигрируются между машинами, автозапуск работает, обновления и логи доступны из UI.
 
