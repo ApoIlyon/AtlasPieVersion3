@@ -764,8 +764,3 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
 
 export const selectProfileHotkeyStatus = (state: ProfileStoreState) =>
   state.suppressHotkeyConflicts ? null : state.lastHotkeyStatus;
-
-if (typeof window !== 'undefined') {
-  (window as typeof window & { __AUTOHOTPIE_PROFILE_STORE__?: typeof useProfileStore }).__AUTOHOTPIE_PROFILE_STORE__ =
-    useProfileStore;
-}

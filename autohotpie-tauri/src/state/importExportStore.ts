@@ -117,8 +117,3 @@ export const useImportExportStore = create<ImportExportState>((set, get) => ({
     set({ lastBundle: null, lastImportResult: null, error: null });
   },
 }));
-
-if (typeof window !== 'undefined') {
-  (window as typeof window & { __AUTOHOTPIE_IMPORT_EXPORT_STORE__?: typeof useImportExportStore }).__AUTOHOTPIE_IMPORT_EXPORT_STORE__ =
-    useImportExportStore;
-}

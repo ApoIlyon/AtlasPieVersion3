@@ -50,29 +50,6 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 - кнопки **Refresh** и **Open log file** (Tauri desktop only).
 При ошибке чтения отображается toast с рекомендацией открыть файл напрямую из проводника.
 
-## Log Access & Troubleshooting
-
-### Открытие и навигация
-1. В главном окне приложения нажмите **Logs** в шапке или перейдите **Settings → Logs**.
-2. Используйте фильтры уровней (INFO/WARN/ERROR/ACTION) и строку поиска, чтобы сузить вывод.
-3. В десктопной сборке доступны действия:
-   - **Refresh** — повторно запрашивает последние 500 записей из Tauri (`read_logs`).
-   - **Auto refresh** — включает/выключает автообновление каждые 5 секунд (по умолчанию включено).
-   - **Open log file** — открывает актуальный файл аудита в проводнике через команду `open_latest_log`.
-
-### Типовые сценарии
-- **Log panel сообщает «доступно только в десктопной сборке»** — вы запустили браузерный превью. Логи доступны после запуска Tauri-версии.
-- **Появился read-only режим** — каталог данных недоступен для записи (см. баннер Read-only safeguard). Лог-панель станет только для чтения, кнопки Refresh/Open становятся неактивны. Разблокируйте каталог, перезапустите приложение и повторите запрос.
-- **Ошибка чтения («failed to read log file» и т. п.)** — кнопка **Dismiss** закрывает баннер, затем используйте **Open log file** либо вручную откройте файл из каталога данных: `AHP-Audit-YYYYMMDD.log`.
-- **Нужны прежние записи** — ротация выполняется ежедневно; доступные файлы лежат в `logs/` внутри каталога данных. Можно открыть их редактором текста или скопировать в баг-репорт.
-
-### Ручной доступ
-- Windows: `%APPDATA%/AutoHotPie/logs`
-- macOS: `~/Library/Application Support/AutoHotPie/logs`
-- Linux: `~/.config/AutoHotPie/logs`
-
-Если лог-панель не открывается из-за повреждения профилей, используйте кнопку **Open backups folder** в диалоге восстановления профиля или откройте каталог данных вручную.
-
 ## Import/Export Profiles
 1. Use **Settings → Profiles → Import** to select a JSON bundle.
 2. Export via **Profiles Dashboard → Export** to create a JSON archive compatible across platforms.

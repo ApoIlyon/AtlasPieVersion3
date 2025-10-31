@@ -1,11 +1,11 @@
-use crate::domain::action::{ActionDefinition, ActionId, MacroStepDefinition, MacroStepKind};
+use crate::domain::action::MacroStepDefinition;
 use crate::domain::context_rules::ScreenArea;
 use crate::domain::pie_menu::{PieMenu, PieMenuId, PieSlice, PieSliceId};
 use crate::domain::profile::{ActivationMatchMode, ActivationRule, Profile, ProfileId};
+use crate::domain::{ActionDefinition, ActionId, MacroStepKind};
 use crate::models::AppProfile;
 use crate::storage::SETTINGS_FILE_NAME;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -489,7 +489,6 @@ impl Default for ProfileStore {
 pub struct ProfileRepository {
     file_path: PathBuf,
     backups_path: PathBuf,
-    max_backups: usize,
 }
 
 impl ProfileRepository {
@@ -499,7 +498,6 @@ impl ProfileRepository {
         Self {
             file_path,
             backups_path,
-            max_backups: 5,
         }
     }
 
@@ -510,12 +508,6 @@ impl ProfileRepository {
 
     pub fn backups_dir(&self) -> &Path {
         &self.backups_path
-    }
-
-    #[cfg(test)]
-    pub fn with_max_backups(mut self, value: usize) -> Self {
-        self.max_backups = value;
-        self
     }
 
     pub fn load(&self) -> Result<ProfileStore, ProfileStoreLoadError> {
@@ -602,56 +594,7 @@ impl ProfileRepository {
         let file_name = format!("{}.{}", timestamp.replace(':', "-"), PROFILES_FILE_NAME);
         let backup_path = self.backups_path.join(file_name);
         fs::copy(&self.file_path, backup_path)?;
-        self.delete_old_backups()?;
         Ok(())
-    }
-
-    fn delete_old_backups(&self) -> io::Result<()> {
-        if self.max_backups == 0 {
-            return Ok(());
-        }
-
-        let mut entries: Vec<_> = match fs::read_dir(&self.backups_path) {
-            Ok(read_dir) => read_dir
-                .filter_map(|entry| {
-                    entry.ok().and_then(|e| {
-                        e.metadata().ok().map(|meta| (e.path(), meta.modified().ok()))
-                    })
-                })
-                .filter(|(path, _)| path.is_file() && path.extension().map(|ext| ext == "json").unwrap_or(false))
-                .collect(),
-            Err(err) if err.kind() == io::ErrorKind::NotFound => return Ok(()),
-            Err(err) => return Err(err),
-        };
-
-        if entries.len() <= self.max_backups {
-            return Ok(());
-        }
-
-        entries.sort_by(|lhs, rhs| match (&lhs.1, &rhs.1) {
-            (Some(l), Some(r)) => l.cmp(r),
-            (Some(_), None) => Ordering::Less,
-            (None, Some(_)) => Ordering::Greater,
-            (None, None) => lhs.0.cmp(&rhs.0),
-        });
-
-        while entries.len() > self.max_backups {
-            if let Some((path, _)) = entries.first() {
-                let _ = fs::remove_file(path);
-            }
-            entries.remove(0);
-        }
-
-        Ok(())
-    }
-
-    #[cfg(test)]
-    pub fn list_backups(&self) -> io::Result<Vec<PathBuf>> {
-        Ok(fs::read_dir(&self.backups_path)?
-            .filter_map(|entry| entry.ok())
-            .map(|entry| entry.path())
-            .filter(|path| path.is_file())
-            .collect())
     }
 }
 
