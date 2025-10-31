@@ -68,6 +68,28 @@ struct StoredSettings {
 }
 
 impl StorageManager {
+    /// Constructs a storage manager rooted at a specific base directory.
+    /// This is primarily intended for tests where an `AppHandle` is not available.
+    #[allow(dead_code)]
+    pub fn with_base_dir(base_dir: PathBuf) -> io::Result<Self> {
+        let settings_path = base_dir.join(SETTINGS_FILE_NAME);
+        let backups_path = base_dir.join(BACKUP_DIR_NAME);
+        if !backups_path.exists() {
+            fs::create_dir_all(&backups_path)?;
+        }
+        let cache_path = base_dir.join("settings.cache.json");
+        let actions_path = base_dir.join(ACTIONS_FILE_NAME);
+        let profiles_repo = ProfileRepository::new(&base_dir, &backups_path);
+        Ok(Self {
+            base_dir,
+            settings_path,
+            backups_path,
+            cache_path,
+            actions_path,
+            profiles_repo,
+        })
+    }
+
     pub fn new<R: Runtime>(app: AppHandle<R>) -> io::Result<Self> {
         let base_dir = ensure_settings_dir(&app)?;
         let settings_path = base_dir.join(SETTINGS_FILE_NAME);
