@@ -32,7 +32,9 @@ pub struct SaveExportPayload {
     pub contents: String,
 }
 
-fn lock_settings<'a>(state: &'a State<'_, AppState>) -> Result<std::sync::MutexGuard<'a, crate::models::Settings>> {
+fn lock_settings<'a>(
+    state: &'a State<'_, AppState>,
+) -> Result<std::sync::MutexGuard<'a, crate::models::Settings>> {
     state.settings.lock().map_err(|_| AppError::StatePoisoned)
 }
 
@@ -108,15 +110,13 @@ pub async fn save_export_bundle<R: Runtime>(
 
     let path_buf = file_path_to_pathbuf(path)?;
 
-    fs::write(&path_buf, payload.contents).map_err(|err| {
-        AppError::Message(format!("failed to save export bundle: {err}"))
-    })?;
+    fs::write(&path_buf, payload.contents)
+        .map_err(|err| AppError::Message(format!("failed to save export bundle: {err}")))?;
 
     Ok(Some(path_buf.to_string_lossy().to_string()))
 }
 
 fn file_path_to_pathbuf(path: FilePath) -> Result<std::path::PathBuf> {
-    path
-        .into_path()
+    path.into_path()
         .map_err(|err| AppError::Message(format!("failed to resolve save path: {err}")))
 }

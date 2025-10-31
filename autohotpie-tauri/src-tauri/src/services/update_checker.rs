@@ -43,9 +43,7 @@ impl UpdateStatus {
     }
 
     fn with_timestamp(mut self) -> Self {
-        self.last_checked = OffsetDateTime::now_utc()
-            .format(&Rfc3339)
-            .ok();
+        self.last_checked = OffsetDateTime::now_utc().format(&Rfc3339).ok();
         self
     }
 }
@@ -93,10 +91,7 @@ impl UpdateChecker {
 
     pub async fn check_for_updates(&self, force: bool) -> Result<UpdateStatus> {
         let should_check = {
-            let mut guard = self
-                .state
-                .lock()
-                .expect("update checker cache poisoned");
+            let mut guard = self.state.lock().expect("update checker cache poisoned");
 
             if guard.in_progress {
                 return Ok(guard.status.clone());
@@ -120,10 +115,7 @@ impl UpdateChecker {
 
         let result = self.perform_remote_check().await;
 
-        let mut guard = self
-            .state
-            .lock()
-            .expect("update checker cache poisoned");
+        let mut guard = self.state.lock().expect("update checker cache poisoned");
         guard.last_check = Some(Self::now());
         guard.in_progress = false;
 
@@ -184,8 +176,7 @@ impl UpdateChecker {
             .map_err(|err| anyhow!("updates.error.parse:{err}"))?;
 
         let mut status = {
-            self
-                .state
+            self.state
                 .lock()
                 .expect("update checker cache poisoned")
                 .status

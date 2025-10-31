@@ -23,10 +23,7 @@ pub fn set_autostart_enabled<R: Runtime>(
     } else {
         "Autostart disabled"
     };
-    state
-        .audit()
-        .log("INFO", message)
-        .map_err(AppError::from)?;
+    state.audit().log("INFO", message).map_err(AppError::from)?;
 
     Ok(service.status(&app))
 }

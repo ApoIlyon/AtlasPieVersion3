@@ -117,3 +117,9 @@ export const useImportExportStore = create<ImportExportState>((set, get) => ({
     set({ lastBundle: null, lastImportResult: null, error: null });
   },
 }));
+
+// Expose store for E2E tests in browser environment
+if (typeof window !== 'undefined') {
+  (window as typeof window & { __AUTOHOTPIE_IMPORTEXPORT_STORE__?: typeof useImportExportStore }).__AUTOHOTPIE_IMPORTEXPORT_STORE__ =
+    useImportExportStore;
+}

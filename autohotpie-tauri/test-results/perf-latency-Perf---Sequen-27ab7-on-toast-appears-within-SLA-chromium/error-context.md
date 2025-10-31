@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: AutoHotPie Tauri
+      - heading "Pie Menu Studio" [level=1] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: Language
+        - combobox "Language" [ref=e12]:
+          - option "EN" [selected]
+        - button "Refresh" [ref=e13] [cursor=pointer]
+      - generic [ref=e14]:
+        - button "Open log" [ref=e15] [cursor=pointer]
+        - generic [ref=e16]: Loading version…
+  - main [ref=e17]:
+    - navigation [ref=e18]:
+      - button "Dashboard" [ref=e19] [cursor=pointer]
+      - button "Profiles" [ref=e20] [cursor=pointer]
+      - button "Actions" [ref=e21] [cursor=pointer]
+      - button "Settings" [ref=e22] [cursor=pointer]
+    - generic [ref=e23]:
+      - heading "dashboard.welcomeTitle" [level=2] [ref=e24]
+      - paragraph [ref=e25]: dashboard.welcomeBody.p1 kando-2.0.0.
+      - generic [ref=e27]:
+        - generic [ref=e28]: dashboard.normalMode · read_write
+        - generic [ref=e29]: dashboard.online · dashboard.lastCheck —
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: dashboard.settingsMissing dashboard.loadedProfiles
+        - generic [ref=e33]:
+          - heading "hotkeyPanel.title" [level=3] [ref=e34]
+          - paragraph [ref=e35]: hotkeyPanel.description
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - text: hotkeyPanel.identifierLabel
+              - textbox "hotkeyPanel.identifierLabel" [ref=e38]:
+                - /placeholder: hotkeyPanel.identifierPlaceholder
+                - text: global-pie
+            - generic [ref=e39]:
+              - text: hotkeyPanel.acceleratorLabel
+              - textbox "hotkeyPanel.acceleratorLabel" [ref=e40]:
+                - /placeholder: hotkeyPanel.acceleratorPlaceholder
+            - generic [ref=e41]:
+              - button "hotkeyPanel.registerButton" [ref=e42] [cursor=pointer]
+              - button "hotkeyPanel.clearButton" [ref=e43] [cursor=pointer]
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - heading "dashboard.previewTitle" [level=3] [ref=e46]
+            - paragraph [ref=e47]: dashboard.previewBodyCtrl + Shift + P
+            - generic [ref=e48]:
+              - generic [ref=e49]:
+                - button "Launch Calculator" [ref=e51] [cursor=pointer]:
+                  - generic [ref=e52]: Launch Calculator
+                - button "Open Notepad" [ref=e53] [cursor=pointer]:
+                  - generic [ref=e54]: Open Notepad
+                - button "Open Downloads" [ref=e55] [cursor=pointer]:
+                  - generic [ref=e56]: Open Downloads
+                - button "Mute Audio" [ref=e57] [cursor=pointer]:
+                  - generic [ref=e58]: Mute Audio
+              - generic [ref=e59]:
+                - paragraph [ref=e60]: dashboard.lastAction
+                - paragraph [ref=e61]: Launch Calculator
+                - paragraph [ref=e62]: "dashboard.lastActionStatus: success · 6:58:33 PM"
+          - generic [ref=e63]:
+            - heading "dashboard.contextualTitle" [level=3] [ref=e64]
+            - paragraph [ref=e65]: dashboard.contextualBody
+            - generic [ref=e66]:
+              - paragraph [ref=e67]: "dashboard.contextualActiveProfile: Default Profile"
+              - paragraph [ref=e68]: "dashboard.contextualMatchMode: fallback"
+              - paragraph [ref=e69]: "dashboard.contextualSafeMode: dashboard.disabled"
+  - generic [ref=e71]:
+    - generic [ref=e72]:
+      - button "Launch Calculator" [active] [ref=e74] [cursor=pointer]:
+        - generic [ref=e75]: Launch Calculator
+      - button "Open Notepad" [ref=e76] [cursor=pointer]:
+        - generic [ref=e77]: Open Notepad
+      - button "Open Downloads" [ref=e78] [cursor=pointer]:
+        - generic [ref=e79]: Open Downloads
+      - button "Mute Audio" [ref=e80] [cursor=pointer]:
+        - generic [ref=e81]: Mute Audio
+    - generic [ref=e82]: Launch Calculator
+    - paragraph [ref=e83]: "Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть."
+  - status [ref=e85]:
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]: SUCCESS
+        - button "CLOSE" [ref=e90] [cursor=pointer]
+      - heading "Action completed" [level=4] [ref=e91]
+      - paragraph [ref=e92]: Launch Calculator
+      - paragraph [ref=e93]: Action completed successfully.
+      - paragraph [ref=e94]: 6:58:33 PM
+```

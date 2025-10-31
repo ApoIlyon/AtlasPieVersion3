@@ -5,12 +5,12 @@ use crate::services::profile_router;
 use crate::storage::profile_repository::{
     build_default_profile_record, ProfileRecord, ProfileRecoveryInfo, ProfileStore,
 };
+use serde::Deserialize;
 use serde_json::json;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tauri_plugin_opener::OpenerExt;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
-use serde::Deserialize;
 
 pub(crate) const PROFILES_STORE_EVENT: &str = "profiles://store-changed";
 

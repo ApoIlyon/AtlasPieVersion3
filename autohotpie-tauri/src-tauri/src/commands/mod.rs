@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
 pub mod actions;
+pub mod autostart;
 pub mod hotkeys;
-pub mod localization;
 pub mod import_export;
+pub mod localization;
 pub mod logs;
 pub mod profiles;
 pub mod settings;
 pub mod system;
-pub mod autostart;
 pub mod updates;
 
 use self::hotkeys::HotkeyState;
@@ -22,8 +22,7 @@ use crate::services::tray;
 use crate::services::{
     action_events::ActionEventsChannel,
     audit_log::AuditLogger,
-    connectivity,
-    localization as localization_service,
+    connectivity, localization as localization_service,
     profile_router::{self, ProfileRouterState},
     storage_guard,
     system_status::SystemStatus,

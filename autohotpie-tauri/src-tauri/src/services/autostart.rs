@@ -1,4 +1,9 @@
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Runtime};
+#[cfg(not(target_os = "linux"))]
+use tauri::{Manager, State};
+#[cfg(target_os = "windows")]
+use tauri_plugin_opener::OpenerExt; // for app.opener()
+#[cfg(not(target_os = "linux"))]
 use tauri_plugin_autostart::AutoLaunchManager;
 
 use crate::commands::AppError;
@@ -42,6 +47,10 @@ impl AutostartService {
     }
 
     pub fn status<R: Runtime>(&self, app: &AppHandle<R>) -> AutostartInfo {
+        #[cfg(target_os = "windows")]
+        {
+            return windows::status(app);
+        }
         #[cfg(target_os = "linux")]
         {
             return linux::status(app);
@@ -79,15 +88,18 @@ impl AutostartService {
     }
 
     pub fn enable<R: Runtime>(&self, app: &AppHandle<R>, enable: bool) -> Result<(), AppError> {
+        #[cfg(target_os = "windows")]
+        {
+            return windows::set_enabled(app, enable);
+        }
         #[cfg(target_os = "linux")]
         {
             return linux::set_enabled(app, enable);
         }
 
         #[cfg(not(target_os = "linux"))]
-        let plugin = Self::manager(app).ok_or_else(|| {
-            AppError::Message("autostart plugin not available".into())
-        })?;
+        let plugin = Self::manager(app)
+            .ok_or_else(|| AppError::Message("autostart plugin not available".into()))?;
 
         #[cfg(not(target_os = "linux"))]
         {
@@ -106,18 +118,53 @@ impl AutostartService {
             return linux::open_location(app);
         }
 
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(target_os = "windows")]
         {
+            use std::env;
+            use std::path::PathBuf;
+
             if Self::manager(app).is_none() {
                 return Err(AppError::Message("autostart plugin not available".into()));
             }
 
+            // Open the per-user Startup folder.
+            // %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+            let appdata = env::var_os("APPDATA").ok_or_else(|| {
+                AppError::Message("APPDATA environment variable is not set".into())
+            })?;
+            let mut path = PathBuf::from(appdata);
+            path.push("Microsoft\\Windows\\Start Menu\\Programs\\Startup");
+
+            app
+                .opener()
+                .open_path(path.to_string_lossy().to_string(), None::<&str>)
+                .map_err(|err| {
+                    AppError::Message(format!(
+                        "failed to open autostart folder in Explorer: {err}"
+                    ))
+                })
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            if Self::manager(app).is_none() {
+                return Err(AppError::Message("autostart plugin not available".into()));
+            }
+            // No stable file-system location for login items; surface a clear message.
+            Err(AppError::Message(
+                "Opening autostart location is not supported on macOS. Use System Settings → Login Items.".into(),
+            ))
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+        {
             Err(AppError::Message(
                 "Opening autostart location is not supported on this platform.".into(),
             ))
         }
     }
 
+    #[cfg(not(target_os = "linux"))]
     fn manager<'a, R: Runtime>(app: &'a AppHandle<R>) -> Option<State<'a, AutoLaunchManager>> {
         app.try_state::<AutoLaunchManager>()
     }
@@ -126,7 +173,9 @@ impl AutostartService {
     fn unsupported_message() -> Option<String> {
         #[cfg(target_os = "linux")]
         {
-            Some("Autostart is unavailable because no systemd/xdg integration is configured.".into())
+            Some(
+                "Autostart is unavailable because no systemd/xdg integration is configured.".into(),
+            )
         }
         #[cfg(any(target_os = "windows", target_os = "macos"))]
         {
@@ -160,7 +209,10 @@ mod linux {
                 } else {
                     AutostartInfo {
                         status: AutostartStatus::Disabled,
-                        message: Some("Autostart entry not found. Enable to create an XDG desktop entry.".into()),
+                        message: Some(
+                            "Autostart entry not found. Enable to create an XDG desktop entry."
+                                .into(),
+                        ),
                         launcher_path,
                     }
                 }
@@ -227,7 +279,8 @@ mod linux {
             return Ok(base);
         }
 
-        let home = env::var_os("HOME").ok_or_else(|| AppError::Message("HOME environment variable is not set".into()))?;
+        let home = env::var_os("HOME")
+            .ok_or_else(|| AppError::Message("HOME environment variable is not set".into()))?;
         let mut base = PathBuf::from(home);
         base.push(".config");
         base.push(AUTOSTART_SUBDIR);
@@ -257,12 +310,13 @@ mod linux {
     }
 
     fn current_executable() -> Result<PathBuf, AppError> {
-        std::env::current_exe().map_err(|err| AppError::Message(format!("failed to resolve current executable: {err}")))
+        std::env::current_exe().map_err(|err| {
+            AppError::Message(format!("failed to resolve current executable: {err}"))
+        })
     }
 
     fn icon_name<R: Runtime>(app: &AppHandle<R>) -> String {
-        app
-            .config()
+        app.config()
             .product_name
             .as_ref()
             .filter(|name| !name.is_empty())
@@ -286,5 +340,121 @@ mod linux {
             exec = exec_str,
             icon = icon
         )
+    }
+}
+
+#[cfg(target_os = "windows")]
+mod windows {
+    use super::{AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
+    use std::{env, fs, path::PathBuf};
+    use windows::core::{Interface, PCWSTR};
+    use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, IPersistFile};
+    use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
+
+    fn startup_dir() -> Result<PathBuf, AppError> {
+        let appdata = env::var_os("APPDATA")
+            .ok_or_else(|| AppError::Message("APPDATA environment variable is not set".into()))?;
+        let mut dir = PathBuf::from(appdata);
+        dir.push("Microsoft\\Windows\\Start Menu\\Programs\\Startup");
+        Ok(dir)
+    }
+
+    fn shortcut_paths<R: Runtime>(app: &AppHandle<R>) -> Result<(PathBuf, PathBuf), AppError> {
+        let dir = startup_dir()?;
+        let product = app
+            .config()
+            .product_name
+            .clone()
+            .unwrap_or_else(|| "AutoHotPie".into());
+        let lnk = dir.join(format!("{}.lnk", product));
+        let cmd = dir.join(format!("{}.cmd", product));
+        Ok((lnk, cmd))
+    }
+
+    pub fn status<R: Runtime>(app: &AppHandle<R>) -> AutostartInfo {
+        match shortcut_paths(app) {
+            Ok((lnk, cmd)) => {
+                let exists = lnk.exists() || cmd.exists();
+                if exists {
+                    AutostartInfo {
+                        status: AutostartStatus::Enabled,
+                        message: None,
+                        launcher_path: Some(if lnk.exists() { lnk } else { cmd }.to_string_lossy().into()),
+                    }
+                } else {
+                    AutostartInfo {
+                        status: AutostartStatus::Disabled,
+                        message: None,
+                        launcher_path: Some(cmd.to_string_lossy().into()),
+                    }
+                }
+            }
+            Err(err) => AutostartInfo {
+                status: AutostartStatus::Unsupported,
+                message: Some(err.to_string()),
+                launcher_path: None,
+            },
+        }
+    }
+
+    pub fn set_enabled<R: Runtime>(app: &AppHandle<R>, enable: bool) -> Result<(), AppError> {
+        let (lnk, cmd) = shortcut_paths(app)?;
+        let dir = startup_dir()?;
+        fs::create_dir_all(&dir)?;
+
+        if enable {
+            let exe = std::env::current_exe().map_err(|err| {
+                AppError::Message(format!("failed to resolve current executable: {err}"))
+            })?;
+            // Try to create a real .lnk shortcut via COM first
+            if let Err(err) = create_shell_link(&exe, &lnk) {
+                // Fallback: .cmd starter
+                let contents = format!("@echo off\r\nstart \"\" \"{}\"\r\n", exe.to_string_lossy());
+                fs::write(&cmd, contents)?;
+                eprintln!("failed to create .lnk shortcut, fallback to .cmd: {}", err);
+            }
+        } else {
+            // Disable: try to remove both variants regardless of which exists
+            let (lnk_path, cmd_path) = shortcut_paths(app)?;
+            if cmd_path.exists() {
+                let _ = fs::remove_file(&cmd_path);
+            }
+            if lnk_path.exists() {
+                let _ = fs::remove_file(&lnk_path);
+            }
+        }
+        Ok(())
+    }
+
+    fn to_wide(s: &std::path::Path) -> Vec<u16> {
+        use std::os::windows::ffi::OsStrExt;
+        let mut wide: Vec<u16> = s.as_os_str().encode_wide().collect();
+        wide.push(0);
+        wide
+    }
+
+    fn create_shell_link(exe: &std::path::Path, lnk: &std::path::Path) -> Result<(), AppError> {
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED)
+                .ok()
+                .map_err(|e| AppError::Message(format!("COM init failed: {e}")))?;
+            let link: IShellLinkW = CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER)
+                .map_err(|e| AppError::Message(format!("CoCreateInstance ShellLink failed: {e}")))?;
+
+            let exe_w = to_wide(exe);
+            link
+                .SetPath(PCWSTR(exe_w.as_ptr()))
+                .map_err(|e| AppError::Message(format!("SetPath failed: {e}")))?;
+
+            let persist: IPersistFile = link
+                .cast()
+                .map_err(|e| AppError::Message(format!("cast to IPersistFile failed: {e}")))?;
+            let lnk_w = to_wide(lnk);
+            persist
+                .Save(PCWSTR(lnk_w.as_ptr()), true)
+                .map_err(|e| AppError::Message(format!("Save .lnk failed: {e}")))?;
+            CoUninitialize();
+        }
+        Ok(())
     }
 }

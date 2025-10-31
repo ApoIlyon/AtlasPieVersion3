@@ -1,13 +1,13 @@
 pub mod action_events;
 pub mod action_runner;
 pub mod audit_log;
-pub mod connectivity;
-pub mod localization;
-pub mod import_export;
 pub mod autostart;
+pub mod connectivity;
+pub mod import_export;
+pub mod localization;
 pub mod profile_router;
 pub mod storage_guard;
 pub mod system_status;
-pub mod update_checker;
 pub mod tray;
+pub mod update_checker;
 pub mod window_info;

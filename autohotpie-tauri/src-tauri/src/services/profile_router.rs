@@ -199,7 +199,13 @@ fn select_profile(
         }
 
         let rules = parse_rules(&record.profile.activation_rules);
-        if let Some(match_info) = match_rules(&rules, process_name, window_title, window_class, screen_area) {
+        if let Some(match_info) = match_rules(
+            &rules,
+            process_name,
+            window_title,
+            window_class,
+            screen_area,
+        ) {
             let candidate = ProfileCandidate::from_match(
                 index,
                 record.profile.name.clone(),
@@ -287,10 +293,7 @@ enum Target {
 
 #[derive(Debug, Clone)]
 enum Matcher {
-    Exact {
-        value: String,
-        case_sensitive: bool,
-    },
+    Exact { value: String, case_sensitive: bool },
     Regex(Regex),
     ScreenArea(ScreenAreaSnapshot),
     Fallback,
@@ -437,7 +440,10 @@ fn build_screen_area_rule(rule: &crate::domain::profile::ActivationRule) -> Opti
             width: area.width,
             height: area.height,
         }),
-        raw: format!("screen_area:{}x{}:{}x{}", area.x, area.y, area.width, area.height),
+        raw: format!(
+            "screen_area:{}x{}:{}x{}",
+            area.x, area.y, area.width, area.height
+        ),
     })
 }
 
