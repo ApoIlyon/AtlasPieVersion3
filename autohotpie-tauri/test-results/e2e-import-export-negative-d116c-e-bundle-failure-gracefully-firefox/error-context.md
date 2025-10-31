@@ -1,0 +1,88 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: AutoHotPie Tauri
+      - heading "Pie Menu Studio" [level=1] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Language
+          - combobox "Language" [ref=e12]:
+            - option "EN" [selected]
+          - button "Refresh" [ref=e13] [cursor=pointer]
+        - button "Failed to load localization" [ref=e14] [cursor=pointer]
+      - generic [ref=e15]:
+        - button "Open log" [ref=e16] [cursor=pointer]
+        - generic [ref=e17]: Loading version…
+  - main [ref=e18]:
+    - navigation [ref=e19]:
+      - button "Dashboard" [ref=e20] [cursor=pointer]
+      - button "Profiles" [ref=e21] [cursor=pointer]
+      - button "Actions" [ref=e22] [cursor=pointer]
+      - button "Settings" [ref=e23] [cursor=pointer]
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - heading "Export profiles" [level=2] [ref=e30]
+            - paragraph [ref=e31]: Generate a JSON bundle containing your profiles, actions, settings and icons. Keep it for backups or share with teammates.
+          - generic [ref=e32]:
+            - button "Export all profiles" [active] [ref=e33] [cursor=pointer]
+            - button "Export active profile" [ref=e34] [cursor=pointer]
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - heading "Import bundle" [level=2] [ref=e38]
+              - paragraph [ref=e39]: Select an exported JSON file or paste bundle contents. Importing replaces profiles and updates settings/icons.
+            - button "Choose file…" [ref=e40] [cursor=pointer]
+          - generic [ref=e41]:
+            - textbox "Paste bundle JSON here or use the file picker" [ref=e42]
+            - generic [ref=e43]:
+              - button "Import bundle" [disabled] [ref=e44]
+              - button "Clear input" [ref=e45] [cursor=pointer]
+        - generic [ref=e46]: can't access property "invoke", window.__TAURI_INTERNALS__ is undefined
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "Autostart" [level=2] [ref=e49]
+          - paragraph [ref=e50]: Control whether AutoHotPie launches automatically when you sign in to your device. Platform-specific permissions may apply.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: Autostart encountered an error.
+            - generic [ref=e54]:
+              - button "Enable autostart" [ref=e55] [cursor=pointer]
+              - button "Disable autostart" [disabled] [ref=e56]
+              - button "Open autostart location" [disabled] [ref=e57]
+              - button "Retry" [ref=e58] [cursor=pointer]
+              - button "View instructions" [ref=e59] [cursor=pointer]
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: If the toggle fails, verify that you granted startup permissions to the app.
+            - generic [ref=e62]: can't access property "invoke", window.__TAURI_INTERNALS__ is undefined
+        - generic [ref=e64]:
+          - paragraph [ref=e65]: can't access property "invoke", window.__TAURI_INTERNALS__ is undefined
+          - button "Close" [ref=e66] [cursor=pointer]
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - heading "Updates" [level=2] [ref=e69]
+          - paragraph [ref=e70]: Check for new AutoHotPie releases on GitHub and download installers when they become available.
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e73]: Failed to check for updates. Try again later.
+            - generic [ref=e74]:
+              - button "Check for updates" [ref=e75] [cursor=pointer]
+              - button "Force refresh" [ref=e76] [cursor=pointer]
+              - button "Open release page" [disabled] [ref=e77]
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - term [ref=e80]: Current version
+              - definition [ref=e81]: —
+            - generic [ref=e82]:
+              - term [ref=e83]: Latest version
+              - definition [ref=e84]: —
+            - generic [ref=e85]:
+              - term [ref=e86]: Last checked
+              - definition [ref=e87]: Never
+          - generic [ref=e88]: Unexpected update checker error.
+```

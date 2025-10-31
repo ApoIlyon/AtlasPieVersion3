@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: AutoHotPie Tauri
+      - heading "Pie Menu Studio" [level=1] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: Language
+        - combobox "Language" [ref=e12]:
+          - option "EN" [selected]
+        - button "Refresh" [ref=e13] [cursor=pointer]
+      - generic [ref=e14]:
+        - button "Open log" [ref=e15] [cursor=pointer]
+        - generic [ref=e16]: Loading version…
+  - main [ref=e17]:
+    - navigation [ref=e18]:
+      - button "Dashboard" [ref=e19] [cursor=pointer]
+      - button "Profiles" [ref=e20] [cursor=pointer]
+      - button "Actions" [ref=e21] [cursor=pointer]
+      - button "Settings" [ref=e22] [cursor=pointer]
+    - generic [ref=e23]:
+      - heading "dashboard.welcomeTitle" [level=2] [ref=e24]
+      - paragraph [ref=e25]: dashboard.welcomeBody.p1 kando-2.0.0.
+      - generic [ref=e27]:
+        - generic [ref=e28]: dashboard.normalMode · read_write
+        - generic [ref=e29]: dashboard.online · dashboard.lastCheck —
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: dashboard.settingsMissing dashboard.loadedProfiles
+        - generic [ref=e33]:
+          - heading "hotkeyPanel.title" [level=3] [ref=e34]
+          - paragraph [ref=e35]: hotkeyPanel.description
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - text: hotkeyPanel.identifierLabel
+              - textbox "hotkeyPanel.identifierLabel" [ref=e38]:
+                - /placeholder: hotkeyPanel.identifierPlaceholder
+                - text: global-pie
+            - generic [ref=e39]:
+              - text: hotkeyPanel.acceleratorLabel
+              - textbox "hotkeyPanel.acceleratorLabel" [ref=e40]:
+                - /placeholder: hotkeyPanel.acceleratorPlaceholder
+            - generic [ref=e41]:
+              - button "hotkeyPanel.registerButton" [ref=e42] [cursor=pointer]
+              - button "hotkeyPanel.clearButton" [ref=e43] [cursor=pointer]
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - heading "dashboard.previewTitle" [level=3] [ref=e46]
+            - paragraph [ref=e47]: dashboard.previewBodyCtrl + Shift + P
+            - generic [ref=e49]:
+              - button "Launch Calculator" [ref=e51] [cursor=pointer]:
+                - generic [ref=e52]: Launch Calculator
+              - button "Open Notepad" [ref=e53] [cursor=pointer]:
+                - generic [ref=e54]: Open Notepad
+              - button "Open Downloads" [ref=e55] [cursor=pointer]:
+                - generic [ref=e56]: Open Downloads
+              - button "Mute Audio" [ref=e57] [cursor=pointer]:
+                - generic [ref=e58]: Mute Audio
+          - generic [ref=e59]:
+            - heading "dashboard.contextualTitle" [level=3] [ref=e60]
+            - paragraph [ref=e61]: dashboard.contextualBody
+            - generic [ref=e62]:
+              - paragraph [ref=e63]: "dashboard.contextualActiveProfile: Default Profile"
+              - paragraph [ref=e64]: "dashboard.contextualMatchMode: fallback"
+              - paragraph [ref=e65]: "dashboard.contextualSafeMode: dashboard.disabled"
+  - generic [ref=e67]:
+    - generic [ref=e68]:
+      - button "Launch Calculator" [ref=e70] [cursor=pointer]:
+        - generic [ref=e71]: Launch Calculator
+      - button "Open Notepad" [ref=e72] [cursor=pointer]:
+        - generic [ref=e73]: Open Notepad
+      - button "Open Downloads" [ref=e74] [cursor=pointer]:
+        - generic [ref=e75]: Open Downloads
+      - button "Mute Audio" [ref=e76] [cursor=pointer]:
+        - generic [ref=e77]: Mute Audio
+    - generic [ref=e78]: Launch Calculator
+    - paragraph [ref=e79]: "Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть."
+```
