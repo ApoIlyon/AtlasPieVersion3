@@ -148,7 +148,14 @@ autohotpie-tauri/contracts/
   - `autostart.spec.ts` — статусы автозапуска, read-only баннер и Retry flow.
   - `notifications.spec.ts` — сценарии Log Panel, импорт/экспорт, ошибки чтения журнала.
   - `storage-guard.spec.ts` — безопасный режим при отсутствии записи.
-- **Performance & Memory (NFR-001/002/003/004)**: `tests/perf/latency.spec.ts` фиксирует время hotkey→pie (<50 мс) и action launch (<200 мс, 95-й перцентиль); `tests/perf/fps.spec.ts` измеряет рендер (>60 FPS) и собирает heap snapshots для памяти (<150 МБ) с экспортом отчётов в `/perf-reports`.
+  - `linux-fallback.spec.ts` — сценарии Linux fallback (toggle автозапуск, переключение профиля, open logs).
+  - `pie-menu.spec.ts` / `action-execution.spec.ts` — горячая клавиша → меню → действие без подтверждений.
+  - `hotkey-conflict.spec.ts` — UI конфликтов хоткеев, предложения альтернатив и запись в audit log (FR-020).
+  - `localization.spec.ts` / `localization-negative.spec.ts` — переключение локализации и fallback.
+  - `offline.spec.ts` — оффлайн-режим, запуск логов и импорт/экспорт без сети.
+  - `update-checker.spec.ts` — GitHub release polling, кэширование последнего ответа и оффлайн fallback (FR-025).
+- **Performance & Telemetry**: Playwright perf-сценарии `tests/perf/latency.spec.ts` и `tests/perf/fps.spec.ts` собирают CSV/PNG-отчёты в `tests/perf/reports/`, фиксируя метрики NFR-001/002/003/004 и снапшоты памяти.
+- **Manual/Hybrid**: Чеклист NFR-006 хранится в `quickstart.md` вместе с скриншотами Windows/macOS/Linux; результаты latency/FPS измерений и UX-паритета документируются в Phase 6 задачах (T037a/T037c/T037h/T037i).
 - **Offline Resilience (NFR-005)**: `offline.spec.ts` отключает сеть, проверяет сохранение функционала импорта/экспорта, логов, автозапуска и отображает предупреждения при попытке сетевых операций.
 - **Cross-Platform UX Parity (NFR-006)**: macOS/Linux паритет подтверждается тестами `autostart.spec.ts`, `linux-fallback.spec.ts`, `notifications.spec.ts` и ручной проверкой меню/трэй статусов; тесты и ревью учитывают критерии из NFR-006 (чеклист функциональных состояний, скриншоты, временные метрики, Linux fallback).
 - **Documentation**: quickstart.md содержит инструкции по Log Panel, автозапуску и read-only; актуализируется в T035/T134d.
