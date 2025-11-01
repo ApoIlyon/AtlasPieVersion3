@@ -140,8 +140,8 @@
   - Acceptance: системд и XDG автозапуск переключаются из UI, fallback подсказки локализованы, приложен лог успешного прогона `autohotpie-tauri/tests/e2e/autostart.spec.ts` на Linux.
 - [x] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
   - Acceptance: smoke-сценарий переключения профиля подтверждён на macOS 13+, приложены скриншоты и чеклист паритета (иконки, хоткеи, статусы) в `specs/001-build-tauri-pie/quickstart.md`.
-- [x] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
-  - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`.
+- [x] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-fallback.spec.ts`
+  - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-fallback.spec.ts`.
 - [x] T130e [US3] Sync autostart status, read-only баннер и Retry flow с frontend store/UI (desktop-only guard, инструкции, View instructions link) в `autohotpie-tauri/src/state/autostartStore.ts` и `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [x] T130e.1 [US3] Cover автозапуск (Enabled/Disabled/Unsupported/Errored) и read-only overlay Playwright тестом в `autohotpie-tauri/tests/e2e/autostart.spec.ts`
 - [x] T130f [US3] Document autostart status API responses, read-only flow и troubleshooting steps в `specs/001-build-tauri-pie/quickstart.md`

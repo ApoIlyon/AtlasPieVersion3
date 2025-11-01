@@ -150,7 +150,7 @@ autohotpie-tauri/contracts/
   - `storage-guard.spec.ts` — безопасный режим при отсутствии записи.
 - **Performance & Memory (NFR-001/002/003/004)**: `tests/perf/latency.spec.ts` фиксирует время hotkey→pie (<50 мс) и action launch (<200 мс, 95-й перцентиль); `tests/perf/fps.spec.ts` измеряет рендер (>60 FPS) и собирает heap snapshots для памяти (<150 МБ) с экспортом отчётов в `/perf-reports`.
 - **Offline Resilience (NFR-005)**: `offline.spec.ts` отключает сеть, проверяет сохранение функционала импорта/экспорта, логов, автозапуска и отображает предупреждения при попытке сетевых операций.
-- **Cross-Platform UX Parity (NFR-006)**: macOS/Linux паритет подтверждается тестами `autostart.spec.ts`, `linux-ux.spec.ts`, `notifications.spec.ts` и ручной проверкой меню/трэй статусов; тесты и ревью учитывают критерии из NFR-006 (чеклист функциональных состояний, скриншоты, временные метрики, Linux fallback).
+- **Cross-Platform UX Parity (NFR-006)**: macOS/Linux паритет подтверждается тестами `autostart.spec.ts`, `linux-fallback.spec.ts`, `notifications.spec.ts` и ручной проверкой меню/трэй статусов; тесты и ревью учитывают критерии из NFR-006 (чеклист функциональных состояний, скриншоты, временные метрики, Linux fallback).
 - **Documentation**: quickstart.md содержит инструкции по Log Panel, автозапуску и read-only; актуализируется в T035/T134d.
 
 ## Complexity Tracking
