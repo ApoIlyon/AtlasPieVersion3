@@ -167,9 +167,9 @@
 
 **Purpose**: Final refinements impacting multiple stories.
 
-- [ ] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
+- [x] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
 - [ ] T037 [P] Tune pie menu performance и memory usage с профилированием React Profiler и `tracing` метрик в `autohотpie-tauri/src/components/pie/PieMenu.tsx` и `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T037 Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohotpie-tauri/tests/e2e/`
+- [ ] T037u Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohотpie-tauri/tests/e2e/`
 - [ ] T037a [P] Benchmark hotkey → pie меню → action latency (p95 < 200 мс) и peak memory (<150 МБ) в `autohotpie-tauri/tests/perf/latency.spec.ts` с выводом отчётов в `autohotpie-tauri/tests/perf/reports`
 - [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
 - [ ] T037c [P] Instrument FPS measurement (>60 FPS) и frame time графики в `autohotpie-tauri/tests/perf/fps.spec.ts`, сохранять CSV/PNG в `tests/perf/reports`

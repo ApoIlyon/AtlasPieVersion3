@@ -127,3 +127,14 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
   3. Кнопка **Refresh autostart** синхронизирует состояние с бэкендом; **Open autostart location** открывает директорию автозапуска (или выдаёт ошибку в read-only).
   4. Кнопка **View instructions** ссылается на раздел troubleshooting quickstart; скриншоты панели сохраняются в `specs/001-build-tauri-pie/artifacts/linux-fallback-panel.png`.
   5. Smoke-тест: выполните `npm run test:e2e -- --grep "Linux fallback" --project=chromium` (используя новый `tests/e2e/linux-fallback.spec.ts`); приложите лог прогона к чеклисту NFR-006.
+
+## Validation Summary (T035/T037)
+
+| Область | Команда/действие | Артефакт/примечание |
+|---------|------------------|---------------------|
+| Полный smoke-suite | `npm run test:e2e` | HTML-отчёт Playwright: `autohotpie-tauri/tests/e2e/playwright-report/index.html` (48/48 пройдено, включая `linux-fallback.spec.ts`, `autostart.spec.ts`, `notifications.spec.ts`). |
+| Локализация | `npm run test:e2e -- --grep "Localization"` | Проверяет `localization.spec.ts`; убедитесь, что новые ключи присутствуют в EN/RU и fallback-пакете (`localizationStore`). |
+| UX паритет macOS/Linux | См. разделы выше + `npm run test:e2e -- --grep "Linux fallback" --project=chromium` | Скриншоты и чеклист: `specs/001-build-tauri-pie/artifacts/macos-menu-bar*.png`, `linux-fallback-panel.png`. |
+| Доступность (ручная проверка) | Используйте макрозоны UI: High Contrast в Settings → Accessibility, проверка навигации клавиатурой по `MenuBarToggle` и Linux fallback панели | Зафиксируйте результаты в `specs/001-build-tauri-pie/research.md` при необходимости. |
+
+> После каждого релиза обновляйте таблицу ссылками на свежие отчёты и скриншоты, чтобы соответствовать критериям NFR-006 и документировать прохождение e2e.
