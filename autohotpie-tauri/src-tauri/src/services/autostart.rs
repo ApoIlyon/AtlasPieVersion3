@@ -38,6 +38,7 @@ pub struct AutostartInfo {
     pub reason_code: Option<String>,
 }
 
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 fn first_non_empty<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> Option<&'a str> {
     fn normalized(value: &str) -> Option<&str> {
         if value.trim().is_empty() {
@@ -59,21 +60,25 @@ impl AutostartService {
         Self
     }
 
+    #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
     #[cfg(all(not(target_os = "linux"), target_os = "macos"))]
     fn enabled_message() -> String {
         "Autostart managed via macOS login items.".into()
     }
 
+    #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
     #[cfg(all(not(target_os = "linux"), not(target_os = "macos")))]
     fn enabled_message() -> String {
         "Autostart managed by platform autostart plugin.".into()
     }
 
+    #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
     #[cfg(all(not(target_os = "linux"), target_os = "macos"))]
     fn disabled_message() -> String {
         "Login item disabled. Enable autostart to register AutoHotPie.".into()
     }
 
+    #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
     #[cfg(all(not(target_os = "linux"), not(target_os = "macos")))]
     fn disabled_message() -> String {
         "Autostart disabled via platform autostart plugin.".into()
@@ -89,7 +94,7 @@ impl AutostartService {
             return linux::status(app);
         }
 
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(all(not(target_os = "linux"), not(target_os = "windows")))]
         let Some(plugin) = Self::manager(app) else {
             #[cfg(target_os = "macos")]
             let provider = AutostartProvider::MacosLaunchAgent;
@@ -105,7 +110,7 @@ impl AutostartService {
             };
         };
 
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(all(not(target_os = "linux"), not(target_os = "windows")))]
         {
             #[cfg(target_os = "macos")]
             let provider = AutostartProvider::MacosLaunchAgent;
@@ -148,11 +153,11 @@ impl AutostartService {
             return linux::set_enabled(app, enable);
         }
 
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(all(not(target_os = "linux"), not(target_os = "windows")))]
         let plugin = Self::manager(app)
             .ok_or_else(|| AppError::Message("autostart plugin not available".into()))?;
 
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(all(not(target_os = "linux"), not(target_os = "windows")))]
         {
             if enable {
                 plugin.enable()
@@ -220,6 +225,7 @@ impl AutostartService {
         app.try_state::<AutoLaunchManager>()
     }
 
+    #[cfg_attr(any(target_os = "linux", target_os = "windows"), allow(dead_code))]
     #[cfg(not(target_os = "linux"))]
     fn unsupported_message() -> Option<String> {
         #[cfg(target_os = "linux")]

@@ -17,9 +17,12 @@ export default defineConfig({
     '**/autostart.spec.ts',
     '**/hotkey-conflict.spec.ts',
     '**/localization.spec.ts',
+    '**/localization-negative.spec.ts',
     '**/log-panel.spec.ts',
     '**/import-export-negative.spec.ts',
     '**/linux-fallback.spec.ts',
+    '**/offline.spec.ts',
+    '**/accessibility.spec.ts',
   ],
   timeout: 30_000,
   expect: {

@@ -84,6 +84,7 @@ export function LanguageSwitcher() {
           <span
             className="rounded-full border border-yellow-400/30 bg-yellow-400/10 px-2 py-[2px] text-yellow-200"
             title={missingSummary}
+            data-testid="localization-missing-badge"
           >
             {t('localization.switcher.missingLabel')}: {missingCount}
           </span>
@@ -92,6 +93,7 @@ export function LanguageSwitcher() {
           <span
             className="rounded-full border border-red-400/30 bg-red-400/10 px-2 py-[2px] text-red-200"
             title={runtimeSummary}
+            data-testid="localization-runtime-badge"
           >
             {t('localization.switcher.runtimeLabel')}: {runtimeMissingCount}
           </span>
@@ -103,6 +105,7 @@ export function LanguageSwitcher() {
           className="text-[11px] text-red-300 underline underline-offset-4 hover:text-red-200"
           onClick={clearError}
           title={error ?? undefined}
+          data-testid="localization-error-button"
         >
           {t('localization.switcher.error')}
         </button>

@@ -249,6 +249,7 @@ export function LinuxFallbackPanel({
           type="button"
           className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] uppercase tracking-[0.35em] text-white/50 transition hover:bg-white/10"
           onClick={() => setIsPanelVisible((value) => !value)}
+          data-testid="linux-fallback-status-toggle"
         >
           {statusToggleLabel}
         </button>

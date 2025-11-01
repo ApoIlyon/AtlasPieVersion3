@@ -169,14 +169,14 @@
 
 - [x] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
 - [ ] T037 [P] Tune pie menu performance и memory usage с профилированием React Profiler и `tracing` метрик в `autohотpie-tauri/src/components/pie/PieMenu.tsx` и `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T037u Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohотpie-tauri/tests/e2e/`
+- [x] T037u Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohотpie-tauri/tests/e2e/`
 - [ ] T037a [P] Benchmark hotkey → pie меню → action latency (p95 < 200 мс) и peak memory (<150 МБ) в `autohotpie-tauri/tests/perf/latency.spec.ts` с выводом отчётов в `autohotpie-tauri/tests/perf/reports`
-- [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
+- [x] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohотpie-tauri/tests/e2e/localization-negative.spec.ts`
 - [ ] T037c [P] Instrument FPS measurement (>60 FPS) и frame time графики в `autohotpie-tauri/tests/perf/fps.spec.ts`, сохранять CSV/PNG в `tests/perf/reports`
 - [ ] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`
 - [ ] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` статус покрытия FR-012/FR-013/FR-024 после внедрения лог-панели и автозапуска
 - [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
-- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohотpie-tauri/tests/e2e/offline.spec.ts`
+- [x] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autохотpie-tauri/tests/e2e/offline.spec.ts`
 - [ ] T037h [P] Собрать UX-паритетные артефакты (чеклист функциональных состояний, side-by-side скриншоты трея/меню, таблицу результатов) и обновить `specs/001-build-tauri-pie/quickstart.md` согласно критериям NFR-006.
 - [ ] T037i Протоколировать результаты измерений задержек (горячая клавиша → меню, переключение автозапуска) по 20 замерам на каждой платформе, подтвердить соблюдение допусков NFR-006 и приложить логи в `tests/perf/reports`.
 

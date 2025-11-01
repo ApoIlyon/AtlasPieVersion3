@@ -16,7 +16,10 @@ export function OfflineNotice() {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-overlay/80 px-4 py-3 text-sm shadow-lg shadow-black/30 space-y-2">
+    <div
+      data-testid="offline-notice"
+      className="rounded-2xl border border-border bg-overlay/80 px-4 py-3 text-sm shadow-lg shadow-black/30 space-y-2"
+    >
       {error && <p className="text-red-400">{error}</p>}
       {!error && status.connectivity.isOffline && (
         <p className="text-text-secondary">{t('status.offlineNotice')}</p>

@@ -117,7 +117,9 @@ export function SettingsAutostart() {
         </div>
       )}
       <header className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">{t('settings.autostart.title')}</h2>
+        <h2 className="text-2xl font-semibold text-white" data-testid="settings-autostart-heading">
+          {t('settings.autostart.title')}
+        </h2>
         <p className="max-w-2xl text-sm text-white/70">{t('settings.autostart.description')}</p>
       </header>
 

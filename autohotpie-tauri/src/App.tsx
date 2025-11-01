@@ -75,6 +75,15 @@ function usePlatform() {
           linux = linux || normalized === 'linux';
           mac = mac || normalized === 'darwin';
         }
+        const params = new URLSearchParams(window.location.search);
+        const mockPlatform = params.get('mockPlatform');
+        if (mockPlatform === 'linux') {
+          linux = true;
+          mac = false;
+        } else if (mockPlatform === 'mac') {
+          mac = true;
+          linux = false;
+        }
       }
       return { linux, mac };
     };
@@ -135,6 +144,8 @@ export function App() {
   const systemInit = useSystemStore((state) => state.init);
   const systemStatus = useSystemStore((state) => state.status);
   const systemError = useSystemStore((state) => state.error);
+  const setSystemOffline = useSystemStore((state) => state.setOffline);
+  const setSystemStorageMode = useSystemStore((state) => state.setStorageMode);
   const {
     dialogOpen,
     dialogStatus,
@@ -157,6 +168,50 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const mockOffline = params.get('mockOffline');
+    if (!mockOffline) {
+      return;
+    }
+    const normalized = mockOffline.toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+      const timestamp = new Date().toISOString();
+      setSystemOffline(true, timestamp);
+      setSystemStorageMode('read_only');
+    }
+  }, [setSystemOffline, setSystemStorageMode]);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const appWindow = window as typeof window & {
+      __AUTOHOTPIE_APP__?: { setSection: (section: AppSection) => void };
+    };
+    const previousHelper = appWindow.__AUTOHOTPIE_APP__;
+
+    appWindow.__AUTOHOTPIE_APP__ = {
+      setSection: (section: AppSection) => {
+        setActiveSection(section);
+        if (section !== 'profiles') {
+          setSelectedProfileId(null);
+        }
+      },
+    };
+
+    return () => {
+      if (previousHelper) {
+        appWindow.__AUTOHOTPIE_APP__ = previousHelper;
+        return;
+      }
+      if (appWindow.__AUTOHOTPIE_APP__) {
+        delete appWindow.__AUTOHOTPIE_APP__;
+      }
+    };
+  }, [setActiveSection, setSelectedProfileId]);
   const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
 
   const loadedProfilesText = t('dashboard.loadedProfiles').replace('{count}', String(profiles.length));
@@ -428,6 +483,7 @@ export function App() {
                   : 'border-white/5 bg-white/5 text-white/70 hover:border-white/10 hover:bg-white/10 hover:text-white',
               )}
               type="button"
+              data-testid={`nav-${item.id}`}
               onClick={() => {
                 setActiveSection(item.id);
                 if (item.id !== 'profiles') {
