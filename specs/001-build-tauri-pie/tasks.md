@@ -136,9 +136,9 @@
 - [x] T129 [P] [US3] Build settings UI for JSON import/export in `autohotpie-tauri/src/screens/SettingsImportExport.tsx`
 - [x] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
 - [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
-- [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
+- [x] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
   - Acceptance: системд и XDG автозапуск переключаются из UI, fallback подсказки локализованы, приложен лог успешного прогона `autohotpie-tauri/tests/e2e/autostart.spec.ts` на Linux.
-- [x] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
   - Acceptance: smoke-сценарий переключения профиля подтверждён на macOS 13+, приложены скриншоты и чеклист паритета (иконки, хоткеи, статусы) в `specs/001-build-tauri-pie/quickstart.md`.
 - [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
   - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`.
