@@ -7,7 +7,7 @@ use tauri::{
 
 #[cfg(feature = "tray-icon")]
 use crate::{
-    commands::{self, profiles::ProfileStore},
+    commands::{self, profiles::ProfileStore, AppState, SystemState},
     services::profile_router,
     storage::profile_repository::ProfileId,
 };
@@ -20,6 +20,8 @@ use tauri::async_runtime::Mutex;
 
 #[cfg(all(feature = "tray-icon", target_os = "macos"))]
 const MENU_TOGGLE_ID: &str = "menu.toggle-pie";
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+const MENU_STATUS_REFRESH_ID: &str = "menu.status.refresh";
 
 #[cfg(feature = "tray-icon")]
 const PROFILE_SUBMENU_ID: &str = "tray.profiles";
@@ -297,11 +299,7 @@ fn show_main<R: Runtime>(tray: &TrayIcon<R>) {
 
 #[cfg(all(feature = "tray-icon", target_os = "macos"))]
 fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    let toggle_item = MenuItemBuilder::new("Toggle Pie Menu")
-        .id(MENU_TOGGLE_ID)
-        .accelerator("Command+Shift+P")?;
-
-    let menu = MenuBuilder::new(app).item(&toggle_item)?.build()?;
+    let menu = build_menu_bar(app)?;
 
     app.set_menu(menu)?;
     app.on_menu_event(|handle, event| {
@@ -311,10 +309,114 @@ fn setup_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             if let Some(tray) = handle.tray_handle().get("main") {
                 update_menu_icon(&tray, true);
             }
+            if let Ok(updated_menu) = build_menu_bar(&handle.app_handle()) {
+                if let Err(err) = handle.set_menu(updated_menu) {
+                    eprintln!("failed to rebuild macOS menu bar: {err}");
+                }
+            }
+            return;
+        }
+
+        if event.id().as_ref() == MENU_STATUS_REFRESH_ID {
+            if let Ok(updated_menu) = build_menu_bar(&handle.app_handle()) {
+                if let Err(err) = handle.set_menu(updated_menu) {
+                    eprintln!("failed to refresh macOS status menu: {err}");
+                }
+            }
         }
     });
 
     Ok(())
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+fn build_menu_bar<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
+    use tauri::menu::SubmenuBuilder;
+
+    let toggle_item = MenuItemBuilder::new("Toggle Pie Menu")
+        .id(MENU_TOGGLE_ID)
+        .accelerator("Command+Shift+P")?;
+
+    let status_submenu = build_status_submenu(app)?;
+
+    MenuBuilder::new(app)
+        .item(&toggle_item)?
+        .submenu(&status_submenu)?
+        .build()
+}
+
+#[cfg(all(feature = "tray-icon", target_os = "macos"))]
+fn build_status_submenu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<tauri::menu::Submenu<R>> {
+    use crate::services::system_status::StorageMode;
+    use tauri::menu::{MenuItemKind, SubmenuBuilder};
+
+    let app_state = app.state::<AppState>();
+    let system_state = app.state::<SystemState>();
+    let hotkey_state = app.state::<crate::commands::hotkeys::HotkeyState>();
+
+    let snapshot = app_state
+        .profiles_snapshot()
+        .unwrap_or_default();
+    let active_profile = snapshot
+        .active_profile_id
+        .and_then(|id| snapshot.profiles.iter().find(|record| record.profile.id == id))
+        .map(|record| record.profile.name.clone())
+        .unwrap_or_else(|| "No active profile".into());
+
+    let hotkey = hotkey_state
+        .list()
+        .ok()
+        .and_then(|registered| {
+            registered
+                .into_iter()
+                .find(|entry| entry.id == "preview-pie-menu-toggle")
+                .map(|entry| entry.accelerator)
+        })
+        .unwrap_or_else(|| "Command+Shift+P".into());
+
+    let system_snapshot = system_state
+        .status
+        .lock()
+        .map(|guard| guard.clone())
+        .unwrap_or_default();
+
+    let safe_mode_reason = if system_snapshot.safe_mode {
+        if matches!(system_snapshot.storage_mode, StorageMode::ReadOnly) {
+            "Read-only data directory"
+        } else {
+            "Fullscreen application detected"
+        }
+    } else {
+        "Safe mode inactive"
+    };
+
+    let mut submenu = SubmenuBuilder::new(app, "Status");
+
+    submenu = submenu.item(
+        &MenuItemBuilder::new(format!("Active profile: {}", active_profile))
+            .enabled(false)
+            .build(app)?,
+    );
+
+    submenu = submenu.item(
+        &MenuItemBuilder::new(format!("Hotkey: {}", hotkey))
+            .enabled(false)
+            .build(app)?,
+    );
+
+    submenu = submenu.item(
+        &MenuItemBuilder::new(format!("Safe mode: {}", safe_mode_reason))
+            .enabled(false)
+            .build(app)?,
+    );
+
+    submenu = submenu.separator().item(
+        &MenuItemBuilder::new("Refresh status")
+            .id(MENU_STATUS_REFRESH_ID)
+            .build(app)?,
+    );
+
+    submenu.build()
 }
 
 #[cfg(all(feature = "tray-icon", target_os = "macos"))]

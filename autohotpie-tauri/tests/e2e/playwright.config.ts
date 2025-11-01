@@ -1,12 +1,26 @@
 import { defineConfig, devices } from '@playwright/test';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
+const moduleDir = fileURLToPath(new URL('.', import.meta.url));
 const contextProfiles = JSON.parse(
   readFileSync(new URL('./fixtures/context-profiles.json', import.meta.url), 'utf-8')
 );
 
 export default defineConfig({
-  testDir: '../',
+  testDir: join(moduleDir),
+  testMatch: [
+    '**/app-smoke.spec.ts',
+    '**/pie-menu.spec.ts',
+    '**/action-execution.spec.ts',
+    '**/autostart.spec.ts',
+    '**/hotkey-conflict.spec.ts',
+    '**/localization.spec.ts',
+    '**/log-panel.spec.ts',
+    '**/import-export-negative.spec.ts',
+    '**/linux-fallback.spec.ts',
+  ],
   timeout: 30_000,
   expect: {
     timeout: 5_000,

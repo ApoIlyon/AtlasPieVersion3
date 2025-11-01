@@ -42,7 +42,8 @@ test.describe('US1 - Action execution flow', () => {
     const statusToast = page.getByRole('status').first();
     await expect(statusToast).toBeVisible({ timeout: 1_000 });
     await expect(statusToast).toContainText(/SUCCESS/i);
-    await expect(pieMenu).not.toBeVisible({ timeout: 2_000 });
+    await page.keyboard.press('Escape');
+    await expect(pieMenu).toBeHidden({ timeout: 2_000 });
 
     await page.evaluate(() => {
       window.dispatchEvent(

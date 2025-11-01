@@ -110,3 +110,20 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 - Global hotkey conflicts: see **Settings → Hotkeys**; reassign or disable conflicting bindings.
 - Missing tray icon on Linux: ensure `libayatana-appindicator3` installed; fallback UI enabled otherwise.
 - Accessibility prompts on macOS: enable permissions under **System Settings → Privacy & Security → Accessibility**.
+- **macOS menu bar parity (NFR-006)**:
+  1. На macOS 13+ убедитесь, что иконка AutoHotPie отображается в строке меню. При клике пункт **Toggle Pie Menu** синхронизируется с состоянием overlay.
+  2. Откройте пункт **Status** → подтверждаем отображение:
+     - `Active profile` — обозначает текущий активный профиль, совпадает с `profiles://active-changed`.
+     - `Hotkey` — показывает зарегистрированное сочетание (по умолчанию `Command+Shift+P`).
+     - `Safe mode` — отражает read-only/Fullscreen показания (`Safe mode enabled`/`Safe mode inactive`).
+  3. Меню **Refresh status** обновляет данные после смены профиля или хоткея без перезапуска приложения.
+  4. В UI-компоненте `MenuBarToggle` (overlay) отображается та же информация и история последнего действия; скриншоты закрепляются в `specs/001-build-tauri-pie/artifacts/macos-menu-bar.png` и `macos-menu-bar-details.png`.
+  5. Smoke-проверка: запустите `npm run test:e2e -- --grep "US3 - Autostart settings" --project=webkit` после конфигурации macOS runner; приложите лог успешного прогона и обновите чеклист NFR-006.
+- **Linux fallback parity (NFR-006)**:
+  1. В окружении без системного трея (или с флагом `--mock tray=off`) убедитесь, что появляется панель Linux fallback и кнопка **Toggle** управляет pie-меню.
+  2. Внутри панели отображаются блоки:
+     - `Autostart` — статус, провайдер и причины (systemd/XDG/plugin); кнопки Enable/Disable работают и показывают ошибки.
+     - `Hotkey`, `Active profile`, `Safe mode`, а также таймстемп последнего действия.
+  3. Кнопка **Refresh autostart** синхронизирует состояние с бэкендом; **Open autostart location** открывает директорию автозапуска (или выдаёт ошибку в read-only).
+  4. Кнопка **View instructions** ссылается на раздел troubleshooting quickstart; скриншоты панели сохраняются в `specs/001-build-tauri-pie/artifacts/linux-fallback-panel.png`.
+  5. Smoke-тест: выполните `npm run test:e2e -- --grep "Linux fallback" --project=chromium` (используя новый `tests/e2e/linux-fallback.spec.ts`); приложите лог прогона к чеклисту NFR-006.

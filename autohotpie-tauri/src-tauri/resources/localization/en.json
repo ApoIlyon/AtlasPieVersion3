@@ -224,8 +224,16 @@
     "menuBar.header.title": "Pie Menu Launcher",
     "menuBar.details.lastActionLabel": "Last action",
     "menuBar.details.statusLine": "Status: {status} · {time}",
+    "menuBar.details.profile": "Active profile",
+    "menuBar.details.hotkey": "Hotkey",
+    "menuBar.details.safeMode": "Safe mode",
+    "menuBar.safeMode.active": "Safe mode enabled",
+    "menuBar.safeMode.inactive": "Safe mode inactive",
+    "menuBar.profileFallback": "No active profile",
     "menuBar.buttons.open": "Open Pie Menu",
+    "menuBar.buttons.focus": "Focus Pie Menu",
     "menuBar.shortcutHint": "Shortcut: {shortcut}",
+    "menuBar.shortcutFallback": "Ctrl + Shift + P",
     "linuxFallback.caption": "Linux fallback",
     "linuxFallback.title": "Pie Menu Control",
     "linuxFallback.toggleButton": "Toggle",
@@ -256,6 +264,9 @@
     "linuxFallback.details.lastActionMessage": "Last action message",
     "linuxFallback.details.lastActionTitle": "Last action",
     "linuxFallback.details.statusLine": "Status: {status} · {time}",
-    "linuxFallback.details.lastUpdated": "Last updated"
+    "linuxFallback.details.lastUpdated": "Last updated",
+    "linuxFallback.autostart.statusUnknown": "Autostart status unavailable",
+    "linuxFallback.autostart.refresh": "Refresh autostart",
+    "linuxFallback.autostart.provider": "Autostart provider: {provider}"
   }
 }
