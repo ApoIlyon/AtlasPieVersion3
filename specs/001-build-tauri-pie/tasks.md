@@ -137,11 +137,11 @@
 - [x] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
 - [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [x] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-  - _Deferred until macOS/Linux environments are available for FR-009/FR-022 validation._
-- [x] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
-  - _Deferred: awaiting macOS verification window to satisfy FR-022 requirements._
-- [x] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
-  - _Deferred: pending Linux smoke-test target alignment with FR-022._
+  - Acceptance: системд и XDG автозапуск переключаются из UI, fallback подсказки локализованы, приложен лог успешного прогона `autohotpie-tauri/tests/e2e/autostart.spec.ts` на Linux.
+- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+  - Acceptance: smoke-сценарий переключения профиля подтверждён на macOS 13+, приложены скриншоты и чеклист паритета (иконки, хоткеи, статусы) в `specs/001-build-tauri-pie/quickstart.md`.
+- [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
+  - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`.
 - [x] T130e [US3] Sync autostart status, read-only баннер и Retry flow с frontend store/UI (desktop-only guard, инструкции, View instructions link) в `autohotpie-tauri/src/state/autostartStore.ts` и `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [x] T130e.1 [US3] Cover автозапуск (Enabled/Disabled/Unsupported/Errored) и read-only overlay Playwright тестом в `autohotpie-tauri/tests/e2e/autostart.spec.ts`
 - [x] T130f [US3] Document autostart status API responses, read-only flow и troubleshooting steps в `specs/001-build-tauri-pie/quickstart.md`
@@ -176,7 +176,9 @@
 - [ ] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`
 - [ ] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` статус покрытия FR-012/FR-013/FR-024 после внедрения лог-панели и автозапуска
 - [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
-- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohotpie-tauri/tests/e2e/offline.spec.ts`
+- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohотpie-tauri/tests/e2e/offline.spec.ts`
+- [ ] T037h [P] Собрать UX-паритетные артефакты (чеклист функциональных состояний, side-by-side скриншоты трея/меню, таблицу результатов) и обновить `specs/001-build-tauri-pie/quickstart.md` согласно критериям NFR-006.
+- [ ] T037i Протоколировать результаты измерений задержек (горячая клавиша → меню, переключение автозапуска) по 20 замерам на каждой платформе, подтвердить соблюдение допусков NFR-006 и приложить логи в `tests/perf/reports`.
 
 ---
 
@@ -202,7 +204,7 @@
 - During Phase 1, T002–T004 can run alongside T001 after dependency installation.
 - In Phase 3, T012, T013, T015, and T016 can proceed concurrently once command scaffolding (T008) is in place.
 - Phase 4 UI tasks (T022–T025) can run parallel after repositories (T019, T020) land.
-- Phase 5 services T027, T030, T031 can progress in parallel while frontend counterparts (T029, T032, T033) are developed.
+- Phase 5 services T130b, T130c, T130d can progress вT130b связке с фронтенд-задачами T133, T134, T134a, когда инфраструктура US2 готова.
 
 ## Implementation Strategy
 
@@ -214,7 +216,7 @@
 ### Incremental Delivery
 1. Ship MVP (US1) → demo.
 2. Add US2 to unlock profile management → demo.
-3. Add US3 for distribution/autostart/update features → demo.
+3. Add US3 for distribution/autostart/update features (T130b–T134d) → demo.
 4. Finish with Phase 6 polish for performance, accessibility, and documentation.
 
 ### Team Parallelization

@@ -1,10 +1,20 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+type AutostartProvider =
+  | 'systemd'
+  | 'xdg_desktop'
+  | 'plugin'
+  | 'windows_startup'
+  | 'macos_launch_agent'
+  | 'unsupported';
+
 type AutostartInfo = {
   status: 'enabled' | 'disabled' | 'unsupported' | 'errored';
   launcherPath?: string | null;
   message?: string | null;
+  provider?: AutostartProvider | null;
+  reasonCode?: string | null;
 };
 
 type AutostartStoreState = {
@@ -76,23 +86,46 @@ test.describe('US3 - Autostart settings', () => {
     const disableButton = page.getByRole('button', { name: 'Disable autostart' });
     const retryButton = page.getByTestId('autostart-retry');
 
-    await setAutostartState(page, { status: 'disabled', launcherPath: null, message: null });
-    await setAutostartState(page, { status: 'disabled', launcherPath: null, message: null });
+    await setAutostartState(page, {
+      status: 'disabled',
+      launcherPath: null,
+      message: null,
+      provider: 'xdg_desktop',
+      reasonCode: 'entry_missing',
+    });
+    await setAutostartState(page, {
+      status: 'disabled',
+      launcherPath: null,
+      message: null,
+      provider: 'xdg_desktop',
+      reasonCode: 'entry_missing',
+    });
     await waitForAutostartStore(page);
     await expect(statusBadge).toHaveText('Autostart is currently disabled.');
     await expect(enableButton).toBeEnabled();
     await expect(disableButton).toBeDisabled();
+    await expect(page.getByTestId('autostart-provider')).toContainText('XDG desktop entry');
+    await expect(page.getByTestId('autostart-status-message')).toContainText(
+      'Desktop entry missing. Enable autostart to create it.',
+    );
 
-    await setAutostartState(page, { status: 'enabled', launcherPath: '/tmp/launcher', message: null });
+    await setAutostartState(page, {
+      status: 'enabled',
+      launcherPath: '/tmp/launcher',
+      message: null,
+      provider: 'windows_startup',
+    });
     await waitForAutostartStore(page);
     await expect(statusBadge).toHaveText('Autostart is currently enabled.');
     await expect(enableButton).toBeDisabled();
     await expect(disableButton).toBeEnabled();
+    await expect(page.getByTestId('autostart-provider')).toContainText('Windows Startup folder');
 
     await setAutostartState(page, {
       status: 'errored',
       launcherPath: null,
       message: 'Simulated autostart failure',
+      provider: 'unsupported',
     });
     await expect(statusBadge).toHaveText('Autostart encountered an error.');
     await expect(page.getByTestId('autostart-status-message')).toContainText('Simulated autostart failure');
@@ -105,7 +138,13 @@ test.describe('US3 - Autostart settings', () => {
       store.setState({
         refresh: async () => {
           store.setState({
-            info: { status: 'disabled', launcherPath: null, message: null },
+            info: {
+              status: 'disabled',
+              launcherPath: null,
+              message: null,
+              provider: 'plugin',
+              reasonCode: 'plugin_disabled',
+            },
             error: null,
             isLoading: false,
           });
@@ -115,7 +154,10 @@ test.describe('US3 - Autostart settings', () => {
 
     await retryButton.click();
     await expect(statusBadge).toHaveText('Autostart is currently disabled.');
-    await expect(page.getByTestId('autostart-status-message')).toHaveCount(0);
+    await expect(page.getByTestId('autostart-provider')).toContainText('Platform autostart plugin');
+    await expect(page.getByTestId('autostart-status-message')).toContainText(
+      'Autostart is disabled by platform plugin settings.',
+    );
 
     await page.evaluate(() => {
       const store = window.__AUTOHOTPIE_SYSTEM_STORE__;

@@ -17,6 +17,27 @@ pub enum AutostartStatus {
     Unsupported,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AutostartProvider {
+    Systemd,
+    XdgDesktop,
+    Plugin,
+    WindowsStartup,
+    MacosLaunchAgent,
+    Unsupported,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AutostartInfo {
+    pub status: AutostartStatus,
+    pub message: Option<String>,
+    pub launcher_path: Option<String>,
+    pub provider: AutostartProvider,
+    pub reason_code: Option<String>,
+}
+
 fn first_non_empty<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> Option<&'a str> {
     fn normalized(value: &str) -> Option<&str> {
         if value.trim().is_empty() {
@@ -31,19 +52,31 @@ fn first_non_empty<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> O
         .or_else(|| fallback.and_then(normalized))
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AutostartInfo {
-    pub status: AutostartStatus,
-    pub message: Option<String>,
-    pub launcher_path: Option<String>,
-}
-
 pub struct AutostartService;
 
 impl AutostartService {
     pub fn new() -> Self {
         Self
+    }
+
+    #[cfg(all(not(target_os = "linux"), target_os = "macos"))]
+    fn enabled_message() -> String {
+        "Autostart managed via macOS login items.".into()
+    }
+
+    #[cfg(all(not(target_os = "linux"), not(target_os = "macos")))]
+    fn enabled_message() -> String {
+        "Autostart managed by platform autostart plugin.".into()
+    }
+
+    #[cfg(all(not(target_os = "linux"), target_os = "macos"))]
+    fn disabled_message() -> String {
+        "Login item disabled. Enable autostart to register AutoHotPie.".into()
+    }
+
+    #[cfg(all(not(target_os = "linux"), not(target_os = "macos")))]
+    fn disabled_message() -> String {
+        "Autostart disabled via platform autostart plugin.".into()
     }
 
     pub fn status<R: Runtime>(&self, app: &AppHandle<R>) -> AutostartInfo {
@@ -58,30 +91,48 @@ impl AutostartService {
 
         #[cfg(not(target_os = "linux"))]
         let Some(plugin) = Self::manager(app) else {
+            #[cfg(target_os = "macos")]
+            let provider = AutostartProvider::MacosLaunchAgent;
+            #[cfg(not(target_os = "macos"))]
+            let provider = AutostartProvider::Unsupported;
+
             return AutostartInfo {
                 status: AutostartStatus::Unsupported,
                 message: Self::unsupported_message(),
                 launcher_path: None,
+                provider,
+                reason_code: Some("plugin_missing".into()),
             };
         };
 
         #[cfg(not(target_os = "linux"))]
         {
+            #[cfg(target_os = "macos")]
+            let provider = AutostartProvider::MacosLaunchAgent;
+            #[cfg(not(target_os = "macos"))]
+            let provider = AutostartProvider::Plugin;
+
             match plugin.is_enabled() {
                 Ok(true) => AutostartInfo {
                     status: AutostartStatus::Enabled,
-                    message: None,
+                    message: Some(Self::enabled_message()),
                     launcher_path: None,
+                    provider,
+                    reason_code: None,
                 },
                 Ok(false) => AutostartInfo {
                     status: AutostartStatus::Disabled,
-                    message: None,
+                    message: Some(Self::disabled_message()),
                     launcher_path: None,
+                    provider,
+                    reason_code: Some("plugin_disabled".into()),
                 },
                 Err(err) => AutostartInfo {
                     status: AutostartStatus::Unsupported,
                     message: Some(format!("failed to query autostart status: {err}")),
                     launcher_path: None,
+                    provider,
+                    reason_code: Some("plugin_error".into()),
                 },
             }
         }
@@ -190,42 +241,54 @@ impl AutostartService {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use super::{first_non_empty, AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
-    use std::{env, fs, path::Path, path::PathBuf, process::Command};
+    use super::{
+        first_non_empty, AppError, AppHandle, AutostartInfo, AutostartProvider, AutostartStatus,
+        Runtime,
+    };
+    use std::{
+        env, fs,
+        path::{Path, PathBuf},
+        process::{Command, Output, Stdio},
+    };
 
     const AUTOSTART_SUBDIR: &str = "autostart";
     const DESKTOP_FILE_SUFFIX: &str = ".desktop";
+    const SYSTEMD_UNIT_SUFFIX: &str = ".service";
 
     pub fn status<R: Runtime>(app: &AppHandle<R>) -> AutostartInfo {
-        match desktop_entry_path(app) {
-            Ok(path) => {
-                let launcher_path = Some(path.to_string_lossy().into_owned());
-                if path.exists() {
-                    AutostartInfo {
-                        status: AutostartStatus::Enabled,
-                        message: None,
-                        launcher_path,
-                    }
-                } else {
-                    AutostartInfo {
-                        status: AutostartStatus::Disabled,
-                        message: Some(
-                            "Autostart entry not found. Enable to create an XDG desktop entry."
-                                .into(),
-                        ),
-                        launcher_path,
-                    }
-                }
+        let systemd = systemd_status(app).ok();
+        if let Some(info) = systemd.as_ref() {
+            if info.status == AutostartStatus::Enabled {
+                return info.clone();
             }
-            Err(err) => AutostartInfo {
-                status: AutostartStatus::Unsupported,
-                message: Some(err.to_string()),
-                launcher_path: None,
-            },
         }
+
+        let xdg = xdg_status(app).ok();
+        if let Some(info) = xdg.as_ref() {
+            if info.status == AutostartStatus::Enabled {
+                return info.clone();
+            }
+        }
+
+        systemd
+            .or(xdg)
+            .unwrap_or_else(|| AutostartInfo {
+                status: AutostartStatus::Unsupported,
+                message: Some(
+                    "Linux autostart is unavailable. Install systemd or enable XDG autostart manually." 
+                        .into(),
+                ),
+                launcher_path: None,
+                provider: AutostartProvider::Unsupported,
+                reason_code: Some("linux_no_provider".into()),
+            })
     }
 
     pub fn set_enabled<R: Runtime>(app: &AppHandle<R>, enable: bool) -> Result<(), AppError> {
+        if let Err(err) = set_systemd_enabled(app, enable) {
+            eprintln!("systemd autostart toggle failed: {err}");
+        }
+
         let path = desktop_entry_path(app)?;
         let dir = path
             .parent()
@@ -242,6 +305,81 @@ mod linux {
         }
 
         Ok(())
+    }
+
+    fn systemd_status<R: Runtime>(app: &AppHandle<R>) -> Result<AutostartInfo, AppError> {
+        if !systemctl_available() {
+            return Err(AppError::Message("systemctl not available in PATH".into()));
+        }
+
+        let unit_path = systemd_unit_path(app)?;
+        let unit_name = systemd_unit_name(app);
+        let launcher_path = if unit_path.exists() {
+            Some(unit_path.to_string_lossy().into_owned())
+        } else {
+            None
+        };
+
+        let output = run_systemctl_raw(&["--user", "is-enabled", &unit_name])
+            .map_err(|err| AppError::Message(format!("systemctl is-enabled failed: {err}")))?;
+
+        match output.status.code() {
+            Some(0) => Ok(AutostartInfo {
+                status: AutostartStatus::Enabled,
+                message: Some("Autostart managed via systemd user service.".into()),
+                launcher_path,
+                provider: AutostartProvider::Systemd,
+                reason_code: None,
+            }),
+            Some(1) => {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let reason_code = if stderr.contains("does not exist") || launcher_path.is_none() {
+                    "unit_missing"
+                } else {
+                    "unit_disabled"
+                };
+                Ok(AutostartInfo {
+                    status: AutostartStatus::Disabled,
+                    message: Some(
+                        "Systemd service is not active. Enable autostart to register the user unit." 
+                            .into(),
+                    ),
+                    launcher_path,
+                    provider: AutostartProvider::Systemd,
+                    reason_code: Some(reason_code.into()),
+                })
+            }
+            _ => Err(AppError::Message(format!(
+                "systemctl is-enabled returned status {}: {}",
+                output.status.code().unwrap_or(-1),
+                command_error(&output)
+            ))),
+        }
+    }
+
+    fn xdg_status<R: Runtime>(app: &AppHandle<R>) -> Result<AutostartInfo, AppError> {
+        let path = desktop_entry_path(app)?;
+        let launcher_path = Some(path.to_string_lossy().into_owned());
+        if path.exists() {
+            Ok(AutostartInfo {
+                status: AutostartStatus::Enabled,
+                message: Some("Autostart enabled via XDG desktop entry.".into()),
+                launcher_path,
+                provider: AutostartProvider::XdgDesktop,
+                reason_code: None,
+            })
+        } else {
+            Ok(AutostartInfo {
+                status: AutostartStatus::Disabled,
+                message: Some(
+                    "XDG autostart entry missing. Enable autostart to create ~/.config/autostart file." 
+                        .into(),
+                ),
+                launcher_path,
+                provider: AutostartProvider::XdgDesktop,
+                reason_code: Some("entry_missing".into()),
+            })
+        }
     }
 
     pub fn open_location<R: Runtime>(_app: &AppHandle<R>) -> Result<(), AppError> {
@@ -261,6 +399,38 @@ mod linux {
                 status.code().unwrap_or(-1)
             )))
         }
+    }
+
+    fn set_systemd_enabled<R: Runtime>(app: &AppHandle<R>, enable: bool) -> Result<(), AppError> {
+        if !systemctl_available() {
+            return Err(AppError::Message("systemctl not available in PATH".into()));
+        }
+
+        let unit_path = systemd_unit_path(app)?;
+        let unit_dir = unit_path
+            .parent()
+            .ok_or_else(|| AppError::Message("failed to resolve systemd directory".into()))?;
+
+        if enable {
+            fs::create_dir_all(unit_dir)?;
+            let exec_path = current_executable()?;
+            let contents = systemd_unit_contents(app, &exec_path);
+            fs::write(&unit_path, contents)?;
+            run_systemctl(&["--user", "daemon-reload"], "systemctl daemon-reload")?;
+            run_systemctl(
+                &["--user", "enable", "--now", &systemd_unit_name(app)],
+                "systemctl enable",
+            )?;
+        } else {
+            let unit_name = systemd_unit_name(app);
+            let _ = run_systemctl(&["--user", "disable", "--now", &unit_name], "systemctl disable");
+            if unit_path.exists() {
+                fs::remove_file(&unit_path)?;
+            }
+            let _ = run_systemctl(&["--user", "daemon-reload"], "systemctl daemon-reload");
+        }
+
+        Ok(())
     }
 
     fn desktop_entry_path<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, AppError> {
@@ -288,6 +458,10 @@ mod linux {
     }
 
     fn desktop_file_name<R: Runtime>(app: &AppHandle<R>) -> String {
+        format!("{}{}", sanitized_identifier(app), DESKTOP_FILE_SUFFIX)
+    }
+
+    fn sanitized_identifier<R: Runtime>(app: &AppHandle<R>) -> String {
         let config = app.config();
         let identifier = first_non_empty(
             Some(config.identifier.as_str()),
@@ -295,7 +469,7 @@ mod linux {
         )
         .unwrap_or("autohotpie-tauri");
 
-        let sanitized: String = identifier
+        identifier
             .chars()
             .map(|ch| {
                 if ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.') {
@@ -304,9 +478,7 @@ mod linux {
                     '-'
                 }
             })
-            .collect();
-
-        format!("{sanitized}{DESKTOP_FILE_SUFFIX}")
+            .collect()
     }
 
     fn current_executable() -> Result<PathBuf, AppError> {
@@ -336,16 +508,104 @@ mod linux {
         let exec_str = exec.to_string_lossy();
 
         format!(
-            "[Desktop Entry]\nType=Application\nVersion=1.0\nName={name}\nComment=Launch AutoHotPie when you log in\nExec={exec}\nIcon={icon}\nTerminal=false\nX-GNOME-Autostart-enabled=true\nHidden=false\nStartupNotify=false\n",
+            "[Desktop Entry]\nType=Application\nVersion=1.0\nName={name}\nComment=Launch AutoHotPie when you log in\nExec=\"{exec}\"\nIcon={icon}\nTerminal=false\nX-GNOME-Autostart-enabled=true\nHidden=false\nStartupNotify=false\n",
             exec = exec_str,
             icon = icon
         )
+    }
+
+    fn systemd_unit_name<R: Runtime>(app: &AppHandle<R>) -> String {
+        format!("{}{}", sanitized_identifier(app), SYSTEMD_UNIT_SUFFIX)
+    }
+
+    fn systemd_unit_path<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, AppError> {
+        let mut dir = systemd_dir()?;
+        dir.push(systemd_unit_name(app));
+        Ok(dir)
+    }
+
+    fn systemd_dir() -> Result<PathBuf, AppError> {
+        if let Some(custom) = env::var_os("XDG_CONFIG_HOME") {
+            let mut base = PathBuf::from(custom);
+            if base.as_os_str().is_empty() {
+                return Err(AppError::Message("XDG_CONFIG_HOME is empty".into()));
+            }
+            base.push("systemd");
+            base.push("user");
+            return Ok(base);
+        }
+
+        let home = env::var_os("HOME")
+            .ok_or_else(|| AppError::Message("HOME environment variable is not set".into()))?;
+        let mut base = PathBuf::from(home);
+        base.push(".config");
+        base.push("systemd");
+        base.push("user");
+        Ok(base)
+    }
+
+    fn systemd_unit_contents<R: Runtime>(app: &AppHandle<R>, exec: &Path) -> String {
+        let name = app
+            .config()
+            .product_name
+            .as_ref()
+            .filter(|name| !name.is_empty())
+            .map(|name| name.clone())
+            .unwrap_or_else(|| "AutoHotPie".into());
+
+        let exec_str = exec.to_string_lossy();
+
+        format!(
+            "[Unit]\nDescription=Launch {name} (AutoHotPie) when you log in\nAfter=graphical-session.target\n\n[Service]\nType=simple\nExecStart={exec}\nRestart=on-failure\n\n[Install]\nWantedBy=default.target\n",
+            exec = exec_str
+        )
+    }
+
+    fn systemctl_available() -> bool {
+        Command::new("systemctl")
+            .args(["--user", "--version"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|status| status.success())
+            .unwrap_or(false)
+    }
+
+    fn run_systemctl_raw(args: &[&str]) -> std::io::Result<Output> {
+        Command::new("systemctl")
+            .args(args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+    }
+
+    fn run_systemctl(args: &[&str], context: &str) -> Result<Output, AppError> {
+        let output = run_systemctl_raw(args)
+            .map_err(|err| AppError::Message(format!("{context}: {err}")))?;
+        if output.status.success() {
+            Ok(output)
+        } else {
+            Err(AppError::Message(format!("{context}: {}", command_error(&output))))
+        }
+    }
+
+    fn command_error(output: &Output) -> String {
+        let code = output.status.code().unwrap_or(-1);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if stderr.trim().is_empty() {
+            format!("exit code {code}")
+        } else {
+            format!("exit code {code}: {stderr}")
+        }
     }
 }
 
 #[cfg(target_os = "windows")]
 mod windows {
-    use super::{AppError, AppHandle, AutostartInfo, AutostartStatus, Runtime};
+    use super::{
+        AppError, AppHandle, AutostartInfo, AutostartProvider, AutostartStatus, Runtime,
+    };
+
     use std::{env, fs, path::PathBuf};
     use windows::core::{Interface, PCWSTR};
     use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, IPersistFile};
@@ -380,12 +640,16 @@ mod windows {
                         status: AutostartStatus::Enabled,
                         message: None,
                         launcher_path: Some(if lnk.exists() { lnk } else { cmd }.to_string_lossy().into()),
+                        provider: AutostartProvider::WindowsStartup,
+                        reason_code: None,
                     }
                 } else {
                     AutostartInfo {
                         status: AutostartStatus::Disabled,
                         message: None,
                         launcher_path: Some(cmd.to_string_lossy().into()),
+                        provider: AutostartProvider::WindowsStartup,
+                        reason_code: Some("shortcut_missing".into()),
                     }
                 }
             }
@@ -393,6 +657,8 @@ mod windows {
                 status: AutostartStatus::Unsupported,
                 message: Some(err.to_string()),
                 launcher_path: None,
+                provider: AutostartProvider::Unsupported,
+                reason_code: Some("startup_dir_error".into()),
             },
         }
     }

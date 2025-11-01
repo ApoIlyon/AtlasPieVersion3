@@ -221,7 +221,7 @@
     "menuBar.status.openMessage": "Pie menu is visible. Use your pointer or close the overlay.",
     "menuBar.status.closedMessage": "Use the menu bar toggle or hotkey to open the pie menu.",
     "menuBar.header.caption": "macOS menu bar",
-    "menuBar.header.title": "Pie Menu Control",
+    "menuBar.header.title": "Pie Menu Launcher",
     "menuBar.details.lastActionLabel": "Last action",
     "menuBar.details.statusLine": "Status: {status} · {time}",
     "menuBar.buttons.open": "Open Pie Menu",
