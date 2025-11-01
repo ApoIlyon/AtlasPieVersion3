@@ -138,7 +138,7 @@
 - [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [ ] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
   - Acceptance: системд и XDG автозапуск переключаются из UI, fallback подсказки локализованы, приложен лог успешного прогона `autohotpie-tauri/tests/e2e/autostart.spec.ts` на Linux.
-- [ ] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
+- [x] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
   - Acceptance: smoke-сценарий переключения профиля подтверждён на macOS 13+, приложены скриншоты и чеклист паритета (иконки, хоткеи, статусы) в `specs/001-build-tauri-pie/quickstart.md`.
 - [ ] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
   - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`.
@@ -204,7 +204,7 @@
 - During Phase 1, T002–T004 can run alongside T001 after dependency installation.
 - In Phase 3, T012, T013, T015, and T016 can proceed concurrently once command scaffolding (T008) is in place.
 - Phase 4 UI tasks (T022–T025) can run parallel after repositories (T019, T020) land.
-- Phase 5 services T130b, T130c, T130d can progress в связке с фронтенд-задачами T133, T134, T134a, когда инфраструктура US2 готова.
+- Phase 5 services T130b, T130c, T130d can progress вT130b связке с фронтенд-задачами T133, T134, T134a, когда инфраструктура US2 готова.
 
 ## Implementation Strategy
 

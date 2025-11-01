@@ -4,10 +4,34 @@ import { isTauriEnvironment } from '../utils/tauriEnvironment';
 
 export type AutostartStatus = 'enabled' | 'disabled' | 'unsupported' | 'errored';
 
+export type AutostartProvider =
+  | 'systemd'
+  | 'xdg_desktop'
+  | 'plugin'
+  | 'windows_startup'
+  | 'macos_launch_agent'
+  | 'unsupported';
+
+export type AutostartReasonCode =
+  | 'plugin_missing'
+  | 'plugin_disabled'
+  | 'plugin_error'
+  | 'shortcut_missing'
+  | 'startup_dir_error'
+  | 'linux_no_provider'
+  | 'linux_detection_error'
+  | 'entry_missing'
+  | 'unit_missing'
+  | 'unit_disabled'
+  | 'web_environment'
+  | 'unexpected_error';
+
 export interface AutostartInfo {
   status: AutostartStatus;
   launcherPath?: string | null;
   message?: string | null;
+  provider?: AutostartProvider | null;
+  reasonCode?: AutostartReasonCode | string | null;
 }
 
 interface AutostartState {
@@ -39,6 +63,8 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
           status: 'unsupported',
           launcherPath: null,
           message: desktopOnlyError(),
+          provider: 'unsupported',
+          reasonCode: 'web_environment',
         },
         error: null,
         isLoading: false,
@@ -54,6 +80,8 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
           status: 'unsupported',
           launcherPath: null,
           message: desktopOnlyError(),
+          provider: 'unsupported',
+          reasonCode: 'web_environment',
         },
         error: null,
       });
@@ -70,6 +98,8 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
           status: 'errored',
           launcherPath: null,
           message,
+          provider: 'unsupported',
+          reasonCode: 'unexpected_error',
         },
         error: message,
         isLoading: false,
@@ -92,6 +122,8 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
           status: 'errored',
           launcherPath: null,
           message,
+          provider: 'unsupported',
+          reasonCode: 'unexpected_error',
         },
         error: message,
         isUpdating: false,
@@ -118,6 +150,8 @@ export const useAutostartStore = create<AutostartState>((set, get) => ({
         status: 'errored',
         launcherPath: null,
         message,
+        provider: 'unsupported',
+        reasonCode: 'unexpected_error',
       },
       error: message,
     });

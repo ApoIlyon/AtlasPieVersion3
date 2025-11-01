@@ -89,6 +89,20 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
   - **Disabled** — автозапуск отключён, используйте **Enable autostart** для включения.
   - **Unsupported** — текущая сборка не поддерживает автозапуск (браузерный превью или отсутствует плагин ОС).
   - **Errored** — переключение не удалось. Нажмите **Retry** для повторной попытки; сообщение ошибки отображается под статусом.
+- **Provider** поле под статусом показывает активный механизм автозапуска:
+  - `systemd user service` — включён пользовательский юнит `~/.config/systemd/user/<identifier>.service`.
+  - `XDG desktop entry` — используется файл `~/.config/autostart/<identifier>.desktop`.
+  - `Windows Startup folder` — ярлык/скрипт в `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`.
+  - `macOS login item` — запись в **System Settings → General → Login Items**.
+  - `Platform autostart plugin` — fallback через Tauri-плагин (Windows/macOS) в сборке без нативных интеграций.
+- **Reason codes** помогают понять дальнейшие действия:
+  - `entry_missing` — файл `.desktop` отсутствует; нажмите **Enable autostart** или создайте запись вручную.
+  - `unit_missing` / `unit_disabled` — юнит systemd не найден или отключён. Используйте `systemctl --user enable --now <identifier>.service`.
+  - `linux_no_provider` — ни systemd, ни XDG недоступны. Установите `systemd --user` или позвольте XDG автозапуску.
+  - `plugin_missing` / `plugin_disabled` — Tauri-плагин автозапуска не доступен или отключён; проверьте конфигурацию сборки.
+  - `shortcut_missing` — ярлык Windows удалён. Нажмите **Enable autostart** для регенерации.
+  - `web_environment` — вы в браузерном превью; автозапуск появится только в десктопной версии.
+  - Другие коды сопровождаются сообщением под статусом; сверяйтесь с журналом или stacktrace.
 - **Read-only mode**: если каталог данных недоступен для записи, появляется баннер «Read-only safeguard».
   - Разблокируйте доступ или выберите альтернативный путь, затем перезапустите приложение.
   - Пока режим активен, управление автозапуском и логами заблокировано.

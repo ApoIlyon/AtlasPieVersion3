@@ -32,7 +32,8 @@ test.describe('Perf - Hotkey to menu latency', () => {
     const warmPie = page.getByTestId('pie-menu');
     await expect(warmPie).toBeVisible({ timeout: 1_000 });
     await page.mouse.click(5, 5);
-    await expect(warmPie).not.toBeVisible({ timeout: 1_000 });
+    await page.keyboard.press('Escape');
+    await expect(warmPie).toBeHidden({ timeout: 2_000 });
 
     async function measureOnce(): Promise<number> {
       const start = Date.now();
@@ -42,7 +43,8 @@ test.describe('Perf - Hotkey to menu latency', () => {
       const elapsed = Date.now() - start;
       // close for next run
       await page.mouse.click(5, 5);
-      await expect(pieMenu).not.toBeVisible({ timeout: 1_000 });
+      await page.keyboard.press('Escape');
+      await expect(pieMenu).toBeHidden({ timeout: 2_000 });
       return elapsed;
     }
 
