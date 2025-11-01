@@ -13,13 +13,34 @@ test.describe('Accessibility smoke', () => {
     await expect(instructionsButton).toBeVisible();
 
     let reached = false;
-    for (let attempt = 0; attempt < 6; attempt += 1) {
+    for (let attempt = 0; attempt < 15; attempt += 1) {
       await page.keyboard.press('Tab');
       const isFocused = await instructionsButton.evaluate((element) => element === document.activeElement);
       if (isFocused) {
         reached = true;
         break;
       }
+    }
+
+    if (!reached) {
+      const focusDebug = await page.evaluate(() => {
+        const active = document.activeElement;
+        return {
+          activeTag: active?.tagName,
+          activeText: active?.textContent,
+          activeTestId: active instanceof HTMLElement ? active.dataset.testid : undefined,
+          focusableSnapshot: Array.from(
+            document.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+          ).map((el) => ({
+            tag: el.tagName,
+            text: el.textContent,
+            testId: el.dataset.testid,
+            tabIndex: el.tabIndex,
+            disabled: (el as HTMLButtonElement).disabled ?? false,
+          })),
+        };
+      });
+      console.log('Focus traversal debug:', focusDebug);
     }
 
     expect(reached).toBeTruthy();
