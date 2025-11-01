@@ -318,8 +318,16 @@
     "menuBar.header.title": "Управление Pie-меню",
     "menuBar.details.lastActionLabel": "Последнее действие",
     "menuBar.details.statusLine": "Статус: {status} · {time}",
+    "menuBar.details.profile": "Активный профиль",
+    "menuBar.details.hotkey": "Хоткей",
+    "menuBar.details.safeMode": "Безопасный режим",
+    "menuBar.safeMode.active": "Безопасный режим включён",
+    "menuBar.safeMode.inactive": "Безопасный режим выключен",
+    "menuBar.profileFallback": "Нет активного профиля",
     "menuBar.buttons.open": "Открыть Pie-меню",
+    "menuBar.buttons.focus": "Сфокусировать Pie-меню",
     "menuBar.shortcutHint": "Сочетание: {shortcut}",
+    "menuBar.shortcutFallback": "Ctrl + Shift + P",
     "linuxFallback.caption": "Linux fallback",
     "linuxFallback.title": "Управление Pie-меню",
     "linuxFallback.toggleButton": "Переключить",
@@ -350,6 +358,9 @@
     "linuxFallback.details.lastActionMessage": "Сообщение о действии",
     "linuxFallback.details.lastActionTitle": "Последнее действие",
     "linuxFallback.details.statusLine": "Статус: {status} · {time}",
-    "linuxFallback.details.lastUpdated": "Обновлено"
+    "linuxFallback.details.lastUpdated": "Обновлено",
+    "linuxFallback.autostart.statusUnknown": "Статус автозапуска неизвестен",
+    "linuxFallback.autostart.refresh": "Обновить автозапуск",
+    "linuxFallback.autostart.provider": "Механизм автозапуска: {provider}"
   }
 }

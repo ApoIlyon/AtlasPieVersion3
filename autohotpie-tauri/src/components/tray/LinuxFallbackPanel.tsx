@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { LastActionState } from '../../hooks/usePieMenuHotkey';
 import { useLocalization } from '../../hooks/useLocalization';
 import { useSystemStore } from '../../state/systemStore';
+import { useAutostartStore } from '../../state/autostartStore';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { isTauriEnvironment } from '../../utils/tauriEnvironment';
 
 interface LinuxFallbackPanelProps {
   isPieMenuOpen: boolean;
@@ -25,6 +28,31 @@ export function LinuxFallbackPanel({
   const { t } = useLocalization();
   const activeProfile = useSystemStore((state) => state.activeProfile);
   const isSafeMode = useSystemStore((state) => state.status.safeMode);
+  const {
+    info: autostartInfo,
+    isLoading: autostartLoading,
+    isUpdating: autostartUpdating,
+    error: autostartError,
+    refresh: refreshAutostart,
+    setEnabled: setAutostartEnabled,
+    openLocation: openAutostartLocation,
+    clearError: clearAutostartError,
+    setErrored: setAutostartErrored,
+  } = useAutostartStore((state) => ({
+    info: state.info,
+    isLoading: state.isLoading,
+    isUpdating: state.isUpdating,
+    error: state.error,
+    refresh: state.refresh,
+    setEnabled: state.setEnabled,
+    openLocation: state.openLocation,
+    clearError: state.clearError,
+    setErrored: state.setErrored,
+  }));
+
+  useEffect(() => {
+    void refreshAutostart();
+  }, [refreshAutostart]);
 
   const isActive = isPieMenuOpen;
 
@@ -76,6 +104,83 @@ export function LinuxFallbackPanel({
 
   const hotkeyHint = t('linuxFallback.hotkeyFallback');
 
+  const autostartStatusLabel = useMemo(() => {
+    if (!autostartInfo) {
+      return t('linuxFallback.autostart.statusUnknown');
+    }
+    switch (autostartInfo.status) {
+      case 'enabled':
+        return t('settings.autostart.status.enabled');
+      case 'disabled':
+        return t('settings.autostart.status.disabled');
+      case 'unsupported':
+        return t('settings.autostart.status.unsupported');
+      case 'errored':
+        return t('settings.autostart.status.errored');
+      default:
+        return t('linuxFallback.autostart.statusUnknown');
+    }
+  }, [autostartInfo, t]);
+
+  const autostartTone: 'success' | 'warning' | 'danger' = useMemo(() => {
+    if (!autostartInfo) {
+      return 'warning';
+    }
+    switch (autostartInfo.status) {
+      case 'enabled':
+        return 'success';
+      case 'disabled':
+      case 'errored':
+        return 'danger';
+      default:
+        return 'warning';
+    }
+  }, [autostartInfo]);
+
+  const autostartProvider = autostartInfo?.provider
+    ? t(`settings.autostart.provider.${autostartInfo.provider}`)
+    : null;
+
+  const autostartReason = autostartInfo?.reasonCode
+    ? t(`settings.autostart.reason.${autostartInfo.reasonCode}`)
+    : autostartInfo?.message ?? null;
+
+  const canEnableAutostart = !autostartLoading && !autostartUpdating && autostartInfo?.status !== 'enabled';
+  const canDisableAutostart = !autostartLoading && !autostartUpdating && autostartInfo?.status === 'enabled';
+  const canOpenAutostartLocation =
+    !autostartLoading && !autostartUpdating && autostartInfo?.status && autostartInfo.status !== 'unsupported';
+
+  const handleAutostartEnable = (enable: boolean) => {
+    if (!canEnableAutostart && enable) {
+      return;
+    }
+    if (!canDisableAutostart && !enable) {
+      return;
+    }
+    void setAutostartEnabled(enable).catch((error) => {
+      setAutostartErrored(error instanceof Error ? error.message : String(error));
+    });
+  };
+
+  const handleAutostartLocation = () => {
+    void openAutostartLocation().catch((error) => {
+      setAutostartErrored(error instanceof Error ? error.message : String(error));
+    });
+  };
+
+  const handleAutostartInstructions = async () => {
+    const url = 'https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting';
+    if (!isTauriEnvironment()) {
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+    try {
+      await openUrl(url);
+    } catch (instructionError) {
+      setAutostartErrored(instructionError instanceof Error ? instructionError.message : String(instructionError));
+    }
+  };
+
   const details = useMemo(() => {
     const entries = [
       { label: t('linuxFallback.details.hotkey'), value: hotkeyHint },
@@ -125,7 +230,10 @@ export function LinuxFallbackPanel({
 
   return (
     <div className="pointer-events-none fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3">
-      <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 shadow-[0_0_25px_rgba(15,23,42,0.55)] backdrop-blur-lg">
+      <div
+        className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 shadow-[0_0_25px_rgba(15,23,42,0.55)] backdrop-blur-lg"
+        data-testid="linux-fallback-toggle"
+      >
         <button
           type="button"
           className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.35em] text-white/70 transition hover:bg-white/10"
@@ -155,6 +263,7 @@ export function LinuxFallbackPanel({
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.2 }}
             className="pointer-events-auto w-[360px] rounded-3xl border border-white/10 bg-black/75 p-5 text-white shadow-[0_0_45px_rgba(15,23,42,0.6)] backdrop-blur-xl"
+            data-testid="linux-fallback-panel"
           >
             <header className="flex items-center justify-between">
               <div>
@@ -170,6 +279,88 @@ export function LinuxFallbackPanel({
             <p className="mt-4 text-sm text-white/70">{status.message}</p>
 
             {renderDetails()}
+
+            <section className="mt-6 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <AutostartBadge tone={autostartTone} label={autostartStatusLabel} />
+                <button
+                  type="button"
+                  className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/15 disabled:opacity-40"
+                  disabled={autostartLoading}
+                  onClick={() => refreshAutostart()}
+                  data-testid="linux-fallback-autostart-refresh"
+                >
+                  {t('linuxFallback.autostart.refresh')}
+                </button>
+              </div>
+
+              {autostartProvider && (
+                <p className="text-xs text-white/60" data-testid="linux-fallback-autostart-provider">
+                  {t('linuxFallback.autostart.provider').replace('{provider}', autostartProvider)}
+                </p>
+              )}
+              {autostartReason && (
+                <p className="text-xs text-white/60" data-testid="linux-fallback-autostart-reason">
+                  {autostartReason}
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10 disabled:opacity-40"
+                  onClick={() => handleAutostartEnable(true)}
+                  disabled={!canEnableAutostart}
+                  data-testid="linux-fallback-autostart-enable"
+                >
+                  {t('settings.autostart.enable')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10 disabled:opacity-40"
+                  onClick={() => handleAutostartEnable(false)}
+                  disabled={!canDisableAutostart}
+                  data-testid="linux-fallback-autostart-disable"
+                >
+                  {t('settings.autostart.disable')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10 disabled:opacity-40"
+                  onClick={handleAutostartLocation}
+                  disabled={!canOpenAutostartLocation}
+                  data-testid="linux-fallback-autostart-location"
+                >
+                  {t('settings.autostart.openLocation')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-accent/40 bg-accent/15 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-accent transition hover:bg-accent/25"
+                  onClick={handleAutostartInstructions}
+                  data-testid="linux-fallback-autostart-instructions"
+                >
+                  {t('settings.autostart.viewInstructions')}
+                </button>
+              </div>
+
+              {autostartError && (
+                <div
+                  className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs text-rose-100"
+                  data-testid="linux-fallback-autostart-error"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span>{autostartError}</span>
+                    <button
+                      type="button"
+                      className="rounded-full border border-white/15 px-2 py-1 text-[10px] uppercase tracking-[0.3em] text-white/70 transition hover:bg-white/10"
+                      onClick={clearAutostartError}
+                    >
+                      {t('common.clear')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
 
             {lastAction && (
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
@@ -212,5 +403,27 @@ export function LinuxFallbackPanel({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+interface AutostartBadgeProps {
+  tone: 'success' | 'warning' | 'danger';
+  label: string;
+}
+
+function AutostartBadge({ tone, label }: AutostartBadgeProps) {
+  const toneStyles: Record<AutostartBadgeProps['tone'], string> = {
+    success: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-100',
+    warning: 'border-amber-500/40 bg-amber-500/15 text-amber-100',
+    danger: 'border-rose-500/40 bg-rose-500/15 text-rose-100',
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.3em] ${toneStyles[tone]}`}
+      data-testid="linux-fallback-autostart-status"
+    >
+      {label}
+    </span>
   );
 }

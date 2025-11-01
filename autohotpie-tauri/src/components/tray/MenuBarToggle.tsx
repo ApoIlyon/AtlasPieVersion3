@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { listen } from '@tauri-apps/api/event';
 import { useLocalization } from '../../hooks/useLocalization';
 import type { LastActionState } from '../../hooks/usePieMenuHotkey';
+import { useSystemStore } from '../../state/systemStore';
 
 interface MenuBarToggleProps {
   isPieMenuOpen: boolean;
@@ -11,6 +12,53 @@ interface MenuBarToggleProps {
   onClosePieMenu: () => void;
   lastAction: LastActionState | null;
   lastSafeModeReason: string | null;
+}
+
+interface StatusOverviewProps {
+  status: {
+    tone: 'success' | 'error' | 'warn' | 'info' | 'idle';
+    label: string;
+    message: string;
+  };
+  toneColor: string;
+}
+
+function StatusOverview({ status, toneColor }: StatusOverviewProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">{status.label}</p>
+        <h2 className="mt-1 text-lg font-semibold text-white">{status.message}</h2>
+      </div>
+      <span className="flex h-2 w-2 rounded-full" title={status.label} style={{ backgroundColor: toneColor }} />
+    </div>
+  );
+}
+
+interface StatusGridProps {
+  activeProfile: string;
+  hotkey: string;
+  safeMode: string;
+  t: ReturnType<typeof useLocalization>['t'];
+}
+
+function StatusGrid({ activeProfile, hotkey, safeMode, t }: StatusGridProps) {
+  return (
+    <dl className="grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
+      <div className="flex items-start justify-between gap-4">
+        <dt className="uppercase tracking-[0.35em] text-white/45">{t('menuBar.details.profile')}</dt>
+        <dd className="text-right text-white/85">{activeProfile}</dd>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <dt className="uppercase tracking-[0.35em] text-white/45">{t('menuBar.details.hotkey')}</dt>
+        <dd className="text-right text-white/85">{hotkey}</dd>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <dt className="uppercase tracking-[0.35em] text-white/45">{t('menuBar.details.safeMode')}</dt>
+        <dd className="text-right text-white/85">{safeMode}</dd>
+      </div>
+    </dl>
+  );
 }
 
 export function MenuBarToggle({
@@ -24,6 +72,8 @@ export function MenuBarToggle({
   const { t } = useLocalization();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isActiveIcon, setIsActiveIcon] = useState(isPieMenuOpen);
+  const activeProfile = useSystemStore((state) => state.activeProfile);
+  const systemStatus = useSystemStore((state) => state.status);
 
   const status = useMemo(() => {
     if (lastSafeModeReason) {
@@ -96,6 +146,11 @@ export function MenuBarToggle({
     : '';
   const translatedLastActionMessage = lastAction?.message ?? t('menuBar.status.completedFallback');
 
+  const activeProfileName = activeProfile?.name ?? t('menuBar.profileFallback');
+  const safeModeIndicator = systemStatus.safeMode
+    ? lastSafeModeReason ?? t('menuBar.safeMode.active')
+    : t('menuBar.safeMode.inactive');
+
   const shortcut = useMemo(() => {
     if (navigator.platform.toLowerCase().includes('mac')) {
       return 'Command + Shift + P';
@@ -135,59 +190,59 @@ export function MenuBarToggle({
             transition={{ duration: 0.2 }}
             className="pointer-events-auto w-[320px] rounded-3xl border border-white/10 bg-black/75 p-5 text-white shadow-[0_0_45px_rgba(15,23,42,0.6)] backdrop-blur-xl"
           >
-            <header className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">{t('menuBar.header.caption')}</p>
-                <h2 className="mt-1 text-lg font-semibold text-white">{t('menuBar.header.title')}</h2>
-              </div>
-              <span
-                className="flex h-2 w-2 rounded-full"
-                title={status.label}
-                style={{ backgroundColor: toneColor }}
-              />
+            <header>
+              <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">{t('menuBar.header.caption')}</p>
+              <h2 className="mt-1 text-lg font-semibold text-white">{t('menuBar.header.title')}</h2>
             </header>
 
-            <p className="mt-4 text-sm text-white/70">{status.message}</p>
+            <div className="mt-4 space-y-4 text-sm text-white/70">
+              <StatusOverview status={status} toneColor={toneColor} />
+              <StatusGrid
+                activeProfile={activeProfileName}
+                hotkey={shortcut}
+                safeMode={safeModeIndicator}
+                t={t}
+              />
 
-            {lastAction && (
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                <p className="font-semibold text-white">{t('menuBar.details.lastActionLabel')}</p>
-                <p className="mt-1 text-sm text-white/80">{lastAction.actionName}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                  {t('menuBar.details.statusLine')
-                    .replace('{status}', translatedLastActionStatus)
-                    .replace('{time}', new Date(lastAction.timestamp).toLocaleTimeString())}
-                </p>
-                <p className="mt-2 text-xs text-white/60">{translatedLastActionMessage}</p>
-              </div>
-            )}
+              {lastAction && (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                  <p className="font-semibold text-white">{t('menuBar.details.lastActionLabel')}</p>
+                  <p className="mt-1 text-sm text-white/80">{lastAction.actionName}</p>
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
+                    {t('menuBar.details.statusLine')
+                      .replace('{status}', translatedLastActionStatus)
+                      .replace('{time}', new Date(lastAction.timestamp).toLocaleTimeString())}
+                  </p>
+                  <p className="mt-2 text-xs text-white/60">{translatedLastActionMessage}</p>
+                </div>
+              )}
 
-            <section className="mt-6 space-y-3">
-              <button
-                type="button"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-[11px] uppercase tracking-[0.35em] text-white/70 transition hover:bg-white/10"
-                onClick={() => {
-                  onOpenPieMenu();
-                  setDetailsOpen(true);
-                }}
-              >
-                {isActiveIcon ? t('menuBar.buttons.focus') : t('menuBar.buttons.open')}
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-[11px] uppercase tracking-[0.35em] text-white/50 transition hover:bg-white/10"
-                onClick={() => {
-                  onClosePieMenu();
-                  setDetailsOpen(false);
-                }}
-              >
-                {t('common.close')}
-              </button>
-            </section>
-
-            <footer className="mt-6 text-[10px] uppercase tracking-[0.3em] text-white/40">
-              {t('menuBar.shortcutHint').replace('{shortcut}', shortcut)}
-            </footer>
+              <section className="mt-6 space-y-3">
+                <button
+                  type="button"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-[11px] uppercase tracking-[0.35em] text-white/70 transition hover:bg-white/10"
+                  onClick={() => {
+                    onOpenPieMenu();
+                    setDetailsOpen(true);
+                  }}
+                >
+                  {isActiveIcon ? t('menuBar.buttons.focus') : t('menuBar.buttons.open')}
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-[11px] uppercase tracking-[0.35em] text-white/50 transition hover:bg-white/10"
+                  onClick={() => {
+                    onClosePieMenu();
+                    setDetailsOpen(false);
+                  }}
+                >
+                  {t('common.close')}
+                </button>
+              </section>
+              <footer className="mt-6 text-[10px] uppercase tracking-[0.3em] text-white/40">
+                {t('menuBar.shortcutHint').replace('{shortcut}', shortcut)}
+              </footer>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
