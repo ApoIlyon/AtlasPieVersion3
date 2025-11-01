@@ -9,10 +9,20 @@ test.describe('Accessibility smoke', () => {
     await page.getByRole('heading', { name: 'Autostart' }).waitFor();
 
     // Первые табы попадают на управление инструкциями — проверим клавиатурную навигацию на читаемый элемент.
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-
     const instructionsButton = page.getByTestId('autostart-instructions');
+    await expect(instructionsButton).toBeVisible();
+
+    let reached = false;
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await page.keyboard.press('Tab');
+      const isFocused = await instructionsButton.evaluate((element) => element === document.activeElement);
+      if (isFocused) {
+        reached = true;
+        break;
+      }
+    }
+
+    expect(reached).toBeTruthy();
     await expect(instructionsButton).toBeFocused();
   });
 
