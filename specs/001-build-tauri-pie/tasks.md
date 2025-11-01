@@ -176,7 +176,9 @@
 - [ ] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`
 - [ ] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` статус покрытия FR-012/FR-013/FR-024 после внедрения лог-панели и автозапуска
 - [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
-- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohotpie-tauri/tests/e2e/offline.spec.ts`
+- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohотpie-tauri/tests/e2e/offline.spec.ts`
+- [ ] T037h [P] Собрать UX-паритетные артефакты (чеклист функциональных состояний, side-by-side скриншоты трея/меню, таблицу результатов) и обновить `specs/001-build-tauri-pie/quickstart.md` согласно критериям NFR-006.
+- [ ] T037i Протоколировать результаты измерений задержек (горячая клавиша → меню, переключение автозапуска) по 20 замерам на каждой платформе, подтвердить соблюдение допусков NFR-006 и приложить логи в `tests/perf/reports`.
 
 ---
 
