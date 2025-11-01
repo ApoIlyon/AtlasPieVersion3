@@ -63,11 +63,33 @@ export function PieMenu({
   }, [radius, innerInset]);
 
   useEffect(() => {
-    void controls.start({
-      opacity: visible ? 1 : 0,
-      scale: visible ? 1 : 0.92,
-      transition: { type: 'spring', stiffness: 260, damping: 22 },
-    });
+    let cancelled = false;
+    const runAnimation = async () => {
+      if (typeof performance !== 'undefined') {
+        performance.mark('PieMenu:animation-start');
+      }
+      await controls.start({
+        opacity: visible ? 1 : 0,
+        scale: visible ? 1 : 0.92,
+        transition: { type: 'spring', stiffness: 260, damping: 22 },
+      });
+      if (cancelled) {
+        return;
+      }
+      if (typeof performance !== 'undefined') {
+        performance.mark('PieMenu:animation-end');
+        const hasStart = performance.getEntriesByName('PieMenu:animation-start').length > 0;
+        if (hasStart) {
+          performance.measure('PieMenu:animation', 'PieMenu:animation-start', 'PieMenu:animation-end');
+        }
+      }
+    };
+
+    runAnimation();
+
+    return () => {
+      cancelled = true;
+    };
   }, [controls, visible]);
 
   useEffect(() => {
@@ -91,6 +113,7 @@ export function PieMenu({
     <motion.div
       ref={rootRef}
       data-testid={dataTestId}
+      data-profiler-id="PieMenu"
       hidden={!visible}
       aria-hidden={!visible}
       className={clsx(

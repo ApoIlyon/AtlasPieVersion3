@@ -34,6 +34,7 @@ declare global {
     __AUTOHOTPIE_SYSTEM_STORE__?: {
       getState: () => {
         setStorageMode: (mode: 'read_write' | 'read_only') => void;
+        setOffline?: (isOffline: boolean, timestamp?: string) => void;
       };
     };
   }

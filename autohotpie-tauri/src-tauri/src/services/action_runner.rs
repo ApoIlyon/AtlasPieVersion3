@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Instant;
+use tracing::{field, instrument, Span};
 use time::OffsetDateTime;
 use tokio::process::Command;
 use tokio::sync::Semaphore;
@@ -44,6 +45,7 @@ impl ActionRunner {
         &self.data_dir
     }
 
+    #[instrument(skip_all, fields(action_id = %action.id, action_name = %action.name))]
     pub async fn run<P>(
         &self,
         action: &Action,
@@ -60,11 +62,13 @@ impl ActionRunner {
             .map_err(|_| AppError::StatePoisoned)?;
 
         let timer = Instant::now();
+        let span = Span::current();
         let result = self
-            .execute_internal(action, provider, HashSet::new())
+            .execute_internal(action, provider, HashSet::new(), span.clone())
             .await;
         let duration_ms = timer.elapsed().as_millis().min(u32::MAX as u128) as u32;
         let timestamp = OffsetDateTime::now_utc();
+        span.record("duration_ms", &field::display(duration_ms));
 
         match result {
             Ok((status, message)) => {
@@ -96,11 +100,13 @@ impl ActionRunner {
         action: &'a Action,
         provider: &'a P,
         mut visited: HashSet<ActionId>,
+        parent_span: Span,
     ) -> RunnerFuture<'a, Result<(ActionEventStatus, Option<String>), AppError>>
     where
         P: ActionProvider + 'a,
     {
         Box::pin(async move {
+            let _guard = parent_span.enter();
             if !visited.insert(action.id) {
                 return Err(AppError::Message(format!(
                     "cycle detected while executing action {}",
@@ -140,8 +146,14 @@ impl ActionRunner {
                                 "referenced action {action_id} not found"
                             )));
                         };
+                        let child_span = tracing::span!(
+                            tracing::Level::DEBUG,
+                            "action_runner.child",
+                            child_action_id = %next_action.id,
+                            child_action_name = %next_action.name
+                        );
                         let (status, msg) = self
-                            .execute_internal(&next_action, provider, visited.clone())
+                            .execute_internal(&next_action, provider, visited.clone(), child_span)
                             .await?;
                         match status {
                             ActionEventStatus::Success => {}
