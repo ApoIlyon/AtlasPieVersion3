@@ -32,6 +32,14 @@ export function SettingsUpdates() {
     checkForUpdates: state.checkForUpdates,
   }));
 
+  const hasBrowserMocks = typeof window !== 'undefined' && Boolean(
+    (window as typeof window & {
+      __AUTOHOTPIE_MOCKS__?: {
+        updates?: unknown;
+      };
+    }).__AUTOHOTPIE_MOCKS__?.updates,
+  );
+
   const deriveErrorMessage = useCallback(
     (rawError: string | null | undefined) => {
       if (!rawError) {
@@ -106,7 +114,7 @@ export function SettingsUpdates() {
 
   const lastCheckedLabel = formatTimestamp(status?.lastChecked ?? null, t('settings.updates.lastChecked.never'));
 
-  if (!isTauriEnvironment()) {
+  if (!isTauriEnvironment() && !hasBrowserMocks) {
     return (
       <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
         {t('settings.updates.status.desktopOnly')}
@@ -117,17 +125,24 @@ export function SettingsUpdates() {
   return (
     <div className="space-y-8">
       <header className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">{t('settings.updates.title')}</h2>
+        <h2 id="settings-updates-title" className="text-2xl font-semibold text-white">
+          {t('settings.updates.title')}
+        </h2>
         <p className="max-w-2xl text-sm text-white/70">{t('settings.updates.description')}</p>
       </header>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_0_30px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+      <section
+        role="region"
+        aria-labelledby="settings-updates-title"
+        className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_0_30px_rgba(15,23,42,0.35)] backdrop-blur-xl"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <span
             className={clsx(
               'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.3em]',
               badgeTone,
             )}
+            data-testid="updates-status-badge"
           >
             {badgeLabel}
           </span>
@@ -143,6 +158,7 @@ export function SettingsUpdates() {
               onClick={() => {
                 void checkForUpdates(false);
               }}
+              data-testid="updates-check"
             >
               {isChecking ? t('settings.updates.checking') : t('settings.updates.check')}
             </button>
@@ -153,6 +169,7 @@ export function SettingsUpdates() {
               onClick={() => {
                 void checkForUpdates(true);
               }}
+              data-testid="updates-force-check"
             >
               {t('settings.updates.forceCheck')}
             </button>
@@ -168,6 +185,7 @@ export function SettingsUpdates() {
                   void window.open(status.downloadUrl, '_blank', 'noopener,noreferrer');
                 }
               }}
+              data-testid="updates-download"
             >
               {t('settings.updates.download')}
             </button>
@@ -185,7 +203,9 @@ export function SettingsUpdates() {
           </div>
           <div className="space-y-1 sm:col-span-2">
             <dt className="text-xs uppercase tracking-[0.3em] text-white/40">{t('settings.updates.lastChecked')}</dt>
-            <dd className="text-sm text-white/70">{lastCheckedLabel}</dd>
+            <dd className="text-sm text-white/70" data-testid="updates-last-checked">
+              {lastCheckedLabel}
+            </dd>
           </div>
         </dl>
 
@@ -206,7 +226,11 @@ export function SettingsUpdates() {
           }
 
           return (
-            <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100 whitespace-pre-wrap">
+            <div
+              className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100 whitespace-pre-wrap"
+              role="alert"
+              data-testid="updates-error"
+            >
               {message}
             </div>
           );

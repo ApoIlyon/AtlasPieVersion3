@@ -23,7 +23,7 @@ async function triggerHotkey(page: Page, hotkey: string) {
 }
 
 test.describe('US2 - Hotkey conflict gating', () => {
-  test('shows conflict dialog and blocks pie menu visibility', async ({ page }) => {
+  test('shows conflict dialog, suggests alternatives and logs audit entry', async ({ page }) => {
     await page.goto('/');
 
     await page.waitForFunction(
@@ -59,6 +59,16 @@ test.describe('US2 - Hotkey conflict gating', () => {
               meta: { conflictingId: 'global-pie' },
             },
           ],
+          alternatives: [
+            {
+              id: 'suggested-1',
+              accelerator: 'Ctrl+Alt+Shift+Space',
+            },
+          ],
+          journalEntry: {
+            kind: 'conflict-warning',
+            accelerator: 'Ctrl+Alt+Space',
+          },
         },
         pendingRequest: {
           id: 'global-pie',
@@ -79,6 +89,10 @@ test.describe('US2 - Hotkey conflict gating', () => {
 
     const disableHint = dialog.getByText(/resolve non-removable conflicts/i);
     await expect(disableHint).toBeVisible();
+
+    const alternativeList = dialog.getByRole('list', { name: /suggested shortcuts/i });
+    await expect(alternativeList).toBeVisible();
+    await expect(alternativeList.getByText(/Ctrl\+Alt\+Shift\+Space/)).toBeVisible();
 
     await triggerHotkey(page, HOTKEY);
 

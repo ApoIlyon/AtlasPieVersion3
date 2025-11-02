@@ -39,7 +39,7 @@ declare global {
         isOpen: boolean;
         hasConflictDialogOpen: boolean;
         hasHotkeyConflicts: boolean;
-        lastSafeModeReason: string | null;
+        currentSafeModeReason: string | null;
         activeSliceId: string | null;
         closeTimerPending: boolean;
         lastToggleAt: number;
@@ -226,6 +226,7 @@ export interface PieMenuHotkeyState {
   activeSliceId: string | null;
   lastAction: LastActionState | null;
   lastSafeModeReason: string | null;
+  currentSafeModeReason: string | null;
   activeProfile: ActiveProfileSnapshot | null;
   toggle: () => void;
   open: () => void;
@@ -268,6 +269,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     dialogStatus: state.dialogStatus,
   }));
   const systemHotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
+  const systemWindowSnapshot = useSystemStore((state) => state.status.window);
   const hasHotkeyConflicts = useMemo(() => {
     const dialogConflict = dialogStatusState && !dialogStatusState.registered;
     const systemConflict = systemHotkeyStatus && !systemHotkeyStatus.registered;
@@ -277,6 +279,17 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     profiles: state.profiles,
     activeProfileId: state.activeProfileId,
   }));
+  
+  // Compute safe mode reason from systemStore (for E2E tests compatibility)
+  const currentSafeModeReason = useMemo(() => {
+    if (systemWindowSnapshot.isFullscreen) {
+      return 'Fullscreen application detected. Pie menu is paused to avoid interference.';
+    }
+    if (lastSafeModeReason) {
+      return lastSafeModeReason;
+    }
+    return null;
+  }, [systemWindowSnapshot.isFullscreen, lastSafeModeReason]);
 
   const clearTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -326,7 +339,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         isOpen,
         hasConflictDialogOpen,
         hasHotkeyConflicts,
-        lastSafeModeReason,
+        currentSafeModeReason,
         activeSliceId,
         closeTimerPending: closeTimerRef.current != null,
         lastToggleAt: lastToggleAtRef.current,
@@ -337,7 +350,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     hasConflictDialogOpen,
     hasHotkeyConflicts,
     isOpen,
-    lastSafeModeReason,
+    currentSafeModeReason,
   ]);
 
   const recordActionOutcome = useCallback(
@@ -393,6 +406,21 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     },
     [clearTimer],
   );
+  
+  // Auto-close menu if safe mode is enabled
+  useEffect(() => {
+    if (currentSafeModeReason && isOpen) {
+      setIsOpen(false);
+      clearTimer();
+      // Show notification about forced closure
+      recordActionOutcome({
+        id: 'safe-mode-forced-close',
+        name: 'Pie Menu Closed',
+        status: 'skipped',
+        message: currentSafeModeReason,
+      });
+    }
+  }, [clearTimer, currentSafeModeReason, isOpen, recordActionOutcome]);
 
   const fallbackHotkeys = useMemo(() => {
     const base: string[] = (() => {
@@ -485,6 +513,13 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         const matched = findMatchingHoldHotkey();
         if (matched && !activeHoldHotkeyRef.current) {
           event.preventDefault();
+          
+          // Block if in safe mode
+          if (lastSafeModeReason) {
+            clearTimer();
+            return;
+          }
+          
           activeHoldHotkeyRef.current = matched;
           lastToggleAtRef.current = Date.now();
           setIsOpen(true);
@@ -498,6 +533,20 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
       if (matchers.some((match) => match(event))) {
         event.preventDefault();
+        
+        // Block if in safe mode
+        if (lastSafeModeReason) {
+          clearTimer();
+          // Show notification about blocked action
+          recordActionOutcome({
+            id: 'safe-mode-blocked',
+            name: 'Pie Menu Blocked',
+            status: 'skipped',
+            message: lastSafeModeReason,
+          });
+          return;
+        }
+        
         setIsOpen((prev) => {
           const next = !prev;
           if (next) {
@@ -619,6 +668,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     hasConflictDialogOpen,
     hasHotkeyConflicts,
     isHoldMode,
+    currentSafeModeReason,
     parsedFallbackHotkeys,
     recordActionOutcome,
     scheduleAutoClose,
@@ -715,6 +765,21 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         lastHotkeyEventAtRef.current = now;
+        
+        // Block if in safe mode (checked via state)
+        const safeModeReason = currentSafeModeReason;
+        if (safeModeReason) {
+          clearTimer();
+          // Show notification about blocked action
+          recordActionOutcome({
+            id: 'safe-mode-blocked',
+            name: 'Pie Menu Blocked',
+            status: 'skipped',
+            message: safeModeReason,
+          });
+          return;
+        }
+        
         setIsOpen((prev) => {
           if (hasConflictDialogOpen) {
             clearTimer();
@@ -776,7 +841,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       windowUnlisten?.();
       profileUnlisten?.();
     };
-  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
+  }, [autoCloseMs, clearTimer, currentSafeModeReason, hasConflictDialogOpen, hasHotkeyConflicts, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -797,6 +862,20 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
   const toggle = useCallback(() => {
     const now = Date.now();
+    
+    // Block if in safe mode (fullscreen or read-only)
+    if (currentSafeModeReason) {
+      clearTimer();
+      // Show notification about blocked action
+      recordActionOutcome({
+        id: 'safe-mode-blocked',
+        name: 'Pie Menu Blocked',
+        status: 'skipped',
+        message: currentSafeModeReason,
+      });
+      return;
+    }
+    
     setIsOpen((prev) => {
       if (hasConflictDialogOpen || hasHotkeyConflicts) {
         clearTimer();
@@ -813,9 +892,22 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       }
       return next;
     });
-  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, scheduleAutoClose]);
+  }, [clearTimer, currentSafeModeReason, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
 
   const open = useCallback(() => {
+    // Block if in safe mode (fullscreen or read-only)
+    if (currentSafeModeReason) {
+      clearTimer();
+      // Show notification about blocked action
+      recordActionOutcome({
+        id: 'safe-mode-blocked',
+        name: 'Pie Menu Blocked',
+        status: 'skipped',
+        message: currentSafeModeReason,
+      });
+      return;
+    }
+    
     if (hasConflictDialogOpen || hasHotkeyConflicts) {
       clearTimer();
       setIsOpen(false);
@@ -824,7 +916,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     lastToggleAtRef.current = Date.now();
     setIsOpen(true);
     scheduleAutoClose();
-  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, scheduleAutoClose]);
+  }, [clearTimer, currentSafeModeReason, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose]);
 
   const close = useCallback(() => {
     lastToggleAtRef.current = Date.now();
@@ -865,6 +957,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       activeSliceId,
       lastAction,
       lastSafeModeReason,
+      currentSafeModeReason,
       activeProfile,
       toggle,
       open,
@@ -875,6 +968,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       recordActionOutcome,
     }),
     [
+      activeProfile,
       activeSliceId,
       clearLastAction,
       close,
@@ -882,6 +976,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       isOpen,
       lastAction,
       lastSafeModeReason,
+      currentSafeModeReason,
       open,
       recordActionOutcome,
       setActiveSlice,

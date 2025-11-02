@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,12 +25,32 @@ async function loadLocalizationPack(filename) {
 
 async function loadFallbackStrings() {
   const raw = await readFile(FALLBACK_STORE_PATH, 'utf-8');
-  const match = raw.match(/const FALLBACK_STRINGS: Record<string, string> = {(.*)\n};/s);
-  if (!match) {
-    throw new Error('Failed to parse FALLBACK_STRINGS from localizationStore.ts');
+  
+  // Find the start of FALLBACK_STRINGS object
+  const startPattern = /const FALLBACK_STRINGS:\s*Record<string,\s*string>\s*=\s*\{/;
+  const startMatch = raw.match(startPattern);
+  if (!startMatch) {
+    throw new Error('Failed to find FALLBACK_STRINGS declaration');
   }
+  
+  // Extract object content by counting braces
+  const startIndex = startMatch.index + startMatch[0].length - 1; // Position of opening {
+  let braceCount = 0;
+  let endIndex = startIndex;
+  
+  for (let i = startIndex; i < raw.length; i++) {
+    if (raw[i] === '{') braceCount++;
+    if (raw[i] === '}') braceCount--;
+    if (braceCount === 0) {
+      endIndex = i;
+      break;
+    }
+  }
+  
+  const objectLiteral = raw.substring(startIndex, endIndex + 1);
+  
   // eslint-disable-next-line no-new-func
-  const fallback = Function(`return ({${match[1]}});`)();
+  const fallback = Function(`'use strict'; return ${objectLiteral};`)();
   if (!fallback || typeof fallback !== 'object') {
     throw new Error('Parsed fallback strings are invalid.');
   }
@@ -70,6 +90,23 @@ async function main() {
   if (diffRu.extra.length) {
     console.warn('[i18n] Extra RU keys not in fallback (ok if intentional):', diffRu.extra.sort());
   }
+
+  const report = {
+    timestamp: new Date().toISOString(),
+    status: hasErrors ? 'fail' : 'pass',
+    errors: {
+      en: { missing: diffEn.missing.sort(), extra: diffEn.extra.sort() },
+      ru: { missing: diffRu.missing.sort(), extra: diffRu.extra.sort() },
+    },
+    summary: {
+      totalMissing: diffEn.missing.length + diffRu.missing.length,
+      totalExtra: diffEn.extra.length + diffRu.extra.length,
+    },
+  };
+
+  const reportPath = path.join(ROOT, 'i18n-lint.json');
+  await writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
+  console.log(`[i18n] Report saved to ${reportPath}`);
 
   if (hasErrors) {
     process.exitCode = 1;

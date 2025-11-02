@@ -9,7 +9,7 @@ const contextProfiles = JSON.parse(
 );
 
 export default defineConfig({
-  testDir: join(moduleDir),
+  testDir: join(moduleDir, '..'),
   testMatch: [
     '**/app-smoke.spec.ts',
     '**/pie-menu.spec.ts',
@@ -23,6 +23,8 @@ export default defineConfig({
     '**/linux-fallback.spec.ts',
     '**/offline.spec.ts',
     '**/accessibility.spec.ts',
+    '**/fullscreen-safe-mode.spec.ts',
+    'perf/*.spec.ts',
   ],
   timeout: 30_000,
   expect: {

@@ -160,6 +160,25 @@ autohotpie-tauri/contracts/
 - **Cross-Platform UX Parity (NFR-006)**: macOS/Linux паритет подтверждается тестами `autostart.spec.ts`, `linux-fallback.spec.ts`, `notifications.spec.ts` и ручной проверкой меню/трэй статусов; тесты и ревью учитывают критерии из NFR-006 (чеклист функциональных состояний, скриншоты, временные метрики, Linux fallback).
 - **Documentation**: quickstart.md содержит инструкции по Log Panel, автозапуску и read-only; актуализируется в T035/T134d.
 
+## Feature Coverage Table (FR-012/FR-013/FR-024)
+
+| Feature | Description | Implementation | Tests | Status |
+|---------|-------------|----------------|-------|--------|
+| **FR-012** | Локализация (EN/RU, JSON) | `src/state/localizationStore.ts`, `src-tauri/resources/localization/{en,ru}.json` | `tests/e2e/localization.spec.ts`, `tests/e2e/localization-negative.spec.ts`, `scripts/validate-i18n.mjs` | ✅ Complete |
+| **FR-013** | Log Panel (UI) | `src/components/log/LogPanel.tsx`, auto-refresh 5s, filters (INFO/WARN/ERROR/ACTION), search | `tests/e2e/log-panel.spec.ts` | ✅ Complete |
+| **FR-024** | Локальные журналы (backend) | `src-tauri/src/commands/logs.rs` (`read_current_log`, `open_logs`), audit log rotation | `src-tauri/tests/integration/profile_backups.rs` (rotation), `tests/e2e/log-panel.spec.ts` (UI integration) | ✅ Complete |
+
+**Coverage Summary**:
+- **E2E Tests**: `localization.spec.ts` (language switching), `localization-negative.spec.ts` (missing keys), `log-panel.spec.ts` (filters/search/open file)
+- **Lint Automation**: `scripts/validate-i18n.mjs` generates `i18n-lint.json` report
+- **Integration Tests**: `src-tauri/tests/integration/profile_backups.rs` validates audit log rotation
+- **Performance**: Localization switching < 50ms (no UI freeze), log panel auto-refresh every 5s without blocking
+
+**Related Documentation**:
+- Quickstart: See [quickstart.md](quickstart.md#validation-summary-t035t037) for validation commands
+- UX Parity: See [ux-parity-checklist.md](ux-parity-checklist.md) for FR coverage against NFR-006
+- Performance Baseline: See `autohotpie-tauri/tests/perf/reports/performance-baseline.md`
+
 ## Complexity Tracking
 
 *Fill ONLY if Constitution Check has violations that must be justified*

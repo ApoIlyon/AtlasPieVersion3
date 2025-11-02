@@ -134,6 +134,7 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 |---------|------------------|---------------------|
 | Полный smoke-suite | `npm run test:e2e` | HTML-отчёт Playwright: `autohotpie-tauri/tests/e2e/playwright-report/index.html` (48/48 пройдено, включая `linux-fallback.spec.ts`, `autostart.spec.ts`, `notifications.spec.ts`). |
 | Локализация | `npm run test:e2e -- --grep "Localization"` | Проверяет `localization.spec.ts`; убедитесь, что новые ключи присутствуют в EN/RU и fallback-пакете (`localizationStore`). |
+| UX паритет (NFR-006) | См. **[ux-parity-checklist.md](ux-parity-checklist.md)** | Полный чеклист функциональных состояний, side-by-side сравнение с AutoHotPie v1.x и Kando 2.0.0, метрики производительности. Скриншоты: `specs/001-build-tauri-pie/screenshots/` (to be collected). |
 | UX паритет macOS/Linux | См. разделы выше + `npm run test:e2e -- --grep "Linux fallback" --project=chromium` | Скриншоты и чеклист: `specs/001-build-tauri-pie/artifacts/macos-menu-bar*.png`, `linux-fallback-panel.png`. |
 | Доступность (ручная проверка) | Используйте макрозоны UI: High Contrast в Settings → Accessibility, проверка навигации клавиатурой по `MenuBarToggle` и Linux fallback панели | Зафиксируйте результаты в `specs/001-build-tauri-pie/research.md` при необходимости. |
 
