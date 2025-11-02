@@ -16,6 +16,7 @@
     "logPanel.subtitle": "Последние события и системные сообщения",
     "logPanel.filePath": "Файл",
     "logPanel.truncated": "Показаны последние записи. Откройте файл лога для полного просмотра.",
+    "logPanel.lastUpdated": "Обновлено в {time}",
     "logPanel.lastUpdatedPrefix": "Обновлено в",
     "logPanel.autoRefreshOn": "Автообновление ✓",
     "logPanel.autoRefreshOff": "Автообновление ✗",

@@ -15,6 +15,7 @@
     "logPanel.subtitle": "Recent activity and system events",
     "logPanel.filePath": "File",
     "logPanel.truncated": "Showing the most recent records. Open the log file to inspect the full history.",
+    "logPanel.lastUpdated": "Updated at {time}",
     "logPanel.lastUpdatedPrefix": "Updated at",
     "logPanel.autoRefreshOn": "Auto-refresh ✓",
     "logPanel.autoRefreshOff": "Auto-refresh ✗",

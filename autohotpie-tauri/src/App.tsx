@@ -27,6 +27,8 @@ import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
 import { LogPanel } from './components/log/LogPanel';
+import { useUpdateStore } from './state/updateStore';
+import type { UpdateStatus } from './state/types';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -233,6 +235,103 @@ export function App() {
   const previewBodyParts = previewBodyTemplate.split('{hotkey}');
   const previewBodyBefore = previewBodyParts[0] ?? previewBodyTemplate;
   const previewBodyAfter = previewBodyParts[1] ?? '';
+
+  useEffect(() => {
+    if (isTauriEnvironment()) {
+      return;
+    }
+
+    type UpdateMocks = {
+      openCalls: string[];
+      seed: (status: UpdateStatus) => void;
+      next: (status: UpdateStatus) => void;
+      fail: (message: string) => void;
+    };
+
+    const appWindow = window as typeof window & {
+      __AUTOHOTPIE_MOCKS__?: Record<string, unknown> & { updates?: UpdateMocks };
+    };
+
+    const previousMocks = appWindow.__AUTOHOTPIE_MOCKS__;
+    const openCalls: string[] = [];
+    const originalOpen = window.open?.bind(window) ?? null;
+
+    const storeSnapshot = useUpdateStore.getState();
+    const originalInitialize = storeSnapshot.initialize;
+    const originalCheckForUpdates = storeSnapshot.checkForUpdates;
+
+    let queuedStatuses: UpdateStatus[] = [];
+    let pendingError: string | null = null;
+
+    const mockInitialize = async () => {};
+    const mockCheckForUpdates = async () => {
+      useUpdateStore.setState({ isChecking: true, error: null });
+      const nextStatus = queuedStatuses.shift();
+      if (nextStatus) {
+        useUpdateStore.setState({ status: nextStatus, isChecking: false, error: null });
+        return;
+      }
+      if (pendingError) {
+        const errorMessage = pendingError;
+        pendingError = null;
+        useUpdateStore.setState((state) => ({
+          status: state.status ? { ...state.status, error: errorMessage } : null,
+          error: errorMessage,
+          isChecking: false,
+        }));
+        return;
+      }
+      useUpdateStore.setState({ isChecking: false });
+    };
+
+    useUpdateStore.setState({
+      initialize: mockInitialize,
+      checkForUpdates: mockCheckForUpdates,
+    });
+
+    const updatesMock: UpdateMocks = {
+      openCalls,
+      seed(status) {
+        queuedStatuses = [];
+        pendingError = null;
+        openCalls.length = 0;
+        useUpdateStore.setState({ status, initialized: true, error: null, isChecking: false });
+      },
+      next(status) {
+        queuedStatuses.push(status);
+      },
+      fail(message) {
+        pendingError = message;
+      },
+    };
+
+    window.open = ((url: string | URL | undefined, target?: string, features?: string) => {
+      if (typeof url !== 'undefined') {
+        openCalls.push(String(url));
+      }
+      return originalOpen ? originalOpen(url, target, features) : null;
+    }) as typeof window.open;
+
+    appWindow.__AUTOHOTPIE_MOCKS__ = {
+      ...previousMocks,
+      updates: updatesMock,
+    };
+
+    return () => {
+      if (originalOpen) {
+        window.open = originalOpen;
+      }
+      if (previousMocks) {
+        appWindow.__AUTOHOTPIE_MOCKS__ = previousMocks;
+      } else if (appWindow.__AUTOHOTPIE_MOCKS__) {
+        delete appWindow.__AUTOHOTPIE_MOCKS__;
+      }
+      useUpdateStore.setState({
+        initialize: originalInitialize,
+        checkForUpdates: originalCheckForUpdates,
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (!profilesInitialized) {
