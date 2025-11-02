@@ -5,6 +5,7 @@ pub mod autostart;
 pub mod connectivity;
 pub mod import_export;
 pub mod localization;
+pub mod macro_engine;
 pub mod profile_router;
 pub mod storage_guard;
 pub mod system_status;

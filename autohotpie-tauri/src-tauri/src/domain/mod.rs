@@ -3,6 +3,7 @@
 pub mod action;
 pub mod context;
 pub mod context_rules;
+pub mod custom_command;
 pub mod pie_menu;
 pub mod profile;
 pub mod validation;

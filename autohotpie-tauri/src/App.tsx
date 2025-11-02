@@ -11,7 +11,7 @@ import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistration
 import { useHotkeyStore } from './state/hotkeyStore';
 import { useProfileStore, selectProfileHotkeyStatus } from './state/profileStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
-import { PieMenu, type PieSliceDefinition } from './components/pie/PieMenu';
+import { RadialPieMenu, type RadialPieSlice } from './components/pie/RadialPieMenu';
 import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
@@ -21,6 +21,7 @@ import type { HotkeyRegistrationStatus } from './types/hotkeys';
 import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
+import { VisualMenuEditor } from './components/editor/VisualMenuEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
 import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
@@ -170,6 +171,7 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [useVisualEditor, setUseVisualEditor] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -377,19 +379,31 @@ export function App() {
     close: closePieMenu,
   } = pieMenuState;
 
-  const menuSlices = useMemo<PieSliceDefinition[]>(() => {
-    const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
+  const menuSlices = useMemo<RadialPieSlice[]>(() => {
+    const fallbackSlices: RadialPieSlice[] = FALLBACK_PLACEHOLDER_SLICES.map(s => ({
+      id: s.id,
+      label: s.label,
+      order: s.order,
+    }));
     const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
 
     if (!isTauriEnvironment()) {
       if (activeSnapshot) {
         const mockSlices = slicesForProfile(activeSnapshot.index);
         if (mockSlices.length) {
-          return mockSlices;
+          return mockSlices.map(s => ({
+            id: s.id,
+            label: s.label,
+            order: s.order,
+          }));
         }
       }
       const fallbackMock = slicesForProfile(0);
-      return fallbackMock.length ? fallbackMock : fallbackSlices;
+      return fallbackMock.length ? fallbackMock.map(s => ({
+        id: s.id,
+        label: s.label,
+        order: s.order,
+      })) : fallbackSlices;
     }
 
     if (!profiles.length) {
@@ -413,9 +427,9 @@ export function App() {
       return fallbackSlices;
     }
 
-    const derivedSlices = [...rootMenu.slices]
+    const derivedSlices: RadialPieSlice[] = [...rootMenu.slices]
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map<PieSliceDefinition>((slice, order) => ({
+      .map<RadialPieSlice>((slice, order) => ({
         id: slice.id,
         label: slice.label || `Slice ${order + 1}`,
         order: slice.order ?? order,
@@ -657,7 +671,7 @@ export function App() {
                     </p>
 
                     <div className="mt-6 flex flex-col items-center gap-4">
-                      <PieMenu
+                      <RadialPieMenu
                         slices={menuSlices}
                         visible={menuSlices.length > 0}
                         radius={200}
@@ -666,13 +680,6 @@ export function App() {
                         onHover={(sliceId) => setActiveSlice(sliceId)}
                         onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
                         dataTestId="pie-menu-preview"
-                        centerContent={
-                          lastSafeModeReason ? (
-                            <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
-                              {t('dashboard.safeModeBadge')}
-                            </span>
-                          ) : null
-                        }
                       />
                       {menuSlices.length === 0 && (
                         <p className="text-sm text-white/60">{t('dashboard.previewEmpty')}</p>
@@ -731,11 +738,31 @@ export function App() {
                 }}
               />
 
-              <ProfileEditor
-                profile={activeProfileRecord}
-                mode={activeProfileRecord ? 'view' : 'create'}
-                onClose={() => setSelectedProfileId(null)}
-              />
+              <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Editor Mode</p>
+                  <p className="text-xs text-white/60">Choose between simple or visual drag-and-drop editor</p>
+                </div>
+                <button
+                  onClick={() => setUseVisualEditor(!useVisualEditor)}
+                  className="rounded-lg border border-accent/60 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition hover:bg-accent/20"
+                >
+                  {useVisualEditor ? '📝 Simple Editor' : '🎨 Visual Editor'}
+                </button>
+              </div>
+
+              {useVisualEditor && activeProfileRecord ? (
+                <VisualMenuEditor
+                  profileId={activeProfileRecord.profile.id}
+                  onClose={() => setSelectedProfileId(null)}
+                />
+              ) : (
+                <ProfileEditor
+                  profile={activeProfileRecord}
+                  mode={activeProfileRecord ? 'view' : 'create'}
+                  onClose={() => setSelectedProfileId(null)}
+                />
+              )}
             </div>
           )}
 
@@ -772,7 +799,7 @@ export function App() {
             >
               {menuSlices.length > 0 ? (
                 <>
-                  <PieMenu
+                  <RadialPieMenu
                     slices={menuSlices}
                     visible
                     radius={200}
@@ -780,11 +807,9 @@ export function App() {
                     activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                     onHover={(sliceId) => setActiveSlice(sliceId)}
                     onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+                    onCenterClick={closePieMenu}
                     dataTestId="pie-menu"
                   />
-                  <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
-                    {menuSlices.find((slice) => slice.id === (activeSliceId ?? menuSlices[0]?.id ?? null))?.label ?? ''}
-                  </div>
                   <p className="text-sm text-white/70">
                     Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть.
                   </p>
