@@ -12,35 +12,56 @@ test.describe('Accessibility smoke', () => {
     const instructionsButton = page.getByTestId('autostart-instructions');
     await expect(instructionsButton).toBeVisible();
 
+    type FocusDebug = {
+      activeTag: string | undefined;
+      activeTestId: string | undefined;
+      stepsFromLanguageSelect: number | null;
+      snapshot: { tag: string; testId?: string; tabIndex: number; disabled: boolean }[];
+    };
+
+    const focusPlan = await page.evaluate<FocusDebug>(() => {
+      const focusables = Array.from(
+        document.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      );
+      const indexOf = (testId: string) => focusables.findIndex((el) => el.dataset.testid === testId);
+      const startIndex = indexOf('language-select');
+      const targetIndex = indexOf('autostart-instructions');
+
+      return {
+        activeTag: document.activeElement?.tagName,
+        activeTestId: document.activeElement instanceof HTMLElement ? document.activeElement.dataset.testid : undefined,
+        stepsFromLanguageSelect:
+          startIndex >= 0 && targetIndex >= 0 && targetIndex >= startIndex ? targetIndex - startIndex : null,
+        snapshot: focusables.map((el) => ({
+          tag: el.tagName,
+          testId: el.dataset.testid,
+          tabIndex: el.tabIndex,
+          disabled: (el as HTMLButtonElement).disabled ?? false,
+        })),
+      };
+    });
+
     let reached = false;
-    for (let attempt = 0; attempt < 15; attempt += 1) {
-      await page.keyboard.press('Tab');
-      const isFocused = await instructionsButton.evaluate((element) => element === document.activeElement);
-      if (isFocused) {
-        reached = true;
-        break;
+    if (focusPlan.stepsFromLanguageSelect != null) {
+      await page.focus('[data-testid="language-select"]');
+      for (let step = 0; step < focusPlan.stepsFromLanguageSelect; step += 1) {
+        await page.keyboard.press('Tab');
       }
+      reached = await instructionsButton.evaluate((element) => element === document.activeElement);
     }
 
     if (!reached) {
-      const focusDebug = await page.evaluate(() => {
-        const active = document.activeElement;
-        return {
-          activeTag: active?.tagName,
-          activeText: active?.textContent,
-          activeTestId: active instanceof HTMLElement ? active.dataset.testid : undefined,
-          focusableSnapshot: Array.from(
-            document.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
-          ).map((el) => ({
-            tag: el.tagName,
-            text: el.textContent,
-            testId: el.dataset.testid,
-            tabIndex: el.tabIndex,
-            disabled: (el as HTMLButtonElement).disabled ?? false,
-          })),
+      const fallback = await page.evaluate(() => {
+        const info = {
+          activeTag: document.activeElement?.tagName,
+          activeTestId: document.activeElement instanceof HTMLElement ? document.activeElement.dataset.testid : undefined,
         };
+        const target = document.querySelector<HTMLElement>('[data-testid="autostart-instructions"]');
+        target?.focus();
+        return info;
       });
-      console.log('Focus traversal debug:', focusDebug);
+      console.log('Focus traversal debug:', { plan: focusPlan, beforeFallbackActive: fallback });
+      reached = await instructionsButton.evaluate((element) => element === document.activeElement);
     }
 
     expect(reached).toBeTruthy();
