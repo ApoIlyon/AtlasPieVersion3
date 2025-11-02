@@ -77,6 +77,10 @@ export function SettingsAutostart() {
     return info.status === 'enabled' ? 'success' : 'danger';
   }, [info]);
 
+  const providerLabel = info?.provider ? t(`settings.autostart.provider.${info.provider}`) : null;
+  const reasonMessage = info?.reasonCode ? t(`settings.autostart.reason.${info.reasonCode}`) : null;
+  const infoMessage = reasonMessage ?? info?.message ?? null;
+
   const actionDisabled = !isDesktop || isLoading || showReadOnlyBanner;
   const canEnable = !actionDisabled && !isUpdating && info?.status !== 'enabled';
   const canDisable = !actionDisabled && !isUpdating && info?.status === 'enabled';
@@ -113,7 +117,9 @@ export function SettingsAutostart() {
         </div>
       )}
       <header className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">{t('settings.autostart.title')}</h2>
+        <h2 className="text-2xl font-semibold text-white" data-testid="settings-autostart-heading">
+          {t('settings.autostart.title')}
+        </h2>
         <p className="max-w-2xl text-sm text-white/70">{t('settings.autostart.description')}</p>
       </header>
 
@@ -181,13 +187,24 @@ export function SettingsAutostart() {
 
         <div className="mt-6 space-y-4 text-sm text-white/70">
           <p>{t('settings.autostart.permissions')}</p>
+          {providerLabel && (
+            <div
+              className="rounded-2xl border border-white/10 bg-black/30 p-4 text-xs text-white/70"
+              data-testid="autostart-provider"
+            >
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/60">
+                {t('settings.autostart.provider.label')}
+              </h3>
+              <p className="mt-2 text-white/80">{providerLabel}</p>
+            </div>
+          )}
           {info?.launcherPath && (
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-xs">
-              <p className="text-white/70">{t('settings.autostart.macosLauncher')}</p>
+              <p className="text-white/70">{t('settings.autostart.launcherPath')}</p>
               <p className="mt-2 font-mono text-white/60">{info.launcherPath}</p>
             </div>
           )}
-          {info?.message && info.status !== 'unsupported' && (
+          {infoMessage && (
             <div
               className={clsx(
                 'rounded-2xl border p-4 text-xs',
@@ -197,7 +214,7 @@ export function SettingsAutostart() {
               )}
               data-testid="autostart-status-message"
             >
-              {info.message}
+              {infoMessage}
             </div>
           )}
         </div>

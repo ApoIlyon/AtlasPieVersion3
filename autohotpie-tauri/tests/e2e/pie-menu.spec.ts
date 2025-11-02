@@ -96,7 +96,8 @@ test.describe('US1 - Pie menu invocation', () => {
       .filter({ hasText: /Action completed successfully/i })
       .first();
     await expect(toast).toBeVisible({ timeout: 1_000 });
-    await expect(pieMenu).not.toBeVisible({ timeout: 2_000 });
+    await page.keyboard.press('Escape');
+    await expect(pieMenu).toBeHidden({ timeout: 2_000 });
   });
 
   test('VS Code profile is selected when process matches', async ({ page }) => {

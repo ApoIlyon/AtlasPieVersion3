@@ -1,0 +1,142 @@
+# SPDX-FileCopyrightText: Simon Schneegans <code@simonschneegans.de>
+# SPDX-License-Identifier: CC0-1.0
+
+name: Deploy
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Install Dependencies
+        run: |
+          sudo apt install libx11-dev libxtst-dev libwayland-dev libxkbcommon-dev
+          npm install
+      - name: Fix Permissions
+        # Workaround for https://github.com/electron/electron/issues/17972
+        run: |
+          sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+          sudo chown root node_modules/electron/dist/chrome-sandbox
+      - name: Create Packages
+        run: |
+          npm run make
+      - name: Create AppImage
+        run: |
+          tools/make-app-image.sh
+      - name: Upload Packages
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          file: out/make/**/*
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+
+  windows:
+    name: Windows
+    strategy:
+      matrix:
+        os: [windows-2022, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Install Dependencies
+        run: |
+          npm install
+      - name: Create Release
+        run: |
+          npm run make
+      - name: Rename Executables
+        shell: pwsh
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+        run: |
+          if ($env:MATRIX_OS -eq "windows-2022") {
+            Get-ChildItem -Path out/make/squirrel.windows/*/*.exe | Rename-Item -NewName { $_.BaseName + "-x64" + $_.Extension }
+          } elseif ($env:MATRIX_OS -eq "windows-11-arm") {
+            Get-ChildItem -Path out/make/squirrel.windows/*/*.exe | Rename-Item -NewName { $_.BaseName + "-arm64" + $_.Extension }
+          }
+      - name: Upload Zip
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          file: out/make/zip/win32/*/*
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+      - name: Upload Squirrel Installer
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          file: out/make/squirrel.windows/*/*.exe
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+
+  macos:
+    name: macOS
+    strategy:
+      matrix:
+        os: [macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      # https://github.com/electron/forge/issues/2807
+      - run: python3 -m pip install setuptools --break-system-packages
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install appdmg
+      - name: Add macOS certificates
+        env:
+          OSX_CERTIFICATE: ${{ secrets.OSX_CERTIFICATE }}
+          OSX_CERTIFICATE_PASSWORD: ${{ secrets.OSX_CERTIFICATE_PASSWORD }}
+        run: |
+          .github/osx_certificates.sh
+      - name: Create Release
+        env:
+          KANDO_OSX_SIGN: true
+          KANDO_OSX_NOTARIZE: true
+          OSX_APP_SPECIFIC_ID: ${{ secrets.OSX_APP_SPECIFIC_ID }}
+          OSX_APP_SPECIFIC_PASSWORD: ${{ secrets.OSX_APP_SPECIFIC_PASSWORD }}
+          OSX_TEAM_ID: ${{ secrets.OSX_TEAM_ID }}
+        run: |
+          npm run make
+      - name: Upload DMG
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          file: out/make/*.dmg
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+      - name: Upload Zip
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          file: out/make/zip/darwin/**/*.zip
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true

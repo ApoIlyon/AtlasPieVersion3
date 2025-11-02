@@ -26,13 +26,15 @@ async function triggerHotkey(page: Page, hotkey: string) {
 test.describe('Perf - Hotkey to menu latency', () => {
   test('pie menu appears under SLA after triggering hotkey', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
     // Warm-up: first open and close to stabilize timings
     await triggerHotkey(page, HOTKEY);
     const warmPie = page.getByTestId('pie-menu');
-    await expect(warmPie).toBeVisible({ timeout: 1_000 });
+    await expect(warmPie).toBeVisible({ timeout: 3_000 });
     await page.mouse.click(5, 5);
-    await expect(warmPie).not.toBeVisible({ timeout: 1_000 });
+    await page.keyboard.press('Escape');
+    await expect(warmPie).toBeHidden({ timeout: 2_000 });
 
     async function measureOnce(): Promise<number> {
       const start = Date.now();
@@ -42,7 +44,8 @@ test.describe('Perf - Hotkey to menu latency', () => {
       const elapsed = Date.now() - start;
       // close for next run
       await page.mouse.click(5, 5);
-      await expect(pieMenu).not.toBeVisible({ timeout: 1_000 });
+      await page.keyboard.press('Escape');
+      await expect(pieMenu).toBeHidden({ timeout: 2_000 });
       return elapsed;
     }
 

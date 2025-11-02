@@ -89,6 +89,20 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
   - **Disabled** — автозапуск отключён, используйте **Enable autostart** для включения.
   - **Unsupported** — текущая сборка не поддерживает автозапуск (браузерный превью или отсутствует плагин ОС).
   - **Errored** — переключение не удалось. Нажмите **Retry** для повторной попытки; сообщение ошибки отображается под статусом.
+- **Provider** поле под статусом показывает активный механизм автозапуска:
+  - `systemd user service` — включён пользовательский юнит `~/.config/systemd/user/<identifier>.service`.
+  - `XDG desktop entry` — используется файл `~/.config/autostart/<identifier>.desktop`.
+  - `Windows Startup folder` — ярлык/скрипт в `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`.
+  - `macOS login item` — запись в **System Settings → General → Login Items**.
+  - `Platform autostart plugin` — fallback через Tauri-плагин (Windows/macOS) в сборке без нативных интеграций.
+- **Reason codes** помогают понять дальнейшие действия:
+  - `entry_missing` — файл `.desktop` отсутствует; нажмите **Enable autostart** или создайте запись вручную.
+  - `unit_missing` / `unit_disabled` — юнит systemd не найден или отключён. Используйте `systemctl --user enable --now <identifier>.service`.
+  - `linux_no_provider` — ни systemd, ни XDG недоступны. Установите `systemd --user` или позвольте XDG автозапуску.
+  - `plugin_missing` / `plugin_disabled` — Tauri-плагин автозапуска не доступен или отключён; проверьте конфигурацию сборки.
+  - `shortcut_missing` — ярлык Windows удалён. Нажмите **Enable autostart** для регенерации.
+  - `web_environment` — вы в браузерном превью; автозапуск появится только в десктопной версии.
+  - Другие коды сопровождаются сообщением под статусом; сверяйтесь с журналом или stacktrace.
 - **Read-only mode**: если каталог данных недоступен для записи, появляется баннер «Read-only safeguard».
   - Разблокируйте доступ или выберите альтернативный путь, затем перезапустите приложение.
   - Пока режим активен, управление автозапуском и логами заблокировано.
@@ -96,3 +110,32 @@ Logs rotate daily under the same directory. В разделе **Settings → Log
 - Global hotkey conflicts: see **Settings → Hotkeys**; reassign or disable conflicting bindings.
 - Missing tray icon on Linux: ensure `libayatana-appindicator3` installed; fallback UI enabled otherwise.
 - Accessibility prompts on macOS: enable permissions under **System Settings → Privacy & Security → Accessibility**.
+- **macOS menu bar parity (NFR-006)**:
+  1. На macOS 13+ убедитесь, что иконка AutoHotPie отображается в строке меню. При клике пункт **Toggle Pie Menu** синхронизируется с состоянием overlay.
+  2. Откройте пункт **Status** → подтверждаем отображение:
+     - `Active profile` — обозначает текущий активный профиль, совпадает с `profiles://active-changed`.
+     - `Hotkey` — показывает зарегистрированное сочетание (по умолчанию `Command+Shift+P`).
+     - `Safe mode` — отражает read-only/Fullscreen показания (`Safe mode enabled`/`Safe mode inactive`).
+  3. Меню **Refresh status** обновляет данные после смены профиля или хоткея без перезапуска приложения.
+  4. В UI-компоненте `MenuBarToggle` (overlay) отображается та же информация и история последнего действия; скриншоты закрепляются в `specs/001-build-tauri-pie/artifacts/macos-menu-bar.png` и `macos-menu-bar-details.png`.
+  5. Smoke-проверка: запустите `npm run test:e2e -- --grep "US3 - Autostart settings" --project=webkit` после конфигурации macOS runner; приложите лог успешного прогона и обновите чеклист NFR-006.
+- **Linux fallback parity (NFR-006)**:
+  1. В окружении без системного трея (или с флагом `--mock tray=off`) убедитесь, что появляется панель Linux fallback и кнопка **Toggle** управляет pie-меню.
+  2. Внутри панели отображаются блоки:
+     - `Autostart` — статус, провайдер и причины (systemd/XDG/plugin); кнопки Enable/Disable работают и показывают ошибки.
+     - `Hotkey`, `Active profile`, `Safe mode`, а также таймстемп последнего действия.
+  3. Кнопка **Refresh autostart** синхронизирует состояние с бэкендом; **Open autostart location** открывает директорию автозапуска (или выдаёт ошибку в read-only).
+  4. Кнопка **View instructions** ссылается на раздел troubleshooting quickstart; скриншоты панели сохраняются в `specs/001-build-tauri-pie/artifacts/linux-fallback-panel.png`.
+  5. Smoke-тест: выполните `npm run test:e2e -- --grep "Linux fallback" --project=chromium` (используя новый `tests/e2e/linux-fallback.spec.ts`); приложите лог прогона к чеклисту NFR-006.
+
+## Validation Summary (T035/T037)
+
+| Область | Команда/действие | Артефакт/примечание |
+|---------|------------------|---------------------|
+| Полный smoke-suite | `npm run test:e2e` | HTML-отчёт Playwright: `autohotpie-tauri/tests/e2e/playwright-report/index.html` (48/48 пройдено, включая `linux-fallback.spec.ts`, `autostart.spec.ts`, `notifications.spec.ts`). |
+| Локализация | `npm run test:e2e -- --grep "Localization"` | Проверяет `localization.spec.ts`; убедитесь, что новые ключи присутствуют в EN/RU и fallback-пакете (`localizationStore`). |
+| UX паритет (NFR-006) | См. **[ux-parity-checklist.md](ux-parity-checklist.md)** | Полный чеклист функциональных состояний, side-by-side сравнение с AutoHotPie v1.x и Kando 2.0.0, метрики производительности. Скриншоты: `specs/001-build-tauri-pie/screenshots/` (to be collected). |
+| UX паритет macOS/Linux | См. разделы выше + `npm run test:e2e -- --grep "Linux fallback" --project=chromium` | Скриншоты и чеклист: `specs/001-build-tauri-pie/artifacts/macos-menu-bar*.png`, `linux-fallback-panel.png`. |
+| Доступность (ручная проверка) | Используйте макрозоны UI: High Contrast в Settings → Accessibility, проверка навигации клавиатурой по `MenuBarToggle` и Linux fallback панели | Зафиксируйте результаты в `specs/001-build-tauri-pie/research.md` при необходимости. |
+
+> После каждого релиза обновляйте таблицу ссылками на свежие отчёты и скриншоты, чтобы соответствовать критериям NFR-006 и документировать прохождение e2e.

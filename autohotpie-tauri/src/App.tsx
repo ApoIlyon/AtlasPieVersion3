@@ -27,6 +27,8 @@ import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
 import { LogPanel } from './components/log/LogPanel';
+import { useUpdateStore } from './state/updateStore';
+import type { UpdateStatus } from './state/types';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -74,6 +76,15 @@ function usePlatform() {
           const normalized = platformHint.toLowerCase();
           linux = linux || normalized === 'linux';
           mac = mac || normalized === 'darwin';
+        }
+        const params = new URLSearchParams(window.location.search);
+        const mockPlatform = params.get('mockPlatform');
+        if (mockPlatform === 'linux') {
+          linux = true;
+          mac = false;
+        } else if (mockPlatform === 'mac') {
+          mac = true;
+          linux = false;
         }
       }
       return { linux, mac };
@@ -135,6 +146,8 @@ export function App() {
   const systemInit = useSystemStore((state) => state.init);
   const systemStatus = useSystemStore((state) => state.status);
   const systemError = useSystemStore((state) => state.error);
+  const setSystemOffline = useSystemStore((state) => state.setOffline);
+  const setSystemStorageMode = useSystemStore((state) => state.setStorageMode);
   const {
     dialogOpen,
     dialogStatus,
@@ -157,6 +170,50 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const mockOffline = params.get('mockOffline');
+    if (!mockOffline) {
+      return;
+    }
+    const normalized = mockOffline.toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+      const timestamp = new Date().toISOString();
+      setSystemOffline(true, timestamp);
+      setSystemStorageMode('read_only');
+    }
+  }, [setSystemOffline, setSystemStorageMode]);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const appWindow = window as typeof window & {
+      __AUTOHOTPIE_APP__?: { setSection: (section: AppSection) => void };
+    };
+    const previousHelper = appWindow.__AUTOHOTPIE_APP__;
+
+    appWindow.__AUTOHOTPIE_APP__ = {
+      setSection: (section: AppSection) => {
+        setActiveSection(section);
+        if (section !== 'profiles') {
+          setSelectedProfileId(null);
+        }
+      },
+    };
+
+    return () => {
+      if (previousHelper) {
+        appWindow.__AUTOHOTPIE_APP__ = previousHelper;
+        return;
+      }
+      if (appWindow.__AUTOHOTPIE_APP__) {
+        delete appWindow.__AUTOHOTPIE_APP__;
+      }
+    };
+  }, [setActiveSection, setSelectedProfileId]);
   const [isLogPanelOpen, setIsLogPanelOpen] = useState(false);
 
   const loadedProfilesText = t('dashboard.loadedProfiles').replace('{count}', String(profiles.length));
@@ -178,6 +235,103 @@ export function App() {
   const previewBodyParts = previewBodyTemplate.split('{hotkey}');
   const previewBodyBefore = previewBodyParts[0] ?? previewBodyTemplate;
   const previewBodyAfter = previewBodyParts[1] ?? '';
+
+  useEffect(() => {
+    if (isTauriEnvironment()) {
+      return;
+    }
+
+    type UpdateMocks = {
+      openCalls: string[];
+      seed: (status: UpdateStatus) => void;
+      next: (status: UpdateStatus) => void;
+      fail: (message: string) => void;
+    };
+
+    const appWindow = window as typeof window & {
+      __AUTOHOTPIE_MOCKS__?: Record<string, unknown> & { updates?: UpdateMocks };
+    };
+
+    const previousMocks = appWindow.__AUTOHOTPIE_MOCKS__;
+    const openCalls: string[] = [];
+    const originalOpen = window.open?.bind(window) ?? null;
+
+    const storeSnapshot = useUpdateStore.getState();
+    const originalInitialize = storeSnapshot.initialize;
+    const originalCheckForUpdates = storeSnapshot.checkForUpdates;
+
+    let queuedStatuses: UpdateStatus[] = [];
+    let pendingError: string | null = null;
+
+    const mockInitialize = async () => {};
+    const mockCheckForUpdates = async () => {
+      useUpdateStore.setState({ isChecking: true, error: null });
+      const nextStatus = queuedStatuses.shift();
+      if (nextStatus) {
+        useUpdateStore.setState({ status: nextStatus, isChecking: false, error: null });
+        return;
+      }
+      if (pendingError) {
+        const errorMessage = pendingError;
+        pendingError = null;
+        useUpdateStore.setState((state) => ({
+          status: state.status ? { ...state.status, error: errorMessage } : null,
+          error: errorMessage,
+          isChecking: false,
+        }));
+        return;
+      }
+      useUpdateStore.setState({ isChecking: false });
+    };
+
+    useUpdateStore.setState({
+      initialize: mockInitialize,
+      checkForUpdates: mockCheckForUpdates,
+    });
+
+    const updatesMock: UpdateMocks = {
+      openCalls,
+      seed(status) {
+        queuedStatuses = [];
+        pendingError = null;
+        openCalls.length = 0;
+        useUpdateStore.setState({ status, initialized: true, error: null, isChecking: false });
+      },
+      next(status) {
+        queuedStatuses.push(status);
+      },
+      fail(message) {
+        pendingError = message;
+      },
+    };
+
+    window.open = ((url: string | URL | undefined, target?: string, features?: string) => {
+      if (typeof url !== 'undefined') {
+        openCalls.push(String(url));
+      }
+      return originalOpen ? originalOpen(url, target, features) : null;
+    }) as typeof window.open;
+
+    appWindow.__AUTOHOTPIE_MOCKS__ = {
+      ...previousMocks,
+      updates: updatesMock,
+    };
+
+    return () => {
+      if (originalOpen) {
+        window.open = originalOpen;
+      }
+      if (previousMocks) {
+        appWindow.__AUTOHOTPIE_MOCKS__ = previousMocks;
+      } else if (appWindow.__AUTOHOTPIE_MOCKS__) {
+        delete appWindow.__AUTOHOTPIE_MOCKS__;
+      }
+      useUpdateStore.setState({
+        initialize: originalInitialize,
+        checkForUpdates: originalCheckForUpdates,
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (!profilesInitialized) {
@@ -428,6 +582,7 @@ export function App() {
                   : 'border-white/5 bg-white/5 text-white/70 hover:border-white/10 hover:bg-white/10 hover:text-white',
               )}
               type="button"
+              data-testid={`nav-${item.id}`}
               onClick={() => {
                 setActiveSection(item.id);
                 if (item.id !== 'profiles') {

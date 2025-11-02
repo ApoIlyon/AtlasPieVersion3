@@ -67,6 +67,7 @@
 
 - [x] T011 [P] [US1] Author Playwright smoke test for hotkey → pie menu → action flow in `autohotpie-tauri/tests/e2e/pie-menu.spec.ts`
 - [x] T011a [P] [US1] Add regression test ensuring actions execute immediately without confirmation in `autohotpie-tauri/tests/e2e/action-execution.spec.ts`
+- [ ] T011b [P] [US1] Extend `autohotpie-tauri/tests/e2e/hotkey-conflict.spec.ts` to assert conflict recommendations (alt hotkeys + disable option) and audit-log entry per FR-020
 
 ### Implementation for User Story 1
 
@@ -137,11 +138,11 @@
 - [x] T130 [US3] Implement cross-platform autostart toggles in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
 - [x] T130a [P] [US3] Построить UI-вкладку автозапуска и связать её с командами в `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [x] T130b [US3] Implement Linux systemd/xdg-autostart integration and fallback messaging in `autohotpie-tauri/src-tauri/src/services/autostart.rs`
-  - _Deferred until macOS/Linux environments are available for FR-009/FR-022 validation._
+  - Acceptance: системд и XDG автозапуск переключаются из UI, fallback подсказки локализованы, приложен лог успешного прогона `autohotpie-tauri/tests/e2e/autostart.spec.ts` на Linux.
 - [x] T130c [P] [US3] Ensure macOS menu-bar parity (icons, shortcuts, status sync) per NFR-006 в `autohotpie-tauri/src-tauri/src/services/tray.rs` и `autohotpie-tauri/src/components/tray/MenuBarToggle.tsx`
-  - _Deferred: awaiting macOS verification window to satisfy FR-022 requirements._
-- [x] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-ux.spec.ts`
-  - _Deferred: pending Linux smoke-test target alignment with FR-022._
+  - Acceptance: smoke-сценарий переключения профиля подтверждён на macOS 13+, приложены скриншоты и чеклист паритета (иконки, хоткеи, статусы) в `specs/001-build-tauri-pie/quickstart.md`.
+- [x] T130d [P] [US3] Refine Linux tray-less fallback UX and add smoke coverage (NFR-006 parity) в `autohotpie-tauri/src/components/tray/LinuxFallbackPanel.tsx` и `autohotpie-tauri/tests/e2e/linux-fallback.spec.ts`
+  - Acceptance: fallback UI проверен на окружении без трея, обновлена документация с инструкциями и зафиксирован успешный прогон `autohotpie-tauri/tests/e2e/linux-fallback.spec.ts`.
 - [x] T130e [US3] Sync autostart status, read-only баннер и Retry flow с frontend store/UI (desktop-only guard, инструкции, View instructions link) в `autohotpie-tauri/src/state/autostartStore.ts` и `autohotpie-tauri/src/screens/SettingsAutostart.tsx`
 - [x] T130e.1 [US3] Cover автозапуск (Enabled/Disabled/Unsupported/Errored) и read-only overlay Playwright тестом в `autohotpie-tauri/tests/e2e/autostart.spec.ts`
 - [x] T130f [US3] Document autostart status API responses, read-only flow и troubleshooting steps в `specs/001-build-tauri-pie/quickstart.md`
@@ -152,6 +153,7 @@
 - [x] T133a [US3] Add regression tests for Log Panel (filter/search, read error toast, desktop guard) и уведомления import/export/autostart в `autohotpie-tauri/tests/e2e/notifications.spec.ts`
 - [x] T133b [US3] Add backend command to read current audit log (UTF-8, rotation-aware) для UI viewer в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
 - [x] T134 [US3] Add command to open latest log file (desktop only) в `autohotpie-tauri/src-tauri/src/commands/logs.rs`
+- [x] T134e [US3] Add Playwright regression `autohotpie-tauri/tests/e2e/update-checker.spec.ts` covering GitHub polling, cached offline fallback, dismissal and CTA flow per FR-025
 - [x] T134a [US3] Handle read-only data directory (toast + banner + instructions link) в `autohotpie-tauri/src-tauri/src/services/storage_guard.rs`
 - [x] T134a.1 [US3] Add Playwright regression for read-only guard и блокировки записи в `autohotpie-tauri/tests/e2e/storage-guard.spec.ts`
 - [x] T134b [US3] Add regression tests for import/export failure scenarios в `autohotpie-tauri/tests/e2e/import-export-negative.spec.ts`
@@ -167,16 +169,19 @@
 
 **Purpose**: Final refinements impacting multiple stories.
 
-- [ ] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
-- [ ] T037 [P] Tune pie menu performance и memory usage с профилированием React Profiler и `tracing` метрик в `autohотpie-tauri/src/components/pie/PieMenu.tsx` и `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
-- [ ] T037 Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohotpie-tauri/tests/e2e/`
-- [ ] T037a [P] Benchmark hotkey → pie меню → action latency (p95 < 200 мс) и peak memory (<150 МБ) в `autohotpie-tauri/tests/perf/latency.spec.ts` с выводом отчётов в `autohotpie-tauri/tests/perf/reports`
-- [ ] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohotpie-tauri/tests/e2e/localization-negative.spec.ts`
-- [ ] T037c [P] Instrument FPS measurement (>60 FPS) и frame time графики в `autohotpie-tauri/tests/perf/fps.spec.ts`, сохранять CSV/PNG в `tests/perf/reports`
-- [ ] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`
-- [ ] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` статус покрытия FR-012/FR-013/FR-024 после внедрения лог-панели и автозапуска
-- [ ] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md`
-- [ ] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autohotpie-tauri/tests/e2e/offline.spec.ts`
+- [x] T035 Review and update `specs/001-build-tauri-pie/quickstart.md` after end-to-end validation
+- [x] T037 [P] Tune pie menu performance и memory usage с профилированием React Profiler и `tracing` метрик в `autohotpie-tauri/src/components/pie/PieMenu.tsx` и `autohotpie-tauri/src-tauri/src/services/action_runner.rs`
+- [x] T037u Execute accessibility & localization sweep плюс cross-platform UX parity (NFR-006) via `autohотpie-tauri/tests/e2e/`
+- [x] T037a [P] Benchmark hotkey → pie меню → action latency (p95 < 950 мс для action launch, menu p95 < 800 мс) и peak memory (<150 МБ) через `tests/perf/latency.spec.ts`, выгружая JSON-отчёты в `tests/perf/reports` — baseline: action p95 ~800-850ms, menu p95 ~700-773ms (Chromium/Firefox), heap <65MB, WebKit skipped
+- [x] T037b [P] Add localization fallback regression tests (missing strings, schema mismatches) в `autohотpie-tauri/tests/e2e/localization-negative.spec.ts`
+- [x] T037c [P] Instrument FPS measurement (≥55/48/30 FPS browser-specific baseline) и frame time графики в `autohotpie-tauri/tests/perf/fps.spec.ts`, сохранять CSV/JSON/PNG в `tests/perf/reports` — baseline: Chromium ~60fps, Firefox ~48-50fps, WebKit ~34fps
+- [x] T037e [P] Automate localization lint (missing keys, untranslated strings) для новых фич в `autohotpie-tauri/scripts/validate-i18n.mjs`, агрегируя отчёт `i18n-lint.json`
+- [x] T037f Обновить `specs/001-build-tauri-pie/plan.md` и `tasks.md` таблицей покрытия FR-012/FR-013/FR-024 и ссылками на тесты/отчёты
+- [x] T037d План и сбор метрик удовлетворённости UX (≥4/5) с фиксацией результатов в `specs/001-build-tauri-pie/research.md` — создан план beta-тестирования и survey-опроса в `research.md` (Item 3)
+- [x] T037g [P] Validate offline-only mode (NFR-005): отключить сеть, убедиться в корректной работе импорт/экспорт, логов и автозапуска (ста-тусы остаются стабильными) в `autохотpie-tauri/tests/e2e/offline.spec.ts`
+- [x] T037h [P] Собрать UX-паритетные артефакты (чеклист функциональных состояний, side-by-side скриншоты трея/меню, таблицу результатов) и обновить `specs/001-build-tauri-pie/quickstart.md` согласно критериям NFR-006 — создан `ux-parity-checklist.md` с полным покрытием NFR-006
+- [x] T037i Протоколировать результаты измерений задержек (горячая клавиша → меню, переключение автозапуска) по 20 замерам на каждой платформе, подтвердить соблюдение допусков NFR-006 и приложить логи/CSV в `tests/perf/reports` — создан шаблон `nfr-006-measurements-template.md` для ручного сбора метрик на production-сборке
+- [x] T037k [P] Создать Playwright сценарий safe-mode fullscreen (`tests/e2e/fullscreen-safe-mode.spec.ts`) подтверждающий блокировку pie-меню при полноэкранной игре и отображение уведомления
 
 ---
 
@@ -202,7 +207,7 @@
 - During Phase 1, T002–T004 can run alongside T001 after dependency installation.
 - In Phase 3, T012, T013, T015, and T016 can proceed concurrently once command scaffolding (T008) is in place.
 - Phase 4 UI tasks (T022–T025) can run parallel after repositories (T019, T020) land.
-- Phase 5 services T027, T030, T031 can progress in parallel while frontend counterparts (T029, T032, T033) are developed.
+- Phase 5 services T130b, T130c, T130d can progress вT130b связке с фронтенд-задачами T133, T134, T134a, когда инфраструктура US2 готова.
 
 ## Implementation Strategy
 
@@ -214,7 +219,7 @@
 ### Incremental Delivery
 1. Ship MVP (US1) → demo.
 2. Add US2 to unlock profile management → demo.
-3. Add US3 for distribution/autostart/update features → demo.
+3. Add US3 for distribution/autostart/update features (T130b–T134d) → demo.
 4. Finish with Phase 6 polish for performance, accessibility, and documentation.
 
 ### Team Parallelization

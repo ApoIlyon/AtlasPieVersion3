@@ -1,0 +1,73 @@
+:not(input):not(textarea), :not(input):not(textarea)::after, :not(input):not(textarea)::before {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+input, button, textarea, :focus {
+  outline: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+a {
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+.div-hover-green:hover {
+  border: solid var(--bs-success);
+}
+
+.div-hover-green-8:hover {
+  border: var(--bs-success);
+}
+
+.div-hover-green-8 {
+  border: var(--bs-gray-800);
+}
+
+.icon-btn-div:hover {
+  background: var(--bs-gray-700);
+}
+
+#more-settings-accordion {
+  color: var(--bs-gray-600);
+}
+
+#more-settings-accordion:hover {
+  color: var(--bs-white);
+}
+
+.table {
+  color: var(--bs-white);
+}
+
+.table {
+  --bs-table-color-type: initial;
+  --bs-table-bg-type: initial;
+  --bs-table-color-state: initial;
+  --bs-table-bg-state: initial;
+  --bs-table-color: var(--bs-white);
+  --bs-table-bg: var(--bs-body-bg);
+  --bs-table-border-color: #444;
+  --bs-table-accent-bg: transparent;
+  --bs-table-striped-color: var(--bs-emphasis-color);
+  --bs-table-striped-bg: rgba(var(--bs-emphasis-color-rgb), 0.05);
+  --bs-table-active-color: var(--bs-emphasis-color);
+  --bs-table-active-bg: rgba(var(--bs-emphasis-color-rgb), 0.1);
+  --bs-table-hover-color: var(--bs-emphasis-color);
+  --bs-table-hover-bg: rgba(var(--bs-emphasis-color-rgb), 0.075);
+  width: 100%;
+  margin-bottom: 1rem;
+  vertical-align: top;
+  border-color: var(--bs-table-border-color);
+}
+

@@ -8,9 +8,21 @@ export interface HotkeyConflict {
   meta?: HotkeyConflictMeta;
 }
 
+export interface HotkeyAlternative {
+  id: string;
+  accelerator: string;
+}
+
+export interface HotkeyJournalEntry {
+  kind: string;
+  accelerator: string;
+}
+
 export interface HotkeyRegistrationStatus {
   registered: boolean;
   conflicts: HotkeyConflict[];
+  alternatives?: HotkeyAlternative[];
+  journalEntry?: HotkeyJournalEntry;
 }
 
 export interface HotkeyConflictSnapshot {
