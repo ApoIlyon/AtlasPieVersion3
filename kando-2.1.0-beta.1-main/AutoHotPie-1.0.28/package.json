@@ -1,0 +1,68 @@
+{
+  "name": "autohotpie",
+  "productName": "AutoHotPie",
+  "version": "1.0.28-alpha",
+  "description": "Universal Pie Menus for Windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "npm run build && electron .",
+    "build":"npm run refresh-index-scripts",    
+    "build-installer": "npm run build && npm run build-ahk && electron-builder",
+    "build-ahk": "build\\build-ahk.bat",
+    "refresh-index-scripts":"node build\\refreshIndexScripts.js"
+  },
+  "build": {
+    "appId": "AutoHotPie",
+    "directories": {
+      "buildResources": "resources"
+    },
+    "productName": "AutoHotPie",
+    "extraFiles": [
+      {
+        "from": "src",
+        "to": "resources/src"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "src/assets/AutoHotPieIcon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "installerIcon": "src/assets/AutoHotPieIcon.ico",
+      "uninstallerIcon": "src/assets/AutoHotPieIcon.ico",
+      "uninstallDisplayName": "AutoHotPie",
+      "license": "license.txt",
+      "oneClick": false,
+      "menuCategory": true,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": false,
+      "installerSidebar": "src/assets/installer-sidebar.bmp",
+      "include": "build/uninstaller.nsh"
+    }
+  },
+  "keywords": [],
+  "author": "dumbeau <caspergilles@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "font-list": "^1.5.1",
+    "node-dir": "^0.1.17",
+    "node-window-manager": "^2.2.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "electron": "^28.1.3",
+    "electron-builder": "^24.9.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dumbeau/AutoHotPie.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dumbeau/AutoHotPie/issues"
+  },
+  "homepage": "https://github.com/dumbeau/AutoHotPie#readme"
+}
