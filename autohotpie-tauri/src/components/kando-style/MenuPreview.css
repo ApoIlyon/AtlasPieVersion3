@@ -6,12 +6,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
-  border-radius: 24px;
-  overflow: hidden;
-  /* Performance optimization */
-  will-change: transform;
-  transform: translateZ(0);
 }
 
 /* Center Indicator */

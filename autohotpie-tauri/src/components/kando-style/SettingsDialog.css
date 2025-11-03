@@ -12,19 +12,17 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 700px;
-  max-height: 85vh;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  width: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
   z-index: 1001;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  /* Performance */
-  will-change: transform, opacity;
-  transform: translate(-50%, -50%) translateZ(0);
 }
 
 .dialog-header {

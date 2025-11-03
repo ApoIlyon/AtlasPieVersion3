@@ -27,11 +27,11 @@ export function MenuPreview({ menu }: MenuPreviewProps) {
       <motion.div
         className="center-indicator"
         animate={{
-          scale: [1, 1.15, 1],
-          opacity: [0.4, 0.7, 0.4],
+          scale: [1, 1.2, 1],
+          opacity: [0.5, 0.8, 0.5],
         }}
         transition={{
-          duration: 1.5,
+          duration: 2,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
@@ -42,13 +42,13 @@ export function MenuPreview({ menu }: MenuPreviewProps) {
         <div className="preview-menu-container">
           <RadialPieMenu
             slices={radialSlices}
-            visible={true}
-            radius={180}
-            gapDeg={6}
-            activeSliceId={radialSlices[0]?.id ?? null}
-            onHover={(sliceId) => console.log('Hover:', sliceId)}
-            onSelect={(sliceId) => console.log('Select:', sliceId)}
-            dataTestId="kando-preview-menu"
+            isOpen={true}
+            onSliceClick={(sliceId) => {
+              console.log('Preview clicked:', sliceId);
+            }}
+            onClose={() => {}}
+            centerX={400}
+            centerY={400}
           />
         </div>
       ) : (

@@ -1,10 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Palette, Keyboard as KeyboardIcon, Info, Globe, Download, Power, FileUp, FileDown } from 'lucide-react';
-import { LanguageSwitcher } from '../localization/LanguageSwitcher';
-import { SettingsImportExport } from '../../screens/SettingsImportExport';
-import { SettingsAutostart } from '../../screens/SettingsAutostart';
-import { SettingsUpdates } from '../../screens/SettingsUpdates';
+import { X, Palette, Keyboard as KeyboardIcon, Info } from 'lucide-react';
 import './SettingsDialog.css';
 
 interface SettingsDialogProps {
@@ -15,8 +11,6 @@ interface SettingsDialogProps {
  * SettingsDialog - Modal for app settings (Kando style)
  */
 export function SettingsDialog({ onClose }: SettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'advanced'>('general');
-
   return (
     <>
       {/* Backdrop */}
@@ -46,17 +40,6 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
 
         {/* Content */}
         <div className="dialog-content">
-          {/* Language Section */}
-          <div className="settings-section">
-            <div className="section-header">
-              <Globe size={18} />
-              <h3>Language</h3>
-            </div>
-            <div className="settings-group">
-              <LanguageSwitcher />
-            </div>
-          </div>
-
           {/* Appearance Section */}
           <div className="settings-section">
             <div className="section-header">
@@ -98,39 +81,6 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
               <p className="setting-hint">
                 Press the key combination you want to use
               </p>
-            </div>
-          </div>
-
-          {/* Autostart Section */}
-          <div className="settings-section">
-            <div className="section-header">
-              <Power size={18} />
-              <h3>Autostart</h3>
-            </div>
-            <div className="settings-group">
-              <SettingsAutostart />
-            </div>
-          </div>
-
-          {/* Updates Section */}
-          <div className="settings-section">
-            <div className="section-header">
-              <Download size={18} />
-              <h3>Updates</h3>
-            </div>
-            <div className="settings-group">
-              <SettingsUpdates />
-            </div>
-          </div>
-
-          {/* Import/Export Section */}
-          <div className="settings-section">
-            <div className="section-header">
-              <FileUp size={18} />
-              <h3>Import & Export</h3>
-            </div>
-            <div className="settings-group">
-              <SettingsImportExport />
             </div>
           </div>
 
