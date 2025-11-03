@@ -4,7 +4,6 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useEditorStore, selectCurrentMenu, selectSelectedSlice, selectCanUndo, selectCanRedo } from '../../state/editorStore';
-import { useProfileStore } from '../../state/profileStore';
 import { EditorCanvas } from './EditorCanvas';
 import { SegmentList } from './SegmentList';
 import { SegmentProperties } from './SegmentProperties';
@@ -20,43 +19,14 @@ export interface VisualMenuEditorProps {
 }
 
 export function VisualMenuEditor({ profileId, onClose, onSave, onCancel }: VisualMenuEditorProps) {
-  const profiles = useProfileStore((state) => state.profiles);
   const menu = useEditorStore(selectCurrentMenu);
   const selectedSlice = useEditorStore(selectSelectedSlice);
   const canUndo = useEditorStore(selectCanUndo);
   const canRedo = useEditorStore(selectCanRedo);
-  const { selectSlice, reorderSlices, undo, redo, validate, loadMenu } = useEditorStore();
+  const { selectSlice, reorderSlices, undo, redo, validate } = useEditorStore();
 
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-
-  // Load profile data into editor store
-  useEffect(() => {
-    if (!profileId) return;
-    
-    const profile = profiles.find(p => p.profile.id === profileId);
-    if (!profile || !profile.menus || profile.menus.length === 0) return;
-    
-    const rootMenuId = profile.profile.rootMenu || profile.menus[0]?.id;
-    const rootMenu = profile.menus.find(m => m.id === rootMenuId) || profile.menus[0];
-    
-    if (rootMenu) {
-      loadMenu({
-        id: rootMenu.id,
-        title: rootMenu.title || 'Menu',
-        slices: rootMenu.slices.map(s => ({
-          id: s.id,
-          label: s.label || 'Untitled',
-          order: s.order ?? 0,
-          icon: undefined,
-          actionId: s.action || undefined,
-          childMenuId: s.childMenu || undefined,
-          disabled: !s.action && !s.childMenu,
-          accentColor: undefined,
-        })),
-      });
-    }
-  }, [profileId, profiles, loadMenu]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -127,22 +97,6 @@ export function VisualMenuEditor({ profileId, onClose, onSave, onCancel }: Visua
 
   return (
     <div className="flex h-full flex-col bg-[#090a13]">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/5 bg-white/5 px-6 py-4">
-        <div>
-          <h2 className="text-xl font-semibold text-white">Visual Menu Editor</h2>
-          <p className="text-xs text-white/60 mt-1">Drag segments to reorder, click to edit properties</p>
-        </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/20 hover:bg-white/10"
-          >
-            ✕ Close
-          </button>
-        )}
-      </div>
-
       {/* Toolbar */}
       <EditorToolbar
         canUndo={canUndo}
