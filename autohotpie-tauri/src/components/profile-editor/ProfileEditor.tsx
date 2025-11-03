@@ -3,10 +3,9 @@ import clsx from 'clsx';
 import { useHotkeyStore } from '../../state/hotkeyStore';
 import { selectProfileHotkeyStatus, useProfileStore } from '../../state/profileStore';
 import type { ProfileRecord } from '../../state/profileStore';
-import { RadialPieMenu, type RadialPieSlice } from '../pie/RadialPieMenu';
+import { PieMenu, type PieSliceDefinition } from '../pie/PieMenu';
 import { ContextConditionsPanel } from './ContextConditionsPanel';
 import { useLocalization } from '../../hooks/useLocalization';
-import { ActionSelector, type ActionConfig } from '../actions';
 
 export interface ProfileEditorProps {
   profile: ProfileRecord | null;
@@ -389,8 +388,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const [hotkeyValue, setHotkeyValue] = useState(profile.profile.globalHotkey ?? '');
   const [hotkeyMessage, setHotkeyMessage] = useState<string | null>(null);
   const [hotkeySubmitting, setHotkeySubmitting] = useState(false);
-  const [showActionSelector, setShowActionSelector] = useState(false);
-  const [editingSliceId, setEditingSliceId] = useState<string | null>(null);
   const validationErrors = profileStore.validationErrors ?? [];
   const profileHotkeyConflicts = profileHotkeyStatus?.conflicts ?? [];
   const shouldShowHotkeyConflicts = Boolean(
@@ -426,7 +423,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const currentMenu = currentMenuId ? menus.find((menu) => menu.id === currentMenuId) ?? null : null;
   const currentSlices = currentMenu?.slices ?? [];
 
-  const pieSlices = useMemo<RadialPieSlice[]>(() => {
+  const pieSlices = useMemo<PieSliceDefinition[]>(() => {
     return currentSlices.map((slice, index) => ({
       id: slice.id,
       label: slice.label || t('profileEditor.sliceLabelFallback').replace('{index}', String(index + 1)),
@@ -812,43 +809,38 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
         </div>
 
         <div className="space-y-6">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
+            {currentMenu ? (
+              <PieMenu
+                slices={pieSlices}
+                activeSliceId={activeSliceId}
+                visible
+                dataTestId="pie-menu-editor"
+                centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
+              />
+            ) : (
+              <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
+              <p className="text-2xl font-semibold text-white">{menus.length}</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryMenus')}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4">
+              <p className="text-2xl font-semibold text-white">{activationRules.length}</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.25em] text-white/50">{t('profileEditor.summaryRules')}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-semibold text-white">{t('profileEditor.slicesTitle')}</h4>
-              <div className="flex items-center gap-3">
-                <span className="text-xs uppercase tracking-[0.25em] text-white/40">
-                  {t('profileEditor.slicesTotal').replace('{count}', String(currentSlices.length))}
-                </span>
-                <button
-                  type="button"
-                  className="rounded-lg border border-accent/60 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={async () => {
-                    if (!currentMenu || sliceCountExceeded) return;
-                    const newSlice = {
-                      id: crypto.randomUUID(),
-                      label: `Menu Item ${currentSlices.length + 1}`,
-                      order: currentSlices.length,
-                      action: null,
-                      childMenu: null,
-                    };
-                    const updatedSlices = [...currentSlices, newSlice];
-                    const updatedMenus = menus.map(m => 
-                      m.id === currentMenuId ? { ...m, slices: updatedSlices } : m
-                    );
-                    const saved = await profileStore.saveProfile({
-                      ...profile,
-                      menus: updatedMenus,
-                    });
-                    if (saved) {
-                      setActiveSliceId(newSlice.id);
-                    }
-                  }}
-                  disabled={!currentMenu || sliceCountExceeded}
-                  title={sliceCountExceeded ? `Maximum ${SLICE_MAX} slices allowed` : 'Add new menu item'}
-                >
-                  + Add Item
-                </button>
-              </div>
+              <span className="text-xs uppercase tracking-[0.25em] text-white/40">
+                {t('profileEditor.slicesTotal').replace('{count}', String(currentSlices.length))}
+              </span>
             </div>
             <div className="mt-4 space-y-3">
               {currentSlices.length === 0 && (
@@ -915,18 +907,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                   <p className="mt-1 text-base text-white">{selectedSlice.label || t('profileEditor.sliceUntitled')}</p>
                 </div>
                 <div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsAction')}</p>
-                    <button
-                      onClick={() => {
-                        setEditingSliceId(selectedSlice.id);
-                        setShowActionSelector(true);
-                      }}
-                      className="rounded-lg border border-accent/60 bg-accent/10 px-3 py-1 text-xs font-medium text-accent transition hover:bg-accent/20"
-                    >
-                      {selectedSlice.action ? '✏️ Edit' : '➕ Set Action'}
-                    </button>
-                  </div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.sliceDetailsAction')}</p>
                   <p className="mt-1 text-base text-white/70">{selectedSlice.action || t('profileEditor.sliceNotAssigned')}</p>
                 </div>
                 <div>
@@ -953,47 +934,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
           </div>
         </div>
       </div>
-
-      {/* Action Selector Modal */}
-      {showActionSelector && editingSliceId && (
-        <ActionSelector
-          currentAction={null}
-          onActionChange={async (action) => {
-            if (!action) {
-              // Clear action
-              const updatedSlices = currentSlices.map(s =>
-                s.id === editingSliceId ? { ...s, action: null } : s
-              );
-              const updatedMenus = menus.map(m =>
-                m.id === currentMenuId ? { ...m, slices: updatedSlices } : m
-              );
-              await profileStore.saveProfile({
-                ...profile,
-                menus: updatedMenus,
-              });
-            } else {
-              // Set action
-              const actionString = `${action.type}:${JSON.stringify(action.data)}`;
-              const updatedSlices = currentSlices.map(s =>
-                s.id === editingSliceId ? { ...s, action: actionString } : s
-              );
-              const updatedMenus = menus.map(m =>
-                m.id === currentMenuId ? { ...m, slices: updatedSlices } : m
-              );
-              await profileStore.saveProfile({
-                ...profile,
-                menus: updatedMenus,
-              });
-            }
-            setShowActionSelector(false);
-            setEditingSliceId(null);
-          }}
-          onClose={() => {
-            setShowActionSelector(false);
-            setEditingSliceId(null);
-          }}
-        />
-      )}
     </div>
   );
 }

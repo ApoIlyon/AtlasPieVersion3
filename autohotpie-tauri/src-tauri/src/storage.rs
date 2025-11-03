@@ -1,4 +1,3 @@
-pub mod command_repository;
 pub mod profile_repository;
 
 use crate::domain::profile::ProfileId;
