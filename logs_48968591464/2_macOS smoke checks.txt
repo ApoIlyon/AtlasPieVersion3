@@ -1,0 +1,1501 @@
+﻿2025-11-02T22:54:10.7014320Z Current runner version: '2.329.0'
+2025-11-02T22:54:10.7028450Z ##[group]Runner Image Provisioner
+2025-11-02T22:54:10.7028920Z Hosted Compute Agent
+2025-11-02T22:54:10.7029260Z Version: 20251016.436
+2025-11-02T22:54:10.7029660Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+2025-11-02T22:54:10.7030100Z Build Date: 2025-10-15T20:44:12Z
+2025-11-02T22:54:10.7030600Z ##[endgroup]
+2025-11-02T22:54:10.7030940Z ##[group]Operating System
+2025-11-02T22:54:10.7031290Z macOS
+2025-11-02T22:54:10.7031580Z 15.7.1
+2025-11-02T22:54:10.7031860Z 24G231
+2025-11-02T22:54:10.7032240Z ##[endgroup]
+2025-11-02T22:54:10.7032560Z ##[group]Runner Image
+2025-11-02T22:54:10.7032960Z Image: macos-15-arm64
+2025-11-02T22:54:10.7033290Z Version: 20251021.0066
+2025-11-02T22:54:10.7034010Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20251021.0066/images/macos/macos-15-arm64-Readme.md
+2025-11-02T22:54:10.7035090Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20251021.0066
+2025-11-02T22:54:10.7035760Z ##[endgroup]
+2025-11-02T22:54:10.7036480Z ##[group]GITHUB_TOKEN Permissions
+2025-11-02T22:54:10.7039960Z Contents: read
+2025-11-02T22:54:10.7040290Z Metadata: read
+2025-11-02T22:54:10.7042370Z Packages: read
+2025-11-02T22:54:10.7042720Z ##[endgroup]
+2025-11-02T22:54:10.7044310Z Secret source: Actions
+2025-11-02T22:54:10.7044820Z Prepare workflow directory
+2025-11-02T22:54:10.7328700Z Prepare all required actions
+2025-11-02T22:54:10.7354960Z Getting action download info
+2025-11-02T22:54:11.0500890Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-11-02T22:54:11.3770340Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-11-02T22:54:11.5718600Z Complete job name: macOS smoke checks
+2025-11-02T22:54:11.6082210Z ##[group]Run actions/checkout@v4
+2025-11-02T22:54:11.6082670Z with:
+2025-11-02T22:54:11.6082940Z   repository: ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:11.6083370Z   token: ***
+2025-11-02T22:54:11.6083660Z   ssh-strict: true
+2025-11-02T22:54:11.6083910Z   ssh-user: git
+2025-11-02T22:54:11.6084180Z   persist-credentials: true
+2025-11-02T22:54:11.6084470Z   clean: true
+2025-11-02T22:54:11.6084730Z   sparse-checkout-cone-mode: true
+2025-11-02T22:54:11.6085040Z   fetch-depth: 1
+2025-11-02T22:54:11.6085300Z   fetch-tags: false
+2025-11-02T22:54:11.6085560Z   show-progress: true
+2025-11-02T22:54:11.6085830Z   lfs: false
+2025-11-02T22:54:11.6086080Z   submodules: false
+2025-11-02T22:54:11.6086350Z   set-safe-directory: true
+2025-11-02T22:54:11.6086720Z env:
+2025-11-02T22:54:11.6086960Z   CI: true
+2025-11-02T22:54:11.6087200Z ##[endgroup]
+2025-11-02T22:54:11.9169010Z Syncing repository: ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:11.9170210Z ##[group]Getting Git version info
+2025-11-02T22:54:11.9171080Z Working directory is '/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-02T22:54:11.9171820Z [command]/opt/homebrew/bin/git version
+2025-11-02T22:54:11.9914440Z git version 2.50.1
+2025-11-02T22:54:11.9943410Z ##[endgroup]
+2025-11-02T22:54:11.9949040Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/23b442d5-c51c-4844-9284-78797509b4d9/.gitconfig'
+2025-11-02T22:54:11.9955350Z Temporarily overriding HOME='/Users/runner/work/_temp/23b442d5-c51c-4844-9284-78797509b4d9' before making global git config changes
+2025-11-02T22:54:11.9956270Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-02T22:54:11.9958860Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-02T22:54:12.0056220Z Deleting the contents of '/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-02T22:54:12.0059330Z ##[group]Initializing the repository
+2025-11-02T22:54:12.0063760Z [command]/opt/homebrew/bin/git init /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-02T22:54:12.0270040Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-11-02T22:54:12.0272120Z hint: is subject to change. To configure the initial branch name to use in all
+2025-11-02T22:54:12.0273470Z hint: of your new repositories, which will suppress this warning, call:
+2025-11-02T22:54:12.0274300Z hint:
+2025-11-02T22:54:12.0274790Z hint: 	git config --global init.defaultBranch <name>
+2025-11-02T22:54:12.0275320Z hint:
+2025-11-02T22:54:12.0275820Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-11-02T22:54:12.0276560Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-11-02T22:54:12.0277160Z hint:
+2025-11-02T22:54:12.0277550Z hint: 	git branch -m <name>
+2025-11-02T22:54:12.0277970Z hint:
+2025-11-02T22:54:12.0278510Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-11-02T22:54:12.0279590Z Initialized empty Git repository in /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/.git/
+2025-11-02T22:54:12.0282030Z [command]/opt/homebrew/bin/git remote add origin https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:12.0353740Z ##[endgroup]
+2025-11-02T22:54:12.0354330Z ##[group]Disabling automatic garbage collection
+2025-11-02T22:54:12.0356350Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2025-11-02T22:54:12.0421630Z ##[endgroup]
+2025-11-02T22:54:12.0422170Z ##[group]Setting up auth
+2025-11-02T22:54:12.0426490Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-02T22:54:12.0488460Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-02T22:54:12.1371350Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-02T22:54:12.1418510Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-02T22:54:12.2138550Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-11-02T22:54:12.2200780Z ##[endgroup]
+2025-11-02T22:54:12.2201900Z ##[group]Fetching the repository
+2025-11-02T22:54:12.2222400Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +7b25fe387df77184e1e07b36225cf9fb27effefd:refs/remotes/pull/60/merge
+2025-11-02T22:54:14.4044090Z From https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:14.4046530Z  * [new ref]         7b25fe387df77184e1e07b36225cf9fb27effefd -> pull/60/merge
+2025-11-02T22:54:14.4168450Z ##[endgroup]
+2025-11-02T22:54:14.4169430Z ##[group]Determining the checkout info
+2025-11-02T22:54:14.4170110Z ##[endgroup]
+2025-11-02T22:54:14.4171650Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2025-11-02T22:54:14.4287650Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2025-11-02T22:54:14.4385730Z ##[group]Checking out the ref
+2025-11-02T22:54:14.4387530Z [command]/opt/homebrew/bin/git checkout --progress --force refs/remotes/pull/60/merge
+2025-11-02T22:54:14.8763940Z HEAD is now at 7b25fe3 Merge 7a5a0f09825f972e41e208c90e5639717741b41b into fcf751ecaa822e1addfbf065143031aad87d7305
+2025-11-02T22:54:14.8786130Z ##[endgroup]
+2025-11-02T22:54:14.8926210Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2025-11-02T22:54:14.9038820Z 7b25fe387df77184e1e07b36225cf9fb27effefd
+2025-11-02T22:54:14.9249590Z ##[group]Run actions/setup-node@v4
+2025-11-02T22:54:14.9249930Z with:
+2025-11-02T22:54:14.9250180Z   node-version: 22
+2025-11-02T22:54:14.9250420Z   cache: npm
+2025-11-02T22:54:14.9250730Z   cache-dependency-path: autohotpie-tauri/package-lock.json
+2025-11-02T22:54:14.9251090Z   always-auth: false
+2025-11-02T22:54:14.9251350Z   check-latest: false
+2025-11-02T22:54:14.9251710Z   token: ***
+2025-11-02T22:54:14.9252000Z env:
+2025-11-02T22:54:14.9252230Z   CI: true
+2025-11-02T22:54:14.9252850Z ##[endgroup]
+2025-11-02T22:54:15.2416720Z Found in cache @ /Users/runner/hostedtoolcache/node/22.21.0/arm64
+2025-11-02T22:54:15.2417450Z ##[group]Environment details
+2025-11-02T22:54:16.2081180Z node: v22.21.0
+2025-11-02T22:54:16.2082150Z npm: 10.9.4
+2025-11-02T22:54:16.2082910Z yarn: 1.22.22
+2025-11-02T22:54:16.2089780Z ##[endgroup]
+2025-11-02T22:54:16.2105660Z [command]/Users/runner/hostedtoolcache/node/22.21.0/arm64/bin/npm config get cache
+2025-11-02T22:54:16.3769050Z /Users/runner/.npm
+2025-11-02T22:54:16.5866630Z npm cache is not found
+2025-11-02T22:54:16.5994990Z ##[group]Run npm ci
+2025-11-02T22:54:16.5995260Z [36;1mnpm ci[0m
+2025-11-02T22:54:16.6040410Z shell: /bin/bash -e {0}
+2025-11-02T22:54:16.6040630Z env:
+2025-11-02T22:54:16.6040790Z   CI: true
+2025-11-02T22:54:16.6040930Z ##[endgroup]
+2025-11-02T22:54:20.8465540Z 
+2025-11-02T22:54:20.8473440Z added 372 packages, and audited 373 packages in 4s
+2025-11-02T22:54:20.8473820Z 
+2025-11-02T22:54:20.8473980Z 106 packages are looking for funding
+2025-11-02T22:54:20.8474500Z   run `npm fund` for details
+2025-11-02T22:54:20.8475350Z 
+2025-11-02T22:54:20.8519880Z found 0 vulnerabilities
+2025-11-02T22:54:20.9486400Z ##[group]Run npx playwright install webkit
+2025-11-02T22:54:20.9486770Z [36;1mnpx playwright install webkit[0m
+2025-11-02T22:54:20.9523950Z shell: /bin/bash -e {0}
+2025-11-02T22:54:20.9524200Z env:
+2025-11-02T22:54:20.9524390Z   CI: true
+2025-11-02T22:54:20.9524520Z ##[endgroup]
+2025-11-02T22:54:21.6216890Z Downloading Webkit 26.0 (playwright build v2215) from https://cdn.playwright.dev/dbazure/download/playwright/builds/webkit/2215/webkit-mac-15-arm64.zip
+2025-11-02T22:54:21.8567270Z |                                                                                |   0% of 70.8 MiB
+2025-11-02T22:54:21.9685810Z |■■■■■■■■                                                                        |  10% of 70.8 MiB
+2025-11-02T22:54:22.0213410Z |■■■■■■■■■■■■■■■■                                                                |  20% of 70.8 MiB
+2025-11-02T22:54:22.0517670Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 70.8 MiB
+2025-11-02T22:54:22.0924010Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 70.8 MiB
+2025-11-02T22:54:22.1460370Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 70.8 MiB
+2025-11-02T22:54:22.1774290Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 70.8 MiB
+2025-11-02T22:54:22.2195410Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 70.8 MiB
+2025-11-02T22:54:22.2701150Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 70.8 MiB
+2025-11-02T22:54:22.3177160Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 70.8 MiB
+2025-11-02T22:54:22.3686900Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 70.8 MiB
+2025-11-02T22:54:26.0521090Z Webkit 26.0 (playwright build v2215) downloaded to /Users/runner/Library/Caches/ms-playwright/webkit-2215
+2025-11-02T22:54:26.0648310Z ##[group]Run rustup update stable --no-self-update
+2025-11-02T22:54:26.0648640Z [36;1mrustup update stable --no-self-update[0m
+2025-11-02T22:54:26.0648860Z [36;1mrustup default stable[0m
+2025-11-02T22:54:26.0680110Z shell: /bin/bash -e {0}
+2025-11-02T22:54:26.0680400Z env:
+2025-11-02T22:54:26.0680540Z   CI: true
+2025-11-02T22:54:26.0680710Z ##[endgroup]
+2025-11-02T22:54:26.4199480Z info: syncing channel updates for 'stable-aarch64-apple-darwin'
+2025-11-02T22:54:26.6247070Z info: latest update on 2025-10-30, rust version 1.91.0 (f8297e351 2025-10-28)
+2025-11-02T22:54:26.6462380Z info: downloading component 'clippy'
+2025-11-02T22:54:26.7347350Z info: downloading component 'rustfmt'
+2025-11-02T22:54:26.8476670Z info: downloading component 'cargo'
+2025-11-02T22:54:26.9926580Z info: downloading component 'rust-std'
+2025-11-02T22:54:27.3284930Z info: downloading component 'rustc'
+2025-11-02T22:54:27.9801690Z info: removing previous version of component 'clippy'
+2025-11-02T22:54:27.9829560Z info: removing previous version of component 'rustfmt'
+2025-11-02T22:54:27.9837920Z info: removing previous version of component 'cargo'
+2025-11-02T22:54:27.9895340Z info: removing previous version of component 'rust-std'
+2025-11-02T22:54:27.9944840Z info: removing previous version of component 'rustc'
+2025-11-02T22:54:27.9998490Z info: installing component 'clippy'
+2025-11-02T22:54:28.3362870Z info: installing component 'rustfmt'
+2025-11-02T22:54:28.6619240Z info: installing component 'cargo'
+2025-11-02T22:54:29.2354240Z info: installing component 'rust-std'
+2025-11-02T22:54:30.8975950Z info: installing component 'rustc'
+2025-11-02T22:54:34.9097110Z 
+2025-11-02T22:54:35.0727820Z info: self-update is disabled for this build of rustup
+2025-11-02T22:54:35.0728580Z   stable-aarch64-apple-darwin updated - rustc 1.91.0 (f8297e351 2025-10-28) (from rustc 1.90.0 (1159e78c4 2025-09-14))
+2025-11-02T22:54:35.0729300Z info: any updates to rustup will need to be fetched with your system package manager
+2025-11-02T22:54:35.0731040Z 
+2025-11-02T22:54:35.1192340Z info: using existing install for 'stable-aarch64-apple-darwin'
+2025-11-02T22:54:35.1498080Z info: default toolchain set to 'stable-aarch64-apple-darwin'
+2025-11-02T22:54:35.1498480Z 
+2025-11-02T22:54:35.1620600Z   stable-aarch64-apple-darwin unchanged - rustc 1.91.0 (f8297e351 2025-10-28)
+2025-11-02T22:54:35.1664200Z 
+2025-11-02T22:54:35.1706370Z ##[group]Run cargo test
+2025-11-02T22:54:35.1706640Z [36;1mcargo test[0m
+2025-11-02T22:54:35.1745930Z shell: /bin/bash -e {0}
+2025-11-02T22:54:35.1746260Z env:
+2025-11-02T22:54:35.1746450Z   CI: true
+2025-11-02T22:54:35.1746670Z ##[endgroup]
+2025-11-02T22:54:35.4057840Z     Updating crates.io index
+2025-11-02T22:54:36.3694030Z  Downloading crates ...
+2025-11-02T22:54:36.4838040Z   Downloaded adler2 v2.0.1
+2025-11-02T22:54:36.5041040Z   Downloaded serde_repr v0.1.20
+2025-11-02T22:54:36.5145900Z   Downloaded sha2 v0.10.9
+2025-11-02T22:54:36.5249650Z   Downloaded tauri-plugin-store v2.4.1
+2025-11-02T22:54:36.5558770Z   Downloaded rfd v0.15.4
+2025-11-02T22:54:36.5760990Z   Downloaded rand_core v0.5.1
+2025-11-02T22:54:36.5988010Z   Downloaded phf_macros v0.10.0
+2025-11-02T22:54:36.6166040Z   Downloaded objc2-exception-helper v0.1.1
+2025-11-02T22:54:36.6267700Z   Downloaded parking_lot v0.12.5
+2025-11-02T22:54:36.6368650Z   Downloaded objc2-io-surface v0.3.2
+2025-11-02T22:54:36.6464100Z   Downloaded webpki-roots v0.25.4
+2025-11-02T22:54:36.6475690Z   Downloaded icu_provider v2.0.0
+2025-11-02T22:54:36.6581150Z   Downloaded infer v0.19.0
+2025-11-02T22:54:36.6685620Z   Downloaded os_pipe v1.2.3
+2025-11-02T22:54:36.6780560Z   Downloaded percent-encoding v2.3.2
+2025-11-02T22:54:36.6846570Z   Downloaded open v5.3.2
+2025-11-02T22:54:36.6937900Z   Downloaded thiserror-impl v1.0.69
+2025-11-02T22:54:36.6964610Z   Downloaded zerofrom v0.1.6
+2025-11-02T22:54:36.7034790Z   Downloaded hex v0.4.3
+2025-11-02T22:54:36.7113790Z   Downloaded walkdir v2.5.0
+2025-11-02T22:54:36.7153810Z   Downloaded urlpattern v0.3.0
+2025-11-02T22:54:36.7235450Z   Downloaded http v1.3.1
+2025-11-02T22:54:36.7327780Z   Downloaded toml v0.9.8
+2025-11-02T22:54:36.7371220Z   Downloaded html5ever v0.29.1
+2025-11-02T22:54:36.7433350Z   Downloaded zerovec v0.11.4
+2025-11-02T22:54:36.7543190Z   Downloaded winnow v0.7.13
+2025-11-02T22:54:36.7754530Z   Downloaded zerocopy v0.8.27
+2025-11-02T22:54:36.8303830Z   Downloaded wry v0.53.5
+2025-11-02T22:54:36.8466200Z   Downloaded tinystr v0.8.1
+2025-11-02T22:54:36.8509910Z   Downloaded http v0.2.12
+2025-11-02T22:54:36.8595700Z   Downloaded value-bag v1.11.1
+2025-11-02T22:54:36.8641040Z   Downloaded time v0.3.44
+2025-11-02T22:54:36.8810690Z   Downloaded uuid v1.18.1
+2025-11-02T22:54:36.8862850Z   Downloaded url v2.5.7
+2025-11-02T22:54:36.8905240Z   Downloaded tokio-util v0.7.16
+2025-11-02T22:54:36.9087030Z   Downloaded tokio-rustls v0.24.1
+2025-11-02T22:54:36.9136160Z   Downloaded thiserror-impl v2.0.17
+2025-11-02T22:54:36.9180950Z   Downloaded version_check v0.9.5
+2025-11-02T22:54:36.9210820Z   Downloaded utf8_iter v1.0.4
+2025-11-02T22:54:36.9249420Z   Downloaded utf8-width v0.1.7
+2025-11-02T22:54:36.9249770Z   Downloaded untrusted v0.9.0
+2025-11-02T22:54:36.9279570Z   Downloaded tokio-macros v2.6.0
+2025-11-02T22:54:36.9297260Z   Downloaded tinyvec_macros v0.1.1
+2025-11-02T22:54:36.9312370Z   Downloaded tinyvec v1.10.0
+2025-11-02T22:54:36.9360840Z   Downloaded time-macros v0.2.24
+2025-11-02T22:54:36.9402300Z   Downloaded time-core v0.1.6
+2025-11-02T22:54:36.9420760Z   Downloaded ring v0.17.14
+2025-11-02T22:54:37.0232870Z   Downloaded heck v0.5.0
+2025-11-02T22:54:37.0254340Z   Downloaded zerovec-derive v0.11.1
+2025-11-02T22:54:37.0279200Z   Downloaded zerotrie v0.2.2
+2025-11-02T22:54:37.0339370Z   Downloaded zerofrom-derive v0.1.6
+2025-11-02T22:54:37.0355010Z   Downloaded wyz v0.5.1
+2025-11-02T22:54:37.0376330Z   Downloaded want v0.3.1
+2025-11-02T22:54:37.0390830Z   Downloaded utf-8 v0.7.6
+2025-11-02T22:54:37.0409510Z   Downloaded ptr_meta_derive v0.1.4
+2025-11-02T22:54:37.0418880Z   Downloaded objc2-app-kit v0.3.2
+2025-11-02T22:54:37.0871520Z   Downloaded yoke-derive v0.8.0
+2025-11-02T22:54:37.0885720Z   Downloaded yoke v0.8.0
+2025-11-02T22:54:37.0930910Z   Downloaded writeable v0.6.1
+2025-11-02T22:54:37.0952730Z   Downloaded thiserror v2.0.17
+2025-11-02T22:54:37.1104380Z   Downloaded thiserror v1.0.69
+2025-11-02T22:54:37.1212190Z   Downloaded tendril v0.4.3
+2025-11-02T22:54:37.1242110Z   Downloaded tempfile v3.23.0
+2025-11-02T22:54:37.1286360Z   Downloaded tokio v1.48.0
+2025-11-02T22:54:37.2052280Z   Downloaded ptr_meta v0.1.4
+2025-11-02T22:54:37.2069660Z   Downloaded proc-macro-crate v3.4.0
+2025-11-02T22:54:37.2104060Z   Downloaded precomputed-hash v0.1.1
+2025-11-02T22:54:37.2105970Z   Downloaded potential_utf v0.1.3
+2025-11-02T22:54:37.2121640Z   Downloaded png v0.17.16
+2025-11-02T22:54:37.2182940Z   Downloaded plist v1.8.0
+2025-11-02T22:54:37.2227620Z   Downloaded pin-project-lite v0.2.16
+2025-11-02T22:54:37.2360220Z   Downloaded phf_shared v0.11.3
+2025-11-02T22:54:37.2467940Z   Downloaded phf v0.10.1
+2025-11-02T22:54:37.2616630Z   Downloaded phf v0.8.0
+2025-11-02T22:54:37.2616910Z   Downloaded rustix v1.1.2
+2025-11-02T22:54:37.2939560Z   Downloaded regex-automata v0.4.13
+2025-11-02T22:54:37.3180790Z   Downloaded proc-macro2 v1.0.103
+2025-11-02T22:54:37.3236720Z   Downloaded proc-macro-hack v0.5.20+deprecated
+2025-11-02T22:54:37.3272940Z   Downloaded ppv-lite86 v0.2.21
+2025-11-02T22:54:37.3390580Z   Downloaded powerfmt v0.2.0
+2025-11-02T22:54:37.3493590Z   Downloaded pin-utils v0.1.0
+2025-11-02T22:54:37.3627160Z   Downloaded objc2-web-kit v0.3.2
+2025-11-02T22:54:37.3764360Z   Downloaded libc v0.2.177
+2025-11-02T22:54:37.4246100Z   Downloaded once_cell v1.21.3
+2025-11-02T22:54:37.4346370Z   Downloaded objc2-security v0.3.2
+2025-11-02T22:54:37.4455140Z   Downloaded lazy_static v1.5.0
+2025-11-02T22:54:37.4558740Z   Downloaded kuchikiki v0.8.8-speedreader
+2025-11-02T22:54:37.4646470Z   Downloaded tao v0.34.5
+2025-11-02T22:54:37.4754020Z   Downloaded regex-syntax v0.8.8
+2025-11-02T22:54:37.4856100Z   Downloaded pathdiff v0.2.3
+2025-11-02T22:54:37.4957630Z   Downloaded parking_lot_core v0.9.12
+2025-11-02T22:54:37.5047250Z   Downloaded keyboard-types v0.7.0
+2025-11-02T22:54:37.5047780Z   Downloaded jsonptr v0.6.3
+2025-11-02T22:54:37.5048130Z   Downloaded indexmap v2.12.0
+2025-11-02T22:54:37.5048500Z   Downloaded idna v1.1.0
+2025-11-02T22:54:37.5066730Z   Downloaded icu_properties v2.0.1
+2025-11-02T22:54:37.5099100Z   Downloaded window-vibrancy v0.6.0
+2025-11-02T22:54:37.5244090Z   Downloaded icu_normalizer_data v2.0.0
+2025-11-02T22:54:37.5284010Z   Downloaded icu_normalizer v2.0.0
+2025-11-02T22:54:37.5340730Z   Downloaded icu_collections v2.0.0
+2025-11-02T22:54:37.5920170Z   Downloaded objc2-quartz-core v0.3.2
+2025-11-02T22:54:37.6028160Z   Downloaded syn v2.0.108
+2025-11-02T22:54:37.6229540Z   Downloaded syn v1.0.109
+2025-11-02T22:54:37.6430490Z   Downloaded option-ext v0.2.0
+2025-11-02T22:54:37.6534260Z   Downloaded json-patch v3.0.1
+2025-11-02T22:54:37.6636370Z   Downloaded itoa v1.0.15
+2025-11-02T22:54:37.6737590Z   Downloaded ipnet v2.11.0
+2025-11-02T22:54:37.6744760Z   Downloaded indexmap v1.9.3
+2025-11-02T22:54:37.6745340Z   Downloaded idna_adapter v1.2.1
+2025-11-02T22:54:37.6745720Z   Downloaded httparse v1.10.1
+2025-11-02T22:54:37.6746040Z   Downloaded tauri-plugin-fs v2.4.4
+2025-11-02T22:54:37.6746360Z   Downloaded tauri v2.9.0
+2025-11-02T22:54:37.6966370Z   Downloaded rustls v0.21.12
+2025-11-02T22:54:37.7169460Z   Downloaded ident_case v1.0.1
+2025-11-02T22:54:37.7180100Z   Downloaded icu_properties_data v2.0.1
+2025-11-02T22:54:37.7361620Z   Downloaded icu_locale_core v2.0.0
+2025-11-02T22:54:37.7496430Z   Downloaded iana-time-zone v0.1.64
+2025-11-02T22:54:37.7544420Z   Downloaded httpdate v1.0.3
+2025-11-02T22:54:37.7562440Z   Downloaded tauri-plugin-dialog v2.4.2
+2025-11-02T22:54:37.7642660Z   Downloaded serde_with v3.15.1
+2025-11-02T22:54:37.7876640Z   Downloaded schemars v1.0.4
+2025-11-02T22:54:37.8182920Z   Downloaded rustls-webpki v0.101.7
+2025-11-02T22:54:37.8508930Z   Downloaded rust_decimal v1.39.0
+2025-11-02T22:54:37.8604280Z   Downloaded regex v1.12.2
+2025-11-02T22:54:37.8764640Z   Downloaded ico v0.4.0
+2025-11-02T22:54:37.8856710Z   Downloaded hyper v0.14.32
+2025-11-02T22:54:37.8906240Z   Downloaded http-body v0.4.6
+2025-11-02T22:54:37.8931600Z   Downloaded objc2-javascript-core v0.3.2
+2025-11-02T22:54:37.8971770Z   Downloaded unicode-segmentation v1.12.0
+2025-11-02T22:54:37.9016250Z   Downloaded tauri-utils v2.8.0
+2025-11-02T22:54:37.9082720Z   Downloaded tauri-build v2.5.1
+2025-11-02T22:54:37.9109130Z   Downloaded signal-hook-registry v1.4.6
+2025-11-02T22:54:37.9124090Z   Downloaded serde_json v1.0.145
+2025-11-02T22:54:37.9268110Z   Downloaded serde v1.0.228
+2025-11-02T22:54:37.9319780Z   Downloaded schemars v0.8.22
+2025-11-02T22:54:37.9581750Z   Downloaded rustc_version v0.4.1
+2025-11-02T22:54:37.9598270Z   Downloaded phf_shared v0.10.0
+2025-11-02T22:54:37.9611460Z   Downloaded tauri-winres v0.3.3
+2025-11-02T22:54:37.9632320Z   Downloaded tauri-plugin-window-state v2.4.1
+2025-11-02T22:54:37.9703190Z   Downloaded tauri-plugin-shell v2.3.3
+2025-11-02T22:54:37.9812630Z   Downloaded tauri-plugin-global-shortcut v2.3.1
+2025-11-02T22:54:37.9866940Z   Downloaded tauri-codegen v2.5.0
+2025-11-02T22:54:37.9867680Z   Downloaded sync_wrapper v0.1.2
+2025-11-02T22:54:37.9893420Z   Downloaded slab v0.4.11
+2025-11-02T22:54:37.9895100Z   Downloaded signal-hook v0.3.18
+2025-11-02T22:54:37.9938830Z   Downloaded rkyv_derive v0.7.45
+2025-11-02T22:54:37.9970040Z   Downloaded rkyv v0.7.45
+2025-11-02T22:54:38.0159310Z   Downloaded hyper-rustls v0.24.2
+2025-11-02T22:54:38.0262210Z   Downloaded objc2-foundation v0.3.2
+2025-11-02T22:54:38.0589520Z   Downloaded objc2-core-video v0.3.2
+2025-11-02T22:54:38.0690570Z   Downloaded objc2-core-graphics v0.3.2
+2025-11-02T22:54:38.0791560Z   Downloaded objc2-core-data v0.3.2
+2025-11-02T22:54:38.0892200Z   Downloaded objc2-cloud-kit v0.3.2
+2025-11-02T22:54:38.0992460Z   Downloaded mio v1.1.0
+2025-11-02T22:54:38.1093880Z   Downloaded unicode-ident v1.0.20
+2025-11-02T22:54:38.1196120Z   Downloaded tauri-runtime-wry v2.9.0
+2025-11-02T22:54:38.1297230Z   Downloaded tauri-plugin-single-instance v2.3.6
+2025-11-02T22:54:38.1302620Z   Downloaded tauri-plugin-opener v2.5.2
+2025-11-02T22:54:38.1303030Z   Downloaded tauri-plugin-log v2.7.1
+2025-11-02T22:54:38.1311520Z   Downloaded stable_deref_trait v1.2.1
+2025-11-02T22:54:38.1327560Z   Downloaded socket2 v0.6.1
+2025-11-02T22:54:38.1353140Z   Downloaded socket2 v0.5.10
+2025-11-02T22:54:38.1381180Z   Downloaded simdutf8 v0.1.5
+2025-11-02T22:54:38.1419510Z   Downloaded shlex v1.3.0
+2025-11-02T22:54:38.1436490Z   Downloaded shared_child v1.1.1
+2025-11-02T22:54:38.1463320Z   Downloaded servo_arc v0.2.0
+2025-11-02T22:54:38.1485910Z   Downloaded ryu v1.0.20
+2025-11-02T22:54:38.1538960Z   Downloaded quick-xml v0.38.3
+2025-11-02T22:54:38.1624000Z   Downloaded objc2-encode v4.1.0
+2025-11-02T22:54:38.1648110Z   Downloaded objc2-core-text v0.3.2
+2025-11-02T22:54:38.1757870Z   Downloaded objc2-core-image v0.3.2
+2025-11-02T22:54:38.1770880Z   Downloaded objc2-core-foundation v0.3.2
+2025-11-02T22:54:38.1883320Z   Downloaded muda v0.17.1
+2025-11-02T22:54:38.1963620Z   Downloaded miniz_oxide v0.8.9
+2025-11-02T22:54:38.2012170Z   Downloaded memchr v2.7.6
+2025-11-02T22:54:38.2130560Z   Downloaded matches v0.1.10
+2025-11-02T22:54:38.2190090Z   Downloaded match_token v0.1.0
+2025-11-02T22:54:38.2194650Z   Downloaded markup5ever v0.14.1
+2025-11-02T22:54:38.2194970Z   Downloaded mac v0.1.1
+2025-11-02T22:54:38.2195400Z   Downloaded log v0.4.28
+2025-11-02T22:54:38.2201370Z   Downloaded lock_api v0.4.14
+2025-11-02T22:54:38.2220040Z   Downloaded litemap v0.8.0
+2025-11-02T22:54:38.2254930Z   Downloaded unic-ucd-version v0.9.0
+2025-11-02T22:54:38.2269890Z   Downloaded unic-ucd-ident v0.9.0
+2025-11-02T22:54:38.2298290Z   Downloaded unic-common v0.9.0
+2025-11-02T22:54:38.2308590Z   Downloaded unic-char-range v0.9.0
+2025-11-02T22:54:38.2327840Z   Downloaded unic-char-property v0.9.0
+2025-11-02T22:54:38.2406340Z   Downloaded typenum v1.19.0
+2025-11-02T22:54:38.2417490Z   Downloaded typeid v1.0.3
+2025-11-02T22:54:38.2423740Z   Downloaded try-lock v0.2.5
+2025-11-02T22:54:38.2437060Z   Downloaded tray-icon v0.21.2
+2025-11-02T22:54:38.2473570Z   Downloaded tracing-core v0.1.34
+2025-11-02T22:54:38.2574350Z   Downloaded tracing-attributes v0.1.30
+2025-11-02T22:54:38.2675360Z   Downloaded tracing v0.1.41
+2025-11-02T22:54:38.2747010Z   Downloaded tower-service v0.3.3
+2025-11-02T22:54:38.2748950Z   Downloaded toml_writer v1.0.4
+2025-11-02T22:54:38.2749310Z   Downloaded toml_parser v1.0.4
+2025-11-02T22:54:38.2749700Z   Downloaded toml_edit v0.23.7
+2025-11-02T22:54:38.2777860Z   Downloaded toml_datetime v0.7.3
+2025-11-02T22:54:38.2796280Z   Downloaded phf_shared v0.8.0
+2025-11-02T22:54:38.2846630Z   Downloaded phf_macros v0.11.3
+2025-11-02T22:54:38.2890890Z   Downloaded phf_codegen v0.11.3
+2025-11-02T22:54:38.2894430Z   Downloaded objc2 v0.6.3
+2025-11-02T22:54:38.3082890Z   Downloaded notify v6.1.1
+2025-11-02T22:54:38.3083590Z   Downloaded tauri-runtime v2.9.1
+2025-11-02T22:54:38.3084060Z   Downloaded tauri-plugin v2.5.1
+2025-11-02T22:54:38.3085360Z   Downloaded tauri-macros v2.5.0
+2025-11-02T22:54:38.3107740Z   Downloaded tap v1.0.1
+2025-11-02T22:54:38.3120890Z   Downloaded system-configuration-sys v0.5.0
+2025-11-02T22:54:38.3138480Z   Downloaded system-configuration v0.5.1
+2025-11-02T22:54:38.3161410Z   Downloaded synstructure v0.13.2
+2025-11-02T22:54:38.3175380Z   Downloaded swift-rs v1.0.7
+2025-11-02T22:54:38.3206490Z   Downloaded strsim v0.11.1
+2025-11-02T22:54:38.3227600Z   Downloaded string_cache_codegen v0.5.4
+2025-11-02T22:54:38.3237510Z   Downloaded string_cache v0.8.9
+2025-11-02T22:54:38.3274060Z   Downloaded smallvec v1.15.1
+2025-11-02T22:54:38.3297810Z   Downloaded siphasher v1.0.1
+2025-11-02T22:54:38.3315540Z   Downloaded siphasher v0.3.11
+2025-11-02T22:54:38.3336330Z   Downloaded simd-adler32 v0.3.7
+2025-11-02T22:54:38.3423060Z   Downloaded sigchld v0.2.4
+2025-11-02T22:54:38.3423820Z   Downloaded serialize-to-javascript-impl v0.1.2
+2025-11-02T22:54:38.3424250Z   Downloaded serialize-to-javascript v0.1.2
+2025-11-02T22:54:38.3424610Z   Downloaded serde_with_macros v3.15.1
+2025-11-02T22:54:38.3437500Z   Downloaded serde_urlencoded v0.7.1
+2025-11-02T22:54:38.3462020Z   Downloaded serde_derive v1.0.228
+2025-11-02T22:54:38.3530920Z   Downloaded serde_core v1.0.228
+2025-11-02T22:54:38.3566370Z   Downloaded serde-untagged v0.1.9
+2025-11-02T22:54:38.3589120Z   Downloaded selectors v0.24.0
+2025-11-02T22:54:38.3614040Z   Downloaded sct v0.7.1
+2025-11-02T22:54:38.3687950Z   Downloaded scopeguard v1.2.0
+2025-11-02T22:54:38.3703850Z   Downloaded schemars v0.9.0
+2025-11-02T22:54:38.3975600Z   Downloaded same-file v1.0.6
+2025-11-02T22:54:38.4078900Z   Downloaded rustls-pemfile v1.0.4
+2025-11-02T22:54:38.4142820Z   Downloaded reqwest v0.11.27
+2025-11-02T22:54:38.4172630Z   Downloaded ref-cast-impl v1.0.25
+2025-11-02T22:54:38.4183780Z   Downloaded ref-cast v1.0.25
+2025-11-02T22:54:38.4242030Z   Downloaded encoding_rs v0.8.35
+2025-11-02T22:54:38.4545230Z   Downloaded phf_generator v0.11.3
+2025-11-02T22:54:38.4563510Z   Downloaded phf_generator v0.10.0
+2025-11-02T22:54:38.4578620Z   Downloaded phf_generator v0.8.0
+2025-11-02T22:54:38.4590270Z   Downloaded phf_codegen v0.8.0
+2025-11-02T22:54:38.4597750Z   Downloaded phf v0.11.3
+2025-11-02T22:54:38.4620820Z   Downloaded num_threads v0.1.7
+2025-11-02T22:54:38.4653580Z   Downloaded num-traits v0.2.19
+2025-11-02T22:54:38.4705940Z   Downloaded num-conv v0.1.0
+2025-11-02T22:54:38.4707990Z   Downloaded nodrop v0.1.14
+2025-11-02T22:54:38.4708350Z   Downloaded new_debug_unreachable v1.0.6
+2025-11-02T22:54:38.4724710Z   Downloaded mime v0.3.17
+2025-11-02T22:54:38.4746020Z   Downloaded serde_spanned v1.0.3
+2025-11-02T22:54:38.4764820Z   Downloaded serde_derive_internals v0.29.1
+2025-11-02T22:54:38.4805880Z   Downloaded semver v1.0.27
+2025-11-02T22:54:38.4850260Z   Downloaded seahash v4.1.0
+2025-11-02T22:54:38.4883720Z   Downloaded schemars_derive v0.8.22
+2025-11-02T22:54:38.4910350Z   Downloaded rend v0.4.2
+2025-11-02T22:54:38.4931970Z   Downloaded raw-window-handle v0.6.2
+2025-11-02T22:54:38.4963210Z   Downloaded rand_pcg v0.2.1
+2025-11-02T22:54:38.4989640Z   Downloaded rand_chacha v0.3.1
+2025-11-02T22:54:38.5004530Z   Downloaded rand_chacha v0.2.2
+2025-11-02T22:54:38.5020610Z   Downloaded quote v1.0.41
+2025-11-02T22:54:38.5072070Z   Downloaded hashbrown v0.16.0
+2025-11-02T22:54:38.5208790Z   Downloaded h2 v0.3.27
+2025-11-02T22:54:38.5320370Z   Downloaded futures-util v0.3.31
+2025-11-02T22:54:38.5606760Z   Downloaded flate2 v1.1.5
+2025-11-02T22:54:38.5705020Z   Downloaded fern v0.7.1
+2025-11-02T22:54:38.5772820Z   Downloaded dispatch2 v0.3.0
+2025-11-02T22:54:38.5821840Z   Downloaded cc v1.2.43
+2025-11-02T22:54:38.5868370Z   Downloaded bytes v1.10.1
+2025-11-02T22:54:38.5935420Z   Downloaded byte-unit v5.1.6
+2025-11-02T22:54:38.6010240Z   Downloaded borsh v1.5.7
+2025-11-02T22:54:38.6232660Z   Downloaded rand v0.8.5
+2025-11-02T22:54:38.6354640Z   Downloaded rand v0.7.3
+2025-11-02T22:54:38.6455630Z   Downloaded glob v0.3.3
+2025-11-02T22:54:38.6515450Z   Downloaded futures-task v0.3.31
+2025-11-02T22:54:38.6517340Z   Downloaded futures-io v0.3.31
+2025-11-02T22:54:38.6517760Z   Downloaded futures-core v0.3.31
+2025-11-02T22:54:38.6539920Z   Downloaded futf v0.1.5
+2025-11-02T22:54:38.6634380Z   Downloaded form_urlencoded v1.2.2
+2025-11-02T22:54:38.6634750Z   Downloaded foreign-types-shared v0.3.1
+2025-11-02T22:54:38.6635030Z   Downloaded foreign-types v0.5.0
+2025-11-02T22:54:38.6635300Z   Downloaded fdeflate v0.3.7
+2025-11-02T22:54:38.6635550Z   Downloaded equivalent v1.0.2
+2025-11-02T22:54:38.6648430Z   Downloaded embed_plist v1.2.2
+2025-11-02T22:54:38.6664880Z   Downloaded embed-resource v3.0.6
+2025-11-02T22:54:38.6691310Z   Downloaded dispatch v0.2.0
+2025-11-02T22:54:38.6706170Z   Downloaded dirs-sys v0.5.0
+2025-11-02T22:54:38.6730400Z   Downloaded dirs v4.0.0
+2025-11-02T22:54:38.6747280Z   Downloaded digest v0.10.7
+2025-11-02T22:54:38.6772550Z   Downloaded deranged v0.5.5
+2025-11-02T22:54:38.6790450Z   Downloaded darling_core v0.21.3
+2025-11-02T22:54:38.6907170Z   Downloaded darling v0.21.3
+2025-11-02T22:54:38.7023300Z   Downloaded cssparser-macros v0.6.1
+2025-11-02T22:54:38.7053030Z   Downloaded cssparser v0.29.6
+2025-11-02T22:54:38.7077840Z   Downloaded crossbeam-utils v0.8.21
+2025-11-02T22:54:38.7145830Z   Downloaded crossbeam-channel v0.5.15
+2025-11-02T22:54:38.7349160Z   Downloaded crc32fast v1.5.0
+2025-11-02T22:54:38.7446380Z   Downloaded core-foundation v0.10.1
+2025-11-02T22:54:38.7454390Z   Downloaded chrono v0.4.42
+2025-11-02T22:54:38.7611010Z   Downloaded cfg_aliases v0.2.1
+2025-11-02T22:54:38.7706280Z   Downloaded cargo-platform v0.1.9
+2025-11-02T22:54:38.7706640Z   Downloaded bytecheck_derive v0.6.12
+2025-11-02T22:54:38.7706910Z   Downloaded bytecheck v0.6.12
+2025-11-02T22:54:38.7707160Z   Downloaded borsh-derive v1.5.7
+2025-11-02T22:54:38.7729140Z   Downloaded block2 v0.6.2
+2025-11-02T22:54:38.7757030Z   Downloaded block-buffer v0.10.4
+2025-11-02T22:54:38.7770840Z   Downloaded base64 v0.21.7
+2025-11-02T22:54:38.7846610Z   Downloaded autocfg v1.5.0
+2025-11-02T22:54:38.7880390Z   Downloaded rand_core v0.6.4
+2025-11-02T22:54:38.7889490Z   Downloaded radium v0.7.0
+2025-11-02T22:54:38.7906640Z   Downloaded hashbrown v0.12.3
+2025-11-02T22:54:38.7993300Z   Downloaded global-hotkey v0.7.0
+2025-11-02T22:54:38.8045380Z   Downloaded getrandom v0.3.4
+2025-11-02T22:54:38.8113880Z   Downloaded getrandom v0.2.16
+2025-11-02T22:54:38.8222980Z   Downloaded generic-array v0.14.9
+2025-11-02T22:54:38.8328420Z   Downloaded fxhash v0.2.1
+2025-11-02T22:54:38.8420730Z   Downloaded futures-macro v0.3.31
+2025-11-02T22:54:38.8466820Z   Downloaded futures-channel v0.3.31
+2025-11-02T22:54:38.8517910Z   Downloaded fsevent-sys v4.1.0
+2025-11-02T22:54:38.8565130Z   Downloaded foreign-types-macros v0.2.3
+2025-11-02T22:54:38.8596920Z   Downloaded errno v0.3.14
+2025-11-02T22:54:38.8614940Z   Downloaded dunce v1.0.5
+2025-11-02T22:54:38.8664350Z   Downloaded dtoa v1.0.10
+2025-11-02T22:54:38.8760680Z   Downloaded displaydoc v0.2.5
+2025-11-02T22:54:38.8783140Z   Downloaded darling_macro v0.21.3
+2025-11-02T22:54:38.8786160Z   Downloaded core-graphics-types v0.2.0
+2025-11-02T22:54:38.8786690Z   Downloaded convert_case v0.4.0
+2025-11-02T22:54:38.8787020Z   Downloaded cfg-if v1.0.4
+2025-11-02T22:54:38.8787320Z   Downloaded cfb v0.7.3
+2025-11-02T22:54:38.8854440Z   Downloaded bitvec v1.0.1
+2025-11-02T22:54:38.9225080Z   Downloaded aho-corasick v1.1.3
+2025-11-02T22:54:38.9314390Z   Downloaded tauri-plugin-autostart v2.5.1
+2025-11-02T22:54:38.9360070Z   Downloaded find-msvc-tools v0.1.4
+2025-11-02T22:54:38.9398360Z   Downloaded filetime v0.2.26
+2025-11-02T22:54:38.9421290Z   Downloaded dyn-clone v1.0.20
+2025-11-02T22:54:38.9525120Z   Downloaded dtoa-short v0.3.5
+2025-11-02T22:54:38.9531960Z   Downloaded dirs-sys v0.3.7
+2025-11-02T22:54:38.9532360Z   Downloaded dirs v6.0.0
+2025-11-02T22:54:38.9550070Z   Downloaded derive_more v0.99.20
+2025-11-02T22:54:38.9654160Z   Downloaded crypto-common v0.1.6
+2025-11-02T22:54:38.9667470Z   Downloaded cpufeatures v0.2.17
+2025-11-02T22:54:38.9732760Z   Downloaded core-graphics v0.24.0
+2025-11-02T22:54:38.9744190Z   Downloaded core-foundation-sys v0.8.7
+2025-11-02T22:54:38.9867520Z   Downloaded cookie v0.18.1
+2025-11-02T22:54:38.9879490Z   Downloaded cargo_toml v0.22.3
+2025-11-02T22:54:38.9894900Z   Downloaded bitflags v2.10.0
+2025-11-02T22:54:38.9982210Z   Downloaded base64 v0.22.1
+2025-11-02T22:54:39.0064430Z   Downloaded anyhow v1.0.100
+2025-11-02T22:54:39.0171410Z   Downloaded ahash v0.7.8
+2025-11-02T22:54:39.0225350Z   Downloaded getrandom v0.1.16
+2025-11-02T22:54:39.0335480Z   Downloaded erased-serde v0.4.8
+2025-11-02T22:54:39.0456310Z   Downloaded dpi v0.1.2
+2025-11-02T22:54:39.0595210Z   Downloaded core-foundation v0.9.4
+2025-11-02T22:54:39.0726940Z   Downloaded colored v2.2.0
+2025-11-02T22:54:39.0836980Z   Downloaded cargo_metadata v0.19.2
+2025-11-02T22:54:39.0942620Z   Downloaded bitflags v1.3.2
+2025-11-02T22:54:39.1056810Z   Downloaded auto-launch v0.5.0
+2025-11-02T22:54:39.1263400Z   Downloaded arrayvec v0.7.6
+2025-11-02T22:54:39.1370890Z   Downloaded futures-sink v0.3.31
+2025-11-02T22:54:39.1477050Z   Downloaded funty v2.0.0
+2025-11-02T22:54:39.1485710Z   Downloaded fnv v1.0.7
+2025-11-02T22:54:39.1592000Z   Downloaded fastrand v2.3.0
+2025-11-02T22:54:39.1701190Z   Downloaded ctor v0.2.9
+2025-11-02T22:54:39.1801950Z   Downloaded camino v1.2.1
+2025-11-02T22:54:39.1903900Z   Downloaded byteorder v1.5.0
+2025-11-02T22:54:39.3105740Z    Compiling proc-macro2 v1.0.103
+2025-11-02T22:54:39.3107920Z    Compiling quote v1.0.41
+2025-11-02T22:54:39.3108420Z    Compiling unicode-ident v1.0.20
+2025-11-02T22:54:39.7618800Z    Compiling libc v0.2.177
+2025-11-02T22:54:42.7361740Z    Compiling cfg-if v1.0.4
+2025-11-02T22:54:42.7650470Z    Compiling serde_core v1.0.228
+2025-11-02T22:54:43.4042620Z    Compiling syn v2.0.108
+2025-11-02T22:54:43.4179010Z    Compiling itoa v1.0.15
+2025-11-02T22:54:43.4730850Z    Compiling zerocopy v0.8.27
+2025-11-02T22:54:43.7109560Z    Compiling find-msvc-tools v0.1.4
+2025-11-02T22:54:43.8235010Z    Compiling shlex v1.3.0
+2025-11-02T22:54:43.9140630Z    Compiling cc v1.2.43
+2025-11-02T22:54:46.2226830Z    Compiling ppv-lite86 v0.2.21
+2025-11-02T22:54:46.3553780Z    Compiling smallvec v1.15.1
+2025-11-02T22:54:46.4491030Z    Compiling memchr v2.7.6
+2025-11-02T22:54:46.7526820Z    Compiling synstructure v0.13.2
+2025-11-02T22:54:46.8840710Z    Compiling litemap v0.8.0
+2025-11-02T22:54:46.9826390Z    Compiling writeable v0.6.1
+2025-11-02T22:54:47.0781760Z    Compiling getrandom v0.2.16
+2025-11-02T22:54:47.1445600Z    Compiling serde v1.0.228
+2025-11-02T22:54:47.1453620Z    Compiling rand_core v0.6.4
+2025-11-02T22:54:47.2294310Z    Compiling fnv v1.0.7
+2025-11-02T22:54:47.2567080Z    Compiling rand_chacha v0.3.1
+2025-11-02T22:54:47.3381520Z    Compiling icu_normalizer_data v2.0.0
+2025-11-02T22:54:47.4565370Z    Compiling rand v0.8.5
+2025-11-02T22:54:47.4667490Z    Compiling icu_properties_data v2.0.1
+2025-11-02T22:54:47.5844790Z    Compiling serde_derive v1.0.228
+2025-11-02T22:54:47.5933580Z    Compiling zerofrom-derive v0.1.6
+2025-11-02T22:54:47.8808650Z    Compiling yoke-derive v0.8.0
+2025-11-02T22:54:48.3073590Z    Compiling zerofrom v0.1.6
+2025-11-02T22:54:48.3613750Z    Compiling zerovec-derive v0.11.1
+2025-11-02T22:54:48.4506530Z    Compiling displaydoc v0.2.5
+2025-11-02T22:54:48.8415450Z    Compiling stable_deref_trait v1.2.1
+2025-11-02T22:54:48.9774880Z    Compiling ryu v1.0.20
+2025-11-02T22:54:48.9885060Z    Compiling siphasher v1.0.1
+2025-11-02T22:54:49.0685690Z    Compiling phf_shared v0.11.3
+2025-11-02T22:54:49.0686130Z    Compiling yoke v0.8.0
+2025-11-02T22:54:49.1490380Z    Compiling bytes v1.10.1
+2025-11-02T22:54:49.1591090Z    Compiling phf_generator v0.11.3
+2025-11-02T22:54:49.2446990Z    Compiling siphasher v0.3.11
+2025-11-02T22:54:49.3531130Z    Compiling getrandom v0.3.4
+2025-11-02T22:54:49.5435020Z    Compiling utf8_iter v1.0.4
+2025-11-02T22:54:49.5742600Z    Compiling zerovec v0.11.4
+2025-11-02T22:54:49.5937160Z    Compiling getrandom v0.1.16
+2025-11-02T22:54:49.6893130Z    Compiling byteorder v1.5.0
+2025-11-02T22:54:49.8126170Z    Compiling thiserror v2.0.17
+2025-11-02T22:54:49.8748050Z    Compiling rand_core v0.5.1
+2025-11-02T22:54:49.9850390Z    Compiling thiserror-impl v2.0.17
+2025-11-02T22:54:50.0003100Z    Compiling strsim v0.11.1
+2025-11-02T22:54:50.1572110Z    Compiling tinystr v0.8.1
+2025-11-02T22:54:50.1779540Z    Compiling ident_case v1.0.1
+2025-11-02T22:54:50.2139820Z    Compiling autocfg v1.5.0
+2025-11-02T22:54:50.2476620Z    Compiling serde_json v1.0.145
+2025-11-02T22:54:50.3390760Z    Compiling winnow v0.7.13
+2025-11-02T22:54:50.4200560Z    Compiling syn v1.0.109
+2025-11-02T22:54:50.5440120Z    Compiling typeid v1.0.3
+2025-11-02T22:54:50.7314670Z    Compiling icu_locale_core v2.0.0
+2025-11-02T22:54:50.7379140Z    Compiling darling_core v0.21.3
+2025-11-02T22:54:51.2854100Z    Compiling toml_parser v1.0.4
+2025-11-02T22:54:51.2877490Z    Compiling potential_utf v0.1.3
+2025-11-02T22:54:51.3674260Z    Compiling phf_macros v0.11.3
+2025-11-02T22:54:51.6883050Z    Compiling zerotrie v0.2.2
+2025-11-02T22:54:51.7377280Z    Compiling thiserror v1.0.69
+2025-11-02T22:54:51.8533720Z    Compiling erased-serde v0.4.8
+2025-11-02T22:54:51.9109370Z    Compiling hashbrown v0.16.0
+2025-11-02T22:54:51.9846220Z    Compiling toml_writer v1.0.4
+2025-11-02T22:54:52.0801640Z    Compiling parking_lot_core v0.9.12
+2025-11-02T22:54:52.1835480Z    Compiling bitflags v1.3.2
+2025-11-02T22:54:52.2049150Z    Compiling equivalent v1.0.2
+2025-11-02T22:54:52.2264240Z    Compiling indexmap v2.12.0
+2025-11-02T22:54:52.2818030Z    Compiling icu_provider v2.0.0
+2025-11-02T22:54:52.3021930Z    Compiling darling_macro v0.21.3
+2025-11-02T22:54:52.4588970Z    Compiling icu_collections v2.0.0
+2025-11-02T22:54:52.7886090Z    Compiling rand_pcg v0.2.1
+2025-11-02T22:54:52.8371230Z    Compiling rand_chacha v0.2.2
+2025-11-02T22:54:52.9236390Z    Compiling phf_shared v0.8.0
+2025-11-02T22:54:52.9843480Z    Compiling thiserror-impl v1.0.69
+2025-11-02T22:54:53.1057810Z    Compiling aho-corasick v1.1.3
+2025-11-02T22:54:53.7680240Z    Compiling proc-macro-hack v0.5.20+deprecated
+2025-11-02T22:54:54.0863630Z    Compiling unic-common v0.9.0
+2025-11-02T22:54:54.1369270Z    Compiling unic-char-range v0.9.0
+2025-11-02T22:54:54.1872130Z    Compiling regex-syntax v0.8.8
+2025-11-02T22:54:54.7431220Z    Compiling unic-char-property v0.9.0
+2025-11-02T22:54:54.7854940Z    Compiling unic-ucd-version v0.9.0
+2025-11-02T22:54:54.8791660Z    Compiling rand v0.7.3
+2025-11-02T22:54:55.4141330Z    Compiling regex-automata v0.4.13
+2025-11-02T22:54:55.9684950Z    Compiling darling v0.21.3
+2025-11-02T22:54:56.2272190Z    Compiling phf_shared v0.10.0
+2025-11-02T22:54:56.3175930Z    Compiling new_debug_unreachable v1.0.6
+2025-11-02T22:54:56.3477810Z    Compiling scopeguard v1.2.0
+2025-11-02T22:54:56.3579840Z    Compiling phf_generator v0.10.0
+2025-11-02T22:54:56.3884030Z    Compiling lock_api v0.4.14
+2025-11-02T22:54:56.4112160Z    Compiling serde_with_macros v3.15.1
+2025-11-02T22:54:56.5458320Z    Compiling phf_generator v0.8.0
+2025-11-02T22:54:57.0490050Z    Compiling unic-ucd-ident v0.9.0
+2025-11-02T22:54:57.1300300Z    Compiling icu_normalizer v2.0.0
+2025-11-02T22:54:57.2411680Z    Compiling icu_properties v2.0.1
+2025-11-02T22:54:57.6056530Z    Compiling regex v1.12.2
+2025-11-02T22:54:58.0078950Z    Compiling phf_codegen v0.11.3
+2025-11-02T22:54:58.1054690Z    Compiling string_cache_codegen v0.5.4
+2025-11-02T22:54:58.3668450Z    Compiling powerfmt v0.2.0
+2025-11-02T22:54:58.4673330Z    Compiling anyhow v1.0.100
+2025-11-02T22:54:58.6611050Z    Compiling same-file v1.0.6
+2025-11-02T22:54:58.7316330Z    Compiling precomputed-hash v0.1.1
+2025-11-02T22:54:58.7722000Z    Compiling mac v0.1.1
+2025-11-02T22:54:58.8023430Z    Compiling futf v0.1.5
+2025-11-02T22:54:58.8325950Z    Compiling walkdir v2.5.0
+2025-11-02T22:54:58.8936560Z    Compiling idna_adapter v1.2.1
+2025-11-02T22:54:58.9723380Z    Compiling markup5ever v0.14.1
+2025-11-02T22:54:59.0706010Z    Compiling phf_macros v0.10.0
+2025-11-02T22:54:59.2580350Z    Compiling phf_codegen v0.8.0
+2025-11-02T22:54:59.3106230Z    Compiling parking_lot v0.12.5
+2025-11-02T22:54:59.3845120Z    Compiling cssparser v0.29.6
+2025-11-02T22:54:59.5555610Z    Compiling http v1.3.1
+2025-11-02T22:54:59.6843920Z    Compiling semver v1.0.27
+2025-11-02T22:54:59.8649060Z    Compiling serde_spanned v1.0.3
+2025-11-02T22:54:59.9376310Z    Compiling toml_datetime v0.7.3
+2025-11-02T22:55:00.1527050Z    Compiling percent-encoding v2.3.2
+2025-11-02T22:55:00.2425700Z    Compiling dtoa v1.0.10
+2025-11-02T22:55:00.3219170Z    Compiling num-conv v0.1.0
+2025-11-02T22:55:00.4036930Z    Compiling utf-8 v0.7.6
+2025-11-02T22:55:00.5284260Z    Compiling log v0.4.28
+2025-11-02T22:55:00.5485780Z    Compiling time-core v0.1.6
+2025-11-02T22:55:00.6701270Z    Compiling tendril v0.4.3
+2025-11-02T22:55:00.6807610Z    Compiling dtoa-short v0.3.5
+2025-11-02T22:55:00.7464530Z    Compiling form_urlencoded v1.2.2
+2025-11-02T22:55:00.8001630Z    Compiling toml v0.9.8
+2025-11-02T22:55:00.8205380Z    Compiling phf v0.10.1
+2025-11-02T22:55:00.8305600Z    Compiling string_cache v0.8.9
+2025-11-02T22:55:00.9597420Z    Compiling selectors v0.24.0
+2025-11-02T22:55:01.2416220Z    Compiling idna v1.1.0
+2025-11-02T22:55:01.5674540Z    Compiling phf v0.11.3
+2025-11-02T22:55:01.6651990Z    Compiling indexmap v1.9.3
+2025-11-02T22:55:01.8076090Z    Compiling uuid v1.18.1
+2025-11-02T22:55:01.9280740Z    Compiling cssparser-macros v0.6.1
+2025-11-02T22:55:02.1733550Z    Compiling ctor v0.2.9
+2025-11-02T22:55:02.4255470Z    Compiling convert_case v0.4.0
+2025-11-02T22:55:02.4466630Z    Compiling matches v0.1.10
+2025-11-02T22:55:02.4706940Z    Compiling dunce v1.0.5
+2025-11-02T22:55:02.5043210Z    Compiling camino v1.2.1
+2025-11-02T22:55:02.5162400Z    Compiling nodrop v0.1.14
+2025-11-02T22:55:02.5706550Z    Compiling glob v0.3.3
+2025-11-02T22:55:02.6213310Z    Compiling base64 v0.21.7
+2025-11-02T22:55:02.6955260Z    Compiling derive_more v0.99.20
+2025-11-02T22:55:02.9136750Z    Compiling servo_arc v0.2.0
+2025-11-02T22:55:03.4454380Z    Compiling url v2.5.7
+2025-11-02T22:55:03.7565430Z    Compiling swift-rs v1.0.7
+2025-11-02T22:55:04.1414530Z    Compiling phf v0.8.0
+2025-11-02T22:55:04.1954540Z    Compiling fxhash v0.2.1
+2025-11-02T22:55:04.2456950Z    Compiling match_token v0.1.0
+2025-11-02T22:55:04.2757950Z    Compiling serde_derive_internals v0.29.1
+2025-11-02T22:55:04.5516990Z    Compiling schemars v0.8.22
+2025-11-02T22:55:04.6941310Z    Compiling hashbrown v0.12.3
+2025-11-02T22:55:05.1624330Z    Compiling schemars_derive v0.8.22
+2025-11-02T22:55:05.4837100Z    Compiling html5ever v0.29.1
+2025-11-02T22:55:05.7961110Z    Compiling cfb v0.7.3
+2025-11-02T22:55:06.1228550Z    Compiling jsonptr v0.6.3
+2025-11-02T22:55:06.2761440Z    Compiling cargo-platform v0.1.9
+2025-11-02T22:55:06.3922190Z    Compiling bitflags v2.10.0
+2025-11-02T22:55:06.4277480Z    Compiling objc2-exception-helper v0.1.1
+2025-11-02T22:55:06.4286960Z    Compiling dyn-clone v1.0.20
+2025-11-02T22:55:06.5147850Z    Compiling serde-untagged v0.1.9
+2025-11-02T22:55:06.6645170Z    Compiling cargo_metadata v0.19.2
+2025-11-02T22:55:07.3484410Z    Compiling json-patch v3.0.1
+2025-11-02T22:55:07.5611110Z    Compiling kuchikiki v0.8.8-speedreader
+2025-11-02T22:55:07.6420850Z    Compiling infer v0.19.0
+2025-11-02T22:55:07.9246570Z    Compiling urlpattern v0.3.0
+2025-11-02T22:55:08.0751550Z    Compiling serde_with v3.15.1
+2025-11-02T22:55:08.5935790Z    Compiling objc2 v0.6.3
+2025-11-02T22:55:08.7218610Z    Compiling objc2-encode v4.1.0
+2025-11-02T22:55:08.9593620Z    Compiling deranged v0.5.5
+2025-11-02T22:55:09.1376740Z    Compiling tauri-utils v2.8.0
+2025-11-02T22:55:09.5650310Z    Compiling quick-xml v0.38.3
+2025-11-02T22:55:09.7784300Z    Compiling base64 v0.22.1
+2025-11-02T22:55:09.9800350Z    Compiling time v0.3.44
+2025-11-02T22:55:10.5301600Z    Compiling objc2-core-foundation v0.3.2
+2025-11-02T22:55:10.9848720Z    Compiling plist v1.8.0
+2025-11-02T22:55:11.3800780Z    Compiling option-ext v0.2.0
+2025-11-02T22:55:11.4201000Z    Compiling dirs-sys v0.5.0
+2025-11-02T22:55:11.6062190Z    Compiling block2 v0.6.2
+2025-11-02T22:55:11.7604370Z    Compiling dirs v6.0.0
+2025-11-02T22:55:11.8323860Z    Compiling rustc_version v0.4.1
+2025-11-02T22:55:11.9812830Z    Compiling embed-resource v3.0.6
+2025-11-02T22:55:12.0066090Z    Compiling objc2-foundation v0.3.2
+2025-11-02T22:55:12.1005640Z    Compiling version_check v0.9.5
+2025-11-02T22:55:12.2588710Z    Compiling heck v0.5.0
+2025-11-02T22:55:12.4483050Z    Compiling tauri-winres v0.3.3
+2025-11-02T22:55:12.8993220Z    Compiling cargo_toml v0.22.3
+2025-11-02T22:55:15.3749190Z    Compiling tauri-plugin v2.5.1
+2025-11-02T22:55:15.6627400Z    Compiling tauri-build v2.5.1
+2025-11-02T22:55:18.4030940Z    Compiling value-bag v1.11.1
+2025-11-02T22:55:18.5581280Z    Compiling once_cell v1.21.3
+2025-11-02T22:55:18.9030130Z    Compiling objc2-core-text v0.3.2
+2025-11-02T22:55:19.0804880Z    Compiling objc2-core-video v0.3.2
+2025-11-02T22:55:19.1709930Z    Compiling objc2-core-graphics v0.3.2
+2025-11-02T22:55:20.0601670Z    Compiling tauri v2.9.0
+2025-11-02T22:55:21.1059680Z    Compiling signal-hook-registry v1.4.6
+2025-11-02T22:55:21.3669650Z    Compiling pin-project-lite v0.2.16
+2025-11-02T22:55:21.4698620Z    Compiling crossbeam-utils v0.8.21
+2025-11-02T22:55:21.6041490Z    Compiling core-foundation-sys v0.8.7
+2025-11-02T22:55:21.6446690Z    Compiling simd-adler32 v0.3.7
+2025-11-02T22:55:21.7049390Z    Compiling crc32fast v1.5.0
+2025-11-02T22:55:21.7283770Z    Compiling typenum v1.19.0
+2025-11-02T22:55:22.0126990Z    Compiling generic-array v0.14.9
+2025-11-02T22:55:22.1572530Z    Compiling adler2 v2.0.1
+2025-11-02T22:55:22.2187090Z    Compiling miniz_oxide v0.8.9
+2025-11-02T22:55:23.7287230Z    Compiling tokio-macros v2.6.0
+2025-11-02T22:55:24.1998340Z    Compiling socket2 v0.6.1
+2025-11-02T22:55:24.3504290Z    Compiling mio v1.1.0
+2025-11-02T22:55:24.5344140Z    Compiling flate2 v1.1.5
+2025-11-02T22:55:24.7817140Z    Compiling tokio v1.48.0
+2025-11-02T22:55:24.9942670Z    Compiling crossbeam-channel v0.5.15
+2025-11-02T22:55:26.0001720Z    Compiling objc2-core-image v0.3.2
+2025-11-02T22:55:26.2856350Z    Compiling objc2-cloud-kit v0.3.2
+2025-11-02T22:55:26.5277690Z    Compiling objc2-quartz-core v0.3.2
+2025-11-02T22:55:26.8942240Z    Compiling objc2-core-data v0.3.2
+2025-11-02T22:55:27.3228330Z    Compiling objc2-app-kit v0.3.2
+2025-11-02T22:55:30.0063380Z    Compiling fdeflate v0.3.7
+2025-11-02T22:55:30.3227580Z    Compiling dpi v0.1.2
+2025-11-02T22:55:30.5401600Z    Compiling time-macros v0.2.24
+2025-11-02T22:55:31.6589060Z    Compiling num_threads v0.1.7
+2025-11-02T22:55:31.7229300Z    Compiling raw-window-handle v0.6.2
+2025-11-02T22:55:31.8554920Z    Compiling png v0.17.16
+2025-11-02T22:55:32.6573740Z    Compiling cookie v0.18.1
+2025-11-02T22:55:33.7639240Z    Compiling block-buffer v0.10.4
+2025-11-02T22:55:33.8306530Z    Compiling crypto-common v0.1.6
+2025-11-02T22:55:33.9138330Z    Compiling core-foundation v0.10.1
+2025-11-02T22:55:34.1641520Z    Compiling objc2-security v0.3.2
+2025-11-02T22:55:34.2515030Z    Compiling objc2-javascript-core v0.3.2
+2025-11-02T22:55:34.5634900Z    Compiling foreign-types-macros v0.2.3
+2025-11-02T22:55:34.9244680Z    Compiling lazy_static v1.5.0
+2025-11-02T22:55:34.9727030Z    Compiling foreign-types-shared v0.3.1
+2025-11-02T22:55:35.0039160Z    Compiling unicode-segmentation v1.12.0
+2025-11-02T22:55:35.0369930Z    Compiling foreign-types v0.5.0
+2025-11-02T22:55:35.3403120Z    Compiling keyboard-types v0.7.0
+2025-11-02T22:55:36.4451920Z    Compiling core-graphics-types v0.2.0
+2025-11-02T22:55:36.5182620Z    Compiling digest v0.10.7
+2025-11-02T22:55:38.0747250Z    Compiling cpufeatures v0.2.17
+2025-11-02T22:55:38.1240260Z    Compiling wry v0.53.5
+2025-11-02T22:55:38.3146610Z    Compiling tauri-runtime v2.9.1
+2025-11-02T22:55:38.6579260Z    Compiling sha2 v0.10.9
+2025-11-02T22:55:38.7883330Z    Compiling core-graphics v0.24.0
+2025-11-02T22:55:39.2195230Z    Compiling ico v0.4.0
+2025-11-02T22:55:39.5577340Z    Compiling dispatch v0.2.0
+2025-11-02T22:55:39.6483880Z    Compiling tauri-runtime-wry v2.9.0
+2025-11-02T22:55:39.8101860Z    Compiling tauri-codegen v2.5.0
+2025-11-02T22:55:40.7952630Z    Compiling serialize-to-javascript-impl v0.1.2
+2025-11-02T22:55:41.1501030Z    Compiling mime v0.3.17
+2025-11-02T22:55:41.3021380Z    Compiling serialize-to-javascript v0.1.2
+2025-11-02T22:55:41.3623720Z    Compiling tauri-macros v2.5.0
+2025-11-02T22:55:43.7954570Z    Compiling serde_repr v0.1.20
+2025-11-02T22:55:44.1111640Z    Compiling embed_plist v1.2.2
+2025-11-02T22:55:44.1630500Z    Compiling ring v0.17.14
+2025-11-02T22:55:46.8908670Z    Compiling tracing-core v0.1.34
+2025-11-02T22:55:47.5952240Z    Compiling tracing-attributes v0.1.30
+2025-11-02T22:55:48.9920500Z    Compiling futures-core v0.3.31
+2025-11-02T22:55:49.0936070Z    Compiling untrusted v0.9.0
+2025-11-02T22:55:49.8861810Z    Compiling objc2-web-kit v0.3.2
+2025-11-02T22:55:50.8447880Z    Compiling muda v0.17.1
+2025-11-02T22:55:52.2571020Z    Compiling tao v0.34.5
+2025-11-02T22:55:53.9755520Z    Compiling tray-icon v0.21.2
+2025-11-02T22:55:56.3128100Z    Compiling window-vibrancy v0.6.0
+2025-11-02T22:55:56.4792820Z    Compiling tracing v0.1.41
+2025-11-02T22:55:56.6026440Z    Compiling tauri-plugin-fs v2.4.4
+2025-11-02T22:55:57.5749560Z    Compiling num-traits v0.2.19
+2025-11-02T22:55:57.7171610Z    Compiling http v0.2.12
+2025-11-02T22:55:58.5524740Z    Compiling signal-hook v0.3.18
+2025-11-02T22:55:58.6828940Z    Compiling futures-task v0.3.31
+2025-11-02T22:55:58.7431520Z    Compiling httparse v1.10.1
+2025-11-02T22:55:58.9451520Z    Compiling pin-utils v0.1.0
+2025-11-02T22:55:58.9753330Z    Compiling futures-sink v0.3.31
+2025-11-02T22:55:59.0296150Z    Compiling rustls v0.21.12
+2025-11-02T22:55:59.2790870Z    Compiling tokio-util v0.7.16
+2025-11-02T22:55:59.8246080Z    Compiling futures-util v0.3.31
+2025-11-02T22:56:00.2610670Z    Compiling rustls-webpki v0.101.7
+2025-11-02T22:56:00.9132030Z    Compiling sct v0.7.1
+2025-11-02T22:56:01.0235390Z    Compiling try-lock v0.2.5
+2025-11-02T22:56:01.0737720Z    Compiling rust_decimal v1.39.0
+2025-11-02T22:56:01.2764970Z    Compiling slab v0.4.11
+2025-11-02T22:56:01.3279940Z    Compiling system-configuration-sys v0.5.0
+2025-11-02T22:56:01.3984240Z    Compiling h2 v0.3.27
+2025-11-02T22:56:01.5122350Z    Compiling want v0.3.1
+2025-11-02T22:56:05.8141270Z    Compiling http-body v0.4.6
+2025-11-02T22:56:05.8849080Z    Compiling futures-channel v0.3.31
+2025-11-02T22:56:05.9652950Z    Compiling tauri-plugin-global-shortcut v2.3.1
+2025-11-02T22:56:06.0055870Z    Compiling tauri-plugin-autostart v2.5.1
+2025-11-02T22:56:06.4526940Z    Compiling tauri-plugin-dialog v2.4.2
+2025-11-02T22:56:06.4633160Z    Compiling tauri-plugin-opener v2.5.2
+2025-11-02T22:56:06.9030780Z    Compiling tauri-plugin-log v2.7.1
+2025-11-02T22:56:06.9919720Z    Compiling tauri-plugin-store v2.4.1
+2025-11-02T22:56:07.3469930Z    Compiling tauri-plugin-window-state v2.4.1
+2025-11-02T22:56:07.4094730Z    Compiling tauri-plugin-shell v2.3.3
+2025-11-02T22:56:07.7083780Z    Compiling dirs-sys v0.3.7
+2025-11-02T22:56:07.7882990Z    Compiling os_pipe v1.2.3
+2025-11-02T22:56:07.8987700Z    Compiling socket2 v0.5.10
+2025-11-02T22:56:07.9189940Z    Compiling httpdate v1.0.3
+2025-11-02T22:56:08.0595060Z    Compiling rfd v0.15.4
+2025-11-02T22:56:08.2166280Z    Compiling tower-service v0.3.3
+2025-11-02T22:56:08.2370950Z    Compiling arrayvec v0.7.6
+2025-11-02T22:56:08.2692980Z    Compiling pathdiff v0.2.3
+2025-11-02T22:56:08.3234790Z    Compiling open v5.3.2
+2025-11-02T22:56:08.3994540Z    Compiling hyper v0.14.32
+2025-11-02T22:56:08.9219740Z    Compiling sigchld v0.2.4
+2025-11-02T22:56:09.0145190Z    Compiling dirs v4.0.0
+2025-11-02T22:56:09.2508730Z    Compiling tokio-rustls v0.24.1
+2025-11-02T22:56:09.4197750Z    Compiling colored v2.2.0
+2025-11-02T22:56:09.6429560Z    Compiling core-foundation v0.9.4
+2025-11-02T22:56:09.8929820Z    Compiling dispatch2 v0.3.0
+2025-11-02T22:56:10.1772310Z    Compiling encoding_rs v0.8.35
+2025-11-02T22:56:10.5028720Z    Compiling utf8-width v0.1.7
+2025-11-02T22:56:10.5329840Z    Compiling rustix v1.1.2
+2025-11-02T22:56:10.8638800Z    Compiling byte-unit v5.1.6
+2025-11-02T22:56:11.5549090Z    Compiling system-configuration v0.5.1
+2025-11-02T22:56:11.6354410Z    Compiling hyper-rustls v0.24.2
+2025-11-02T22:56:11.7460850Z    Compiling fern v0.7.1
+2025-11-02T22:56:11.7783060Z    Compiling auto-launch v0.5.0
+2025-11-02T22:56:11.9792670Z    Compiling shared_child v1.1.1
+2025-11-02T22:56:12.1752760Z    Compiling global-hotkey v0.7.0
+2025-11-02T22:56:12.8113270Z    Compiling serde_urlencoded v0.7.1
+2025-11-02T22:56:12.8414590Z    Compiling autohotpie-tauri v0.1.2 (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/src-tauri)
+2025-11-02T22:56:12.9576560Z    Compiling rustls-pemfile v1.0.4
+2025-11-02T22:56:13.0707710Z    Compiling filetime v0.2.26
+2025-11-02T22:56:13.2409160Z    Compiling fsevent-sys v4.1.0
+2025-11-02T22:56:13.2762450Z    Compiling errno v0.3.14
+2025-11-02T22:56:13.3166550Z    Compiling webpki-roots v0.25.4
+2025-11-02T22:56:13.4015280Z    Compiling sync_wrapper v0.1.2
+2025-11-02T22:56:13.4148940Z    Compiling ipnet v2.11.0
+2025-11-02T22:56:13.7762030Z    Compiling reqwest v0.11.27
+2025-11-02T22:56:14.3013460Z    Compiling notify v6.1.1
+2025-11-02T22:56:16.9887210Z    Compiling tauri-plugin-single-instance v2.3.6
+2025-11-02T22:56:16.9899380Z    Compiling fastrand v2.3.0
+2025-11-02T22:56:17.1264970Z    Compiling tempfile v3.23.0
+2025-11-02T22:56:20.7986970Z warning: struct `MacroEngine` is never constructed
+2025-11-02T22:56:20.8087140Z  --> src/services/macro_engine.rs:9:12
+2025-11-02T22:56:20.8188530Z   |
+2025-11-02T22:56:20.8288950Z 9 | pub struct MacroEngine {
+2025-11-02T22:56:20.8390300Z   |            ^^^^^^^^^^^
+2025-11-02T22:56:20.8491310Z   |
+2025-11-02T22:56:20.8592460Z   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2025-11-02T22:56:20.8703700Z 
+2025-11-02T22:56:20.8806000Z warning: multiple associated items are never used
+2025-11-02T22:56:20.8907500Z    --> src/services/macro_engine.rs:14:12
+2025-11-02T22:56:20.9008720Z     |
+2025-11-02T22:56:20.9112160Z  13 | impl MacroEngine {
+2025-11-02T22:56:20.9213340Z     | ---------------- associated items in this implementation
+2025-11-02T22:56:20.9320580Z  14 |     pub fn new() -> Self {
+2025-11-02T22:56:20.9421450Z     |            ^^^
+2025-11-02T22:56:20.9490830Z ...
+2025-11-02T22:56:20.9493460Z  18 |     pub fn with_dry_run(dry_run: bool) -> Self {
+2025-11-02T22:56:20.9541750Z     |            ^^^^^^^^^^^^
+2025-11-02T22:56:20.9542210Z ...
+2025-11-02T22:56:20.9542830Z  22 |     pub async fn execute_command(&self, command: &CustomCommand) -> Result<ExecutionResult> {
+2025-11-02T22:56:20.9543590Z     |                  ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9543990Z ...
+2025-11-02T22:56:20.9544390Z  72 |     async fn execute_step(&self, step: &CommandStep) -> Result<()> {
+2025-11-02T22:56:20.9544900Z     |              ^^^^^^^^^^^^
+2025-11-02T22:56:20.9545460Z ...
+2025-11-02T22:56:20.9546490Z 112 |     async fn execute_key_press(&self, key: &str, modifiers: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9547010Z     |              ^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9547320Z ...
+2025-11-02T22:56:20.9547850Z 119 |     async fn execute_key_sequence(&self, keys: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9548410Z     |              ^^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9548730Z ...
+2025-11-02T22:56:20.9549050Z 125 |     async fn execute_mouse_click(
+2025-11-02T22:56:20.9549460Z     |              ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9550520Z ...
+2025-11-02T22:56:20.9551070Z 136 |     async fn execute_mouse_move(&self, x: i32, y: i32, relative: bool) -> Result<()> {
+2025-11-02T22:56:20.9551610Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9552850Z ...
+2025-11-02T22:56:20.9553740Z 142 |     async fn execute_system_command(&self, command: &str, args: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9554570Z     |              ^^^^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9554900Z ...
+2025-11-02T22:56:20.9555450Z 160 |     async fn execute_launch_app(&self, path: &str, args: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9555910Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9557170Z ...
+2025-11-02T22:56:20.9557620Z 171 |     async fn execute_open_url(&self, url: &str) -> Result<()> {
+2025-11-02T22:56:20.9558030Z     |              ^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9558610Z ...
+2025-11-02T22:56:20.9560720Z 199 |     async fn execute_script(&self, _code: &str, _language: &crate::domain::custom_command::ScriptLanguage) -> Result<()> {
+2025-11-02T22:56:20.9561300Z     |              ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9561650Z ...
+2025-11-02T22:56:20.9562120Z 205 |     async fn evaluate_condition(&self, condition: &Condition) -> Result<bool> {
+2025-11-02T22:56:20.9562750Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9563620Z ...
+2025-11-02T22:56:20.9564170Z 228 |     fn match_string(&self, text: &str, pattern: &str, operator: &ConditionOperator) -> bool {
+2025-11-02T22:56:20.9565080Z     |        ^^^^^^^^^^^^
+2025-11-02T22:56:20.9565340Z 
+2025-11-02T22:56:20.9565690Z warning: struct `ExecutionResult` is never constructed
+2025-11-02T22:56:20.9566490Z    --> src/services/macro_engine.rs:249:12
+2025-11-02T22:56:20.9566880Z     |
+2025-11-02T22:56:20.9567240Z 249 | pub struct ExecutionResult {
+2025-11-02T22:56:20.9567610Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9567890Z 
+2025-11-02T22:56:20.9568150Z warning: struct `CommandLibrary` is never constructed
+2025-11-02T22:56:20.9569600Z  --> src/storage/command_repository.rs:9:12
+2025-11-02T22:56:20.9569930Z   |
+2025-11-02T22:56:20.9570310Z 9 | pub struct CommandLibrary {
+2025-11-02T22:56:20.9570860Z   |            ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9571130Z 
+2025-11-02T22:56:20.9571390Z warning: multiple associated items are never used
+2025-11-02T22:56:20.9571880Z   --> src/storage/command_repository.rs:15:12
+2025-11-02T22:56:20.9572940Z    |
+2025-11-02T22:56:20.9573250Z 14 | impl CommandLibrary {
+2025-11-02T22:56:20.9573690Z    | ------------------- associated items in this implementation
+2025-11-02T22:56:20.9574110Z 15 |     pub fn new() -> Self {
+2025-11-02T22:56:20.9619170Z    |            ^^^
+2025-11-02T22:56:20.9619890Z ...
+2025-11-02T22:56:20.9620970Z 22 |     pub fn add_command(&mut self, command: CustomCommand) {
+2025-11-02T22:56:20.9621400Z    |            ^^^^^^^^^^^
+2025-11-02T22:56:20.9621770Z ...
+2025-11-02T22:56:20.9622240Z 26 |     pub fn remove_command(&mut self, id: &str) -> Option<CustomCommand> {
+2025-11-02T22:56:20.9622670Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9623020Z ...
+2025-11-02T22:56:20.9623670Z 30 |     pub fn get_command(&self, id: &str) -> Option<&CustomCommand> {
+2025-11-02T22:56:20.9624100Z    |            ^^^^^^^^^^^
+2025-11-02T22:56:20.9625760Z ...
+2025-11-02T22:56:20.9626260Z 34 |     pub fn get_command_mut(&mut self, id: &str) -> Option<&mut CustomCommand> {
+2025-11-02T22:56:20.9626690Z    |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9627010Z ...
+2025-11-02T22:56:20.9627400Z 38 |     pub fn list_commands(&self) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9627900Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:56:20.9628540Z ...
+2025-11-02T22:56:20.9629180Z 42 |     pub fn search_by_tag(&self, tag: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9630210Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:56:20.9630500Z ...
+2025-11-02T22:56:20.9630940Z 49 |     pub fn search_by_name(&self, query: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9632240Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9632500Z 
+2025-11-02T22:56:20.9632780Z warning: struct `CommandRepository` is never constructed
+2025-11-02T22:56:20.9634330Z   --> src/storage/command_repository.rs:64:12
+2025-11-02T22:56:20.9634690Z    |
+2025-11-02T22:56:20.9635270Z 64 | pub struct CommandRepository {
+2025-11-02T22:56:20.9635670Z    |            ^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9635880Z 
+2025-11-02T22:56:20.9636170Z warning: multiple associated items are never used
+2025-11-02T22:56:20.9636580Z    --> src/storage/command_repository.rs:69:12
+2025-11-02T22:56:20.9637620Z     |
+2025-11-02T22:56:20.9637930Z  68 | impl CommandRepository {
+2025-11-02T22:56:20.9638340Z     | ---------------------- associated items in this implementation
+2025-11-02T22:56:20.9638820Z  69 |     pub fn new(data_dir: PathBuf) -> Self {
+2025-11-02T22:56:20.9639340Z     |            ^^^
+2025-11-02T22:56:20.9639580Z ...
+2025-11-02T22:56:20.9639940Z  73 |     fn commands_file_path(&self) -> PathBuf {
+2025-11-02T22:56:20.9640280Z     |        ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9640870Z ...
+2025-11-02T22:56:20.9641610Z  77 |     fn backup_file_path(&self, index: usize) -> PathBuf {
+2025-11-02T22:56:20.9641970Z     |        ^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9642240Z ...
+2025-11-02T22:56:20.9642930Z  82 |     pub fn load(&self) -> Result<CommandLibrary> {
+2025-11-02T22:56:20.9643270Z     |            ^^^^
+2025-11-02T22:56:20.9643530Z ...
+2025-11-02T22:56:20.9643870Z  98 |     pub fn save(&self, library: &CommandLibrary) -> Result<()> {
+2025-11-02T22:56:20.9644280Z     |            ^^^^
+2025-11-02T22:56:20.9644530Z ...
+2025-11-02T22:56:20.9644900Z 119 |     fn rotate_backups(&self) -> Result<()> {
+2025-11-02T22:56:20.9645290Z     |        ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9645890Z ...
+2025-11-02T22:56:20.9646280Z 148 |     pub fn list_backups(&self) -> Result<Vec<PathBuf>> {
+2025-11-02T22:56:20.9646680Z     |            ^^^^^^^^^^^^
+2025-11-02T22:56:20.9646940Z ...
+2025-11-02T22:56:20.9647400Z 159 |     pub fn restore_from_backup(&self, backup_index: usize) -> Result<CommandLibrary> {
+2025-11-02T22:56:20.9647910Z     |            ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9648190Z ...
+2025-11-02T22:56:20.9649190Z 175 |     pub fn export_commands(&self, export_path: &PathBuf, command_ids: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9649790Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9650050Z ...
+2025-11-02T22:56:20.9650550Z 194 |     pub fn import_commands(&self, import_path: &PathBuf, merge: bool) -> Result<Vec<String>> {
+2025-11-02T22:56:20.9651630Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9651850Z 
+2025-11-02T22:56:20.9652040Z warning: field `command_id` is never read
+2025-11-02T22:56:20.9652450Z    --> src/services/macro_engine.rs:250:9
+2025-11-02T22:56:20.9653190Z     |
+2025-11-02T22:56:20.9653590Z 249 | pub struct ExecutionResult {
+2025-11-02T22:56:20.9654320Z     |            --------------- field in this struct
+2025-11-02T22:56:20.9655060Z 250 |     pub command_id: String,
+2025-11-02T22:56:20.9655350Z     |         ^^^^^^^^^^
+2025-11-02T22:56:20.9655620Z     |
+2025-11-02T22:56:20.9656250Z     = note: `ExecutionResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+2025-11-02T22:56:20.9657410Z     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2025-11-02T22:56:20.9658150Z 
+2025-11-02T22:56:20.9658670Z warning: methods `get_command_mut`, `list_commands`, `search_by_tag`, and `search_by_name` are never used
+2025-11-02T22:56:20.9659250Z   --> src/storage/command_repository.rs:34:12
+2025-11-02T22:56:20.9659550Z    |
+2025-11-02T22:56:20.9659810Z 14 | impl CommandLibrary {
+2025-11-02T22:56:20.9660310Z    | ------------------- methods in this implementation
+2025-11-02T22:56:20.9660640Z ...
+2025-11-02T22:56:20.9661100Z 34 |     pub fn get_command_mut(&mut self, id: &str) -> Option<&mut CustomCommand> {
+2025-11-02T22:56:20.9662410Z    |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9662670Z ...
+2025-11-02T22:56:20.9663030Z 38 |     pub fn list_commands(&self) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9663480Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:56:20.9663750Z ...
+2025-11-02T22:56:20.9664920Z 42 |     pub fn search_by_tag(&self, tag: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9665700Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:56:20.9666000Z ...
+2025-11-02T22:56:20.9666460Z 49 |     pub fn search_by_name(&self, query: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:56:20.9666840Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9667080Z 
+2025-11-02T22:56:20.9667880Z warning: methods `restore_from_backup`, `export_commands`, and `import_commands` are never used
+2025-11-02T22:56:20.9668480Z    --> src/storage/command_repository.rs:159:12
+2025-11-02T22:56:20.9668750Z     |
+2025-11-02T22:56:20.9669110Z  68 | impl CommandRepository {
+2025-11-02T22:56:20.9669590Z     | ---------------------- methods in this implementation
+2025-11-02T22:56:20.9669920Z ...
+2025-11-02T22:56:20.9670800Z 159 |     pub fn restore_from_backup(&self, backup_index: usize) -> Result<CommandLibrary> {
+2025-11-02T22:56:20.9671570Z     |            ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9671840Z ...
+2025-11-02T22:56:20.9672340Z 175 |     pub fn export_commands(&self, export_path: &PathBuf, command_ids: &[String]) -> Result<()> {
+2025-11-02T22:56:20.9672840Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9673090Z ...
+2025-11-02T22:56:20.9673600Z 194 |     pub fn import_commands(&self, import_path: &PathBuf, merge: bool) -> Result<Vec<String>> {
+2025-11-02T22:56:20.9674050Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:56:20.9674230Z 
+2025-11-02T22:56:24.0118930Z warning: `autohotpie-tauri` (lib test) generated 3 warnings
+2025-11-02T22:56:32.1019120Z warning: `autohotpie-tauri` (lib) generated 7 warnings
+2025-11-02T22:56:32.7178830Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 57s
+2025-11-02T22:56:32.9341970Z      Running unittests src/lib.rs (target/debug/deps/autohotpie_tauri_lib-82876617fb601280)
+2025-11-02T22:56:32.9542170Z 
+2025-11-02T22:56:32.9645260Z running 30 tests
+2025-11-02T22:56:32.9671440Z test domain::context_rules::tests::fails_when_value_missing ... ok
+2025-11-02T22:56:32.9673590Z test domain::context_rules::tests::matches_with_exact_case_insensitive ... ok
+2025-11-02T22:56:32.9697200Z test commands::profiles::tests::validate_record_fails_without_actions ... ok
+2025-11-02T22:56:32.9798680Z test commands::profiles::tests::validate_record_succeeds_when_actions_present ... ok
+2025-11-02T22:56:32.9834480Z test domain::custom_command::tests::test_add_step ... ok
+2025-11-02T22:56:32.9865040Z test domain::custom_command::tests::test_create_command ... ok
+2025-11-02T22:56:32.9866110Z test domain::custom_command::tests::test_validate_empty_name ... ok
+2025-11-02T22:56:32.9868250Z test domain::custom_command::tests::test_validate_no_steps ... ok
+2025-11-02T22:56:32.9869220Z test domain::validation::tests::validate_profile_enforces_max_depth ... ok
+2025-11-02T22:56:32.9870070Z test domain::validation::tests::validate_profile_enforces_slice_lower_bound ... ok
+2025-11-02T22:56:32.9887580Z test domain::validation::tests::validate_profile_missing_action ... ok
+2025-11-02T22:56:32.9888290Z test domain::validation::tests::validate_profile_ok ... ok
+2025-11-02T22:56:32.9889810Z test domain::validation::tests::validate_profile_enforces_slice_upper_bound ... ok
+2025-11-02T22:56:32.9890900Z test models::tests::default_settings_contains_one_profile ... ok
+2025-11-02T22:56:32.9891600Z test models::tests::set_app_version_returns_true_when_updated ... ok
+2025-11-02T22:56:32.9895260Z test domain::context_rules::tests::matches_with_regex ... ok
+2025-11-02T22:56:32.9895870Z test services::macro_engine::tests::test_dry_run_execution ... ok
+2025-11-02T22:56:32.9896430Z test services::macro_engine::tests::test_validation_failure ... ok
+2025-11-02T22:56:32.9897680Z test services::profile_router::tests::select_profile_falls_back_to_first_enabled ... ok
+2025-11-02T22:56:32.9898340Z test services::profile_router::tests::select_profile_matches_process_exact ... ok
+2025-11-02T22:56:32.9899170Z test services::profile_router::tests::select_profile_matches_window_regex ... ok
+2025-11-02T22:56:32.9900280Z test services::profile_router::tests::select_profile_prefers_first_matching_profile_in_order ... ok
+2025-11-02T22:56:32.9908310Z test services::profile_router::tests::select_profile_uses_specific_match_before_fallback_profiles ... ok
+2025-11-02T22:56:32.9909000Z test storage::command_repository::tests::test_backup_rotation ... ok
+2025-11-02T22:56:32.9909530Z test storage::command_repository::tests::test_command_library_operations ... ok
+2025-11-02T22:56:32.9917110Z test storage::command_repository::tests::test_save_and_load ... ok
+2025-11-02T22:56:32.9932010Z test storage::profile_repository::tests::load_returns_recovery_info_on_corrupt_json ... ok
+2025-11-02T22:56:32.9934660Z      Running unittests src/main.rs (target/debug/deps/autohotpie_tauri-de86578c5c46d537)
+2025-11-02T22:56:32.9935360Z test storage::profile_repository::tests::to_recovery_maps_payload ... ok
+2025-11-02T22:56:32.9936140Z test services::action_runner::tests::emits_skipped_payload_for_composite_sequence ... ok
+2025-11-02T22:56:32.9936900Z test services::action_runner::tests::emits_failure_payload_when_child_missing ... ok
+2025-11-02T22:56:32.9937250Z 
+2025-11-02T22:56:32.9937560Z test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+2025-11-02T22:56:32.9937850Z 
+2025-11-02T22:56:33.0026200Z    Doc-tests autohotpie_tauri_lib
+2025-11-02T22:56:33.0027910Z 
+2025-11-02T22:56:33.0068160Z running 0 tests
+2025-11-02T22:56:33.0138720Z 
+2025-11-02T22:56:33.0143660Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2025-11-02T22:56:33.0146680Z 
+2025-11-02T22:56:34.0434790Z 
+2025-11-02T22:56:34.0519600Z running 0 tests
+2025-11-02T22:56:34.0520220Z 
+2025-11-02T22:56:34.0520820Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2025-11-02T22:56:34.0521480Z 
+2025-11-02T22:56:34.0597070Z ##[group]Run npx playwright test --project=webkit --config tests/e2e/playwright.config.ts --retries=1
+2025-11-02T22:56:34.0615750Z [36;1mnpx playwright test --project=webkit --config tests/e2e/playwright.config.ts --retries=1[0m
+2025-11-02T22:56:34.0863120Z shell: /bin/bash -e {0}
+2025-11-02T22:56:34.0863400Z env:
+2025-11-02T22:56:34.0863580Z   CI: true
+2025-11-02T22:56:34.0863750Z ##[endgroup]
+2025-11-02T22:56:36.4084160Z [WebServer] 
+2025-11-02T22:56:36.4090300Z [WebServer] > autohotpie-tauri@0.1.2 dev
+2025-11-02T22:56:36.4090840Z [WebServer] > vite --host 127.0.0.1 --port 5173
+2025-11-02T22:56:36.4091300Z [WebServer] 
+2025-11-02T22:56:36.9467970Z [WebServer] 
+2025-11-02T22:56:36.9574300Z [WebServer]   [32m[1mVITE[22m v7.1.12[39m  [2mready in [0m[1m507[22m[2m[0m ms[22m
+2025-11-02T22:56:36.9714700Z [WebServer] 
+2025-11-02T22:56:36.9819530Z [WebServer]   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+2025-11-02T22:56:37.6175390Z 
+2025-11-02T22:56:37.6276750Z Running 26 tests using 1 worker
+2025-11-02T22:56:37.6377630Z 
+2025-11-02T22:56:44.2662270Z Focus traversal debug: {
+2025-11-02T22:56:44.2805890Z   plan: {
+2025-11-02T22:56:44.2909710Z     activeTag: [32m'BODY'[39m,
+2025-11-02T22:56:44.2910190Z     activeTestId: [90mundefined[39m,
+2025-11-02T22:56:44.2910530Z     stepsFromLanguageSelect: [33m11[39m,
+2025-11-02T22:56:44.2910780Z     snapshot: [
+2025-11-02T22:56:44.2911560Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:56:44.2912000Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:56:44.2912450Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:56:44.2913160Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:56:44.3009940Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:56:44.3111770Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m
+2025-11-02T22:56:44.3212250Z     ]
+2025-11-02T22:56:44.3314030Z   },
+2025-11-02T22:56:44.3417690Z   beforeFallbackActive: { activeTag: [32m'BODY'[39m, activeTestId: [90mundefined[39m }
+2025-11-02T22:56:44.3418710Z }
+2025-11-02T22:56:44.3876830Z   ✓   1 [webkit] › tests/e2e/accessibility.spec.ts:4:3 › Accessibility smoke › keyboard navigation reaches autostart controls (4.6s)
+2025-11-02T22:56:45.8177970Z   ✓   2 [webkit] › tests/e2e/accessibility.spec.ts:71:3 › Accessibility smoke › linux fallback status panel toggles via keyboard (1.4s)
+2025-11-02T22:57:16.0615260Z   ✘   3 [webkit] › tests/e2e/action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (30.1s)
+2025-11-02T22:57:47.1091660Z   ✘   4 [webkit] › tests/e2e/action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (retry #1) (30.1s)
+2025-11-02T22:57:48.5268960Z   ✓   5 [webkit] › tests/e2e/app-smoke.spec.ts:4:3 › App shell smoke › loads dashboard shell with status widgets (779ms)
+2025-11-02T22:57:50.3227450Z   ✓   6 [webkit] › tests/e2e/autostart.spec.ts:77:3 › US3 - Autostart settings › renders status transitions and read-only guard in desktop mode (1.8s)
+2025-11-02T22:57:51.6349880Z   ✓   7 [webkit] › tests/e2e/autostart.spec.ts:178:3 › US3 - Autostart settings › opens quickstart instructions in browser preview (1.3s)
+2025-11-02T22:57:59.6450560Z   ✓   8 [webkit] › tests/e2e/fullscreen-safe-mode.spec.ts:26:3 › Edge case - Fullscreen safe-mode › blocks pie menu when fullscreen game detected and shows notification (8.0s)
+2025-11-02T22:58:00.6755930Z   ✓   9 [webkit] › tests/e2e/hotkey-conflict.spec.ts:26:3 › US2 - Hotkey conflict gating › shows conflict dialog, suggests alternatives and logs audit entry (1.0s)
+2025-11-02T22:58:01.6303370Z   ✓  10 [webkit] › tests/e2e/import-export-negative.spec.ts:19:3 › US3 - Import/Export negative scenarios › shows disabled state when input is empty (936ms)
+2025-11-02T22:58:03.5516070Z   ✓  11 [webkit] › tests/e2e/import-export-negative.spec.ts:27:3 › US3 - Import/Export negative scenarios › renders error banner on backend import failure (1.9s)
+2025-11-02T22:58:05.9335960Z   ✓  12 [webkit] › tests/e2e/linux-fallback.spec.ts:67:3 › NFR-006 - Linux fallback panel › shows fallback controls and provider hints (2.3s)
+2025-11-02T22:58:07.7189540Z   ✓  13 [webkit] › tests/e2e/linux-fallback.spec.ts:101:3 › NFR-006 - Linux fallback panel › handles enable/disable actions and surfaces errors (1.8s)
+2025-11-02T22:58:08.4884510Z   ✓  14 [webkit] › tests/e2e/localization-negative.spec.ts:34:3 › Localization negative cases › bad pack surfaces missing/runtime badges (739ms)
+2025-11-02T22:58:09.1840670Z   ✓  15 [webkit] › tests/e2e/localization-negative.spec.ts:52:3 › Localization negative cases › schema mismatch triggers error affordance (689ms)
+2025-11-02T22:58:10.0683000Z   ✓  16 [webkit] › tests/e2e/localization-negative.spec.ts:63:3 › Localization negative cases › error affordance clears store error (873ms)
+2025-11-02T22:58:10.9277110Z   ✓  17 [webkit] › tests/e2e/localization.spec.ts:23:3 › Localization switching › renders translated strings for EN and RU packs (831ms)
+2025-11-02T22:58:11.7503160Z   ✓  18 [webkit] › tests/e2e/log-panel.spec.ts:127:3 › Log panel (web build) › shows desktop guard when Tauri environment is unavailable (791ms)
+2025-11-02T22:58:13.0967370Z   ✓  19 [webkit] › tests/e2e/log-panel.spec.ts:136:3 › Log panel (mocked Tauri) › filters entries by level and search term (1.3s)
+2025-11-02T22:58:13.8859320Z   ✓  20 [webkit] › tests/e2e/log-panel.spec.ts:191:3 › Log panel (mocked Tauri) › shows error banner when backend invoke fails (784ms)
+2025-11-02T22:58:14.6831530Z   ✓  21 [webkit] › tests/e2e/offline.spec.ts:4:3 › Offline mode resilience (NFR-005) › autostart and logs remain accessible when offline (772ms)
+2025-11-02T22:58:20.6490700Z   ✘  22 [webkit] › tests/e2e/pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (5.9s)
+2025-11-02T22:58:27.6062990Z   ✘  23 [webkit] › tests/e2e/pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (retry #1) (6.1s)
+2025-11-02T22:58:34.1946640Z   ✘  24 [webkit] › tests/e2e/pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (5.9s)
+2025-11-02T22:58:40.6167470Z   ✘  25 [webkit] › tests/e2e/pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (retry #1) (5.8s)
+2025-11-02T22:58:47.3260150Z   ✘  26 [webkit] › tests/e2e/pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (6.1s)
+2025-11-02T22:58:53.8407970Z   ✘  27 [webkit] › tests/e2e/pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (retry #1) (5.9s)
+2025-11-02T22:58:58.9756860Z   ✓  28 [webkit] › tests/perf/fps.spec.ts:174:3 › Perf - FPS stability › frame time stays within NFR threshold (4.6s)
+2025-11-02T22:58:59.1785550Z   -  29 [webkit] › tests/perf/latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured
+2025-11-02T22:59:01.3572230Z   ✓  30 [webkit] › tests/perf/menu-latency.spec.ts:27:3 › Perf - Hotkey to menu latency › pie menu appears under SLA after triggering hotkey (2.2s)
+2025-11-02T22:59:01.5085060Z 
+2025-11-02T22:59:01.5185580Z 
+2025-11-02T22:59:01.5209780Z   1) [webkit] › tests/e2e/action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T22:59:01.5212740Z 
+2025-11-02T22:59:01.5213450Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T22:59:01.5213810Z 
+2025-11-02T22:59:01.5214180Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T22:59:01.5214860Z     Call log:
+2025-11-02T22:59:01.5223480Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T22:59:01.5223830Z 
+2025-11-02T22:59:01.5223840Z 
+2025-11-02T22:59:01.5223930Z       34 |
+2025-11-02T22:59:01.5227590Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T22:59:01.5228030Z     > 36 |     await targetSlice.hover();
+2025-11-02T22:59:01.5228450Z          |                       ^
+2025-11-02T22:59:01.5228750Z       37 |     await targetSlice.click();
+2025-11-02T22:59:01.5229040Z       38 |
+2025-11-02T22:59:01.5229580Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T22:59:01.5230430Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/action-execution.spec.ts:36:23
+2025-11-02T22:59:01.5230980Z 
+2025-11-02T22:59:01.5231410Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5232020Z     test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit/video.webm
+2025-11-02T22:59:01.5232790Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5233020Z 
+2025-11-02T22:59:01.5233560Z     Error Context: test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit/error-context.md
+2025-11-02T22:59:01.5234070Z 
+2025-11-02T22:59:01.5234440Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5235090Z     test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit/trace.zip
+2025-11-02T22:59:01.5235490Z     Usage:
+2025-11-02T22:59:01.5235630Z 
+2025-11-02T22:59:01.5236070Z         npx playwright show-trace test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit/trace.zip
+2025-11-02T22:59:01.5236550Z 
+2025-11-02T22:59:01.5236920Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5237130Z 
+2025-11-02T22:59:01.5237530Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5237820Z 
+2025-11-02T22:59:01.5237990Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T22:59:01.5238210Z 
+2025-11-02T22:59:01.5238410Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T22:59:01.5238730Z     Call log:
+2025-11-02T22:59:01.5239130Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T22:59:01.5239600Z 
+2025-11-02T22:59:01.5239600Z 
+2025-11-02T22:59:01.5239650Z       34 |
+2025-11-02T22:59:01.5240000Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T22:59:01.5240410Z     > 36 |     await targetSlice.hover();
+2025-11-02T22:59:01.5240690Z          |                       ^
+2025-11-02T22:59:01.5241010Z       37 |     await targetSlice.click();
+2025-11-02T22:59:01.5241230Z       38 |
+2025-11-02T22:59:01.5241610Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T22:59:01.5242590Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/action-execution.spec.ts:36:23
+2025-11-02T22:59:01.5242990Z 
+2025-11-02T22:59:01.5243390Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5244040Z     test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1/video.webm
+2025-11-02T22:59:01.5244750Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5244920Z 
+2025-11-02T22:59:01.5245360Z     Error Context: test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1/error-context.md
+2025-11-02T22:59:01.5245790Z 
+2025-11-02T22:59:01.5246100Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5247220Z     test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5248540Z     Usage:
+2025-11-02T22:59:01.5248670Z 
+2025-11-02T22:59:01.5249130Z         npx playwright show-trace test-results/e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5249560Z 
+2025-11-02T22:59:01.5249910Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5250090Z 
+2025-11-02T22:59:01.5250610Z   2) [webkit] › tests/e2e/pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T22:59:01.5250980Z 
+2025-11-02T22:59:01.5251280Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5251670Z 
+2025-11-02T22:59:01.5252070Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T22:59:01.5252560Z     Expected: visible
+2025-11-02T22:59:01.5252810Z     Timeout: 5000ms
+2025-11-02T22:59:01.5253240Z     Error: element(s) not found
+2025-11-02T22:59:01.5253390Z 
+2025-11-02T22:59:01.5253570Z     Call log:
+2025-11-02T22:59:01.5253970Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5254700Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T22:59:01.5254980Z 
+2025-11-02T22:59:01.5254990Z 
+2025-11-02T22:59:01.5255100Z       61 |     });
+2025-11-02T22:59:01.5255320Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5256870Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5257270Z          |                           ^
+2025-11-02T22:59:01.5257520Z       64 |     } else {
+2025-11-02T22:59:01.5257900Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5258190Z       66 |     }
+2025-11-02T22:59:01.5258760Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5259780Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:83:5
+2025-11-02T22:59:01.5260170Z 
+2025-11-02T22:59:01.5260730Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5261390Z     test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit/video.webm
+2025-11-02T22:59:01.5262060Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5262230Z 
+2025-11-02T22:59:01.5262660Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit/error-context.md
+2025-11-02T22:59:01.5263100Z 
+2025-11-02T22:59:01.5263410Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5264320Z     test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit/trace.zip
+2025-11-02T22:59:01.5264780Z     Usage:
+2025-11-02T22:59:01.5264920Z 
+2025-11-02T22:59:01.5265510Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit/trace.zip
+2025-11-02T22:59:01.5266410Z 
+2025-11-02T22:59:01.5268340Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5268600Z 
+2025-11-02T22:59:01.5268890Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5269130Z 
+2025-11-02T22:59:01.5269670Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5269900Z 
+2025-11-02T22:59:01.5270210Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T22:59:01.5270690Z     Expected: visible
+2025-11-02T22:59:01.5271020Z     Timeout: 5000ms
+2025-11-02T22:59:01.5271260Z     Error: element(s) not found
+2025-11-02T22:59:01.5271430Z 
+2025-11-02T22:59:01.5271550Z     Call log:
+2025-11-02T22:59:01.5272500Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5273070Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T22:59:01.5273410Z 
+2025-11-02T22:59:01.5273410Z 
+2025-11-02T22:59:01.5273520Z       61 |     });
+2025-11-02T22:59:01.5273900Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5274260Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5274630Z          |                           ^
+2025-11-02T22:59:01.5274860Z       64 |     } else {
+2025-11-02T22:59:01.5275120Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5275440Z       66 |     }
+2025-11-02T22:59:01.5276270Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5277080Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:83:5
+2025-11-02T22:59:01.5277480Z 
+2025-11-02T22:59:01.5277870Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5278500Z     test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1/video.webm
+2025-11-02T22:59:01.5279150Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5279430Z 
+2025-11-02T22:59:01.5279920Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1/error-context.md
+2025-11-02T22:59:01.5280330Z 
+2025-11-02T22:59:01.5280860Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5281540Z     test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5282370Z     Usage:
+2025-11-02T22:59:01.5282880Z 
+2025-11-02T22:59:01.5284050Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5284820Z 
+2025-11-02T22:59:01.5285460Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5285720Z 
+2025-11-02T22:59:01.5340420Z   3) [webkit] › tests/e2e/pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T22:59:01.5340960Z 
+2025-11-02T22:59:01.5341490Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5341880Z 
+2025-11-02T22:59:01.5342140Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T22:59:01.5342600Z     Expected: visible
+2025-11-02T22:59:01.5342910Z     Timeout: 5000ms
+2025-11-02T22:59:01.5343160Z     Error: element(s) not found
+2025-11-02T22:59:01.5343330Z 
+2025-11-02T22:59:01.5343380Z     Call log:
+2025-11-02T22:59:01.5343660Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5344300Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T22:59:01.5344570Z 
+2025-11-02T22:59:01.5344570Z 
+2025-11-02T22:59:01.5344630Z       61 |     });
+2025-11-02T22:59:01.5344800Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5345120Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5345420Z          |                           ^
+2025-11-02T22:59:01.5345580Z       64 |     } else {
+2025-11-02T22:59:01.5345840Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5346070Z       66 |     }
+2025-11-02T22:59:01.5346730Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5347640Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:111:5
+2025-11-02T22:59:01.5348020Z 
+2025-11-02T22:59:01.5348390Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5349020Z     test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit/video.webm
+2025-11-02T22:59:01.5349690Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5350000Z 
+2025-11-02T22:59:01.5350440Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit/error-context.md
+2025-11-02T22:59:01.5350860Z 
+2025-11-02T22:59:01.5351330Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5352000Z     test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit/trace.zip
+2025-11-02T22:59:01.5353010Z     Usage:
+2025-11-02T22:59:01.5353100Z 
+2025-11-02T22:59:01.5353980Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit/trace.zip
+2025-11-02T22:59:01.5354420Z 
+2025-11-02T22:59:01.5356440Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5356990Z 
+2025-11-02T22:59:01.5357410Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5357680Z 
+2025-11-02T22:59:01.5358070Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5358350Z 
+2025-11-02T22:59:01.5358610Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T22:59:01.5358920Z     Expected: visible
+2025-11-02T22:59:01.5359120Z     Timeout: 5000ms
+2025-11-02T22:59:01.5359350Z     Error: element(s) not found
+2025-11-02T22:59:01.5359500Z 
+2025-11-02T22:59:01.5359550Z     Call log:
+2025-11-02T22:59:01.5359840Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5360390Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T22:59:01.5360750Z 
+2025-11-02T22:59:01.5360750Z 
+2025-11-02T22:59:01.5360860Z       61 |     });
+2025-11-02T22:59:01.5361140Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5361450Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5361840Z          |                           ^
+2025-11-02T22:59:01.5362060Z       64 |     } else {
+2025-11-02T22:59:01.5362270Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5362580Z       66 |     }
+2025-11-02T22:59:01.5363120Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5363890Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:111:5
+2025-11-02T22:59:01.5364320Z 
+2025-11-02T22:59:01.5364650Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5365330Z     test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1/video.webm
+2025-11-02T22:59:01.5365900Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5366170Z 
+2025-11-02T22:59:01.5366650Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1/error-context.md
+2025-11-02T22:59:01.5367140Z 
+2025-11-02T22:59:01.5368070Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5369030Z     test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5369830Z     Usage:
+2025-11-02T22:59:01.5370010Z 
+2025-11-02T22:59:01.5370440Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5371180Z 
+2025-11-02T22:59:01.5371640Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5371840Z 
+2025-11-02T22:59:01.5372450Z   4) [webkit] › tests/e2e/pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T22:59:01.5372900Z 
+2025-11-02T22:59:01.5373310Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5373580Z 
+2025-11-02T22:59:01.5373910Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T22:59:01.5374290Z     Expected: visible
+2025-11-02T22:59:01.5374540Z     Timeout: 5000ms
+2025-11-02T22:59:01.5374940Z     Error: element(s) not found
+2025-11-02T22:59:01.5375110Z 
+2025-11-02T22:59:01.5375260Z     Call log:
+2025-11-02T22:59:01.5375640Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5376290Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T22:59:01.5376600Z 
+2025-11-02T22:59:01.5376610Z 
+2025-11-02T22:59:01.5376740Z       61 |     });
+2025-11-02T22:59:01.5377020Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5377350Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5377700Z          |                           ^
+2025-11-02T22:59:01.5377980Z       64 |     } else {
+2025-11-02T22:59:01.5378420Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5378690Z       66 |     }
+2025-11-02T22:59:01.5379280Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5380140Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:126:5
+2025-11-02T22:59:01.5380490Z 
+2025-11-02T22:59:01.5380880Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5381730Z     test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit/video.webm
+2025-11-02T22:59:01.5383000Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5383220Z 
+2025-11-02T22:59:01.5383710Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit/error-context.md
+2025-11-02T22:59:01.5384190Z 
+2025-11-02T22:59:01.5384590Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5385210Z     test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit/trace.zip
+2025-11-02T22:59:01.5385670Z     Usage:
+2025-11-02T22:59:01.5386010Z 
+2025-11-02T22:59:01.5386410Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit/trace.zip
+2025-11-02T22:59:01.5386810Z 
+2025-11-02T22:59:01.5387180Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5387420Z 
+2025-11-02T22:59:01.5387770Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5387990Z 
+2025-11-02T22:59:01.5388310Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T22:59:01.5388540Z 
+2025-11-02T22:59:01.5388830Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T22:59:01.5389300Z     Expected: visible
+2025-11-02T22:59:01.5389650Z     Timeout: 5000ms
+2025-11-02T22:59:01.5389890Z     Error: element(s) not found
+2025-11-02T22:59:01.5390090Z 
+2025-11-02T22:59:01.5390150Z     Call log:
+2025-11-02T22:59:01.5390820Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T22:59:01.5391410Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T22:59:01.5391950Z 
+2025-11-02T22:59:01.5391960Z 
+2025-11-02T22:59:01.5392010Z       61 |     });
+2025-11-02T22:59:01.5392340Z       62 |     if (assertion.visible) {
+2025-11-02T22:59:01.5392660Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T22:59:01.5392960Z          |                           ^
+2025-11-02T22:59:01.5393220Z       64 |     } else {
+2025-11-02T22:59:01.5393480Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T22:59:01.5393740Z       66 |     }
+2025-11-02T22:59:01.5394320Z         at expectPieMenuSlices (/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:63:27)
+2025-11-02T22:59:01.5395080Z         at /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri/tests/e2e/pie-menu.spec.ts:126:5
+2025-11-02T22:59:01.5395420Z 
+2025-11-02T22:59:01.5395750Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5396590Z     test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1/video.webm
+2025-11-02T22:59:01.5397330Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5397510Z 
+2025-11-02T22:59:01.5397960Z     Error Context: test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1/error-context.md
+2025-11-02T22:59:01.5398360Z 
+2025-11-02T22:59:01.5398780Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5399500Z     test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5399980Z     Usage:
+2025-11-02T22:59:01.5400050Z 
+2025-11-02T22:59:01.5400520Z         npx playwright show-trace test-results/e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1/trace.zip
+2025-11-02T22:59:01.5400950Z 
+2025-11-02T22:59:01.5401320Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T22:59:01.5401490Z 
+2025-11-02T22:59:01.5401600Z   4 failed
+2025-11-02T22:59:01.5402890Z     [webkit] › tests/e2e/action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T22:59:01.5403930Z     [webkit] › tests/e2e/pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T22:59:01.5404830Z     [webkit] › tests/e2e/pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T22:59:01.5405710Z     [webkit] › tests/e2e/pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T22:59:01.5406480Z   1 skipped
+2025-11-02T22:59:01.5406700Z   21 passed (2.4m)
+2025-11-02T22:59:01.7086860Z ##[error]Process completed with exit code 1.
+2025-11-02T22:59:01.7245080Z Post job cleanup.
+2025-11-02T22:59:02.1713500Z [command]/opt/homebrew/bin/git version
+2025-11-02T22:59:02.1976670Z git version 2.50.1
+2025-11-02T22:59:02.2027530Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/0eeff7e8-9b7f-4181-8d10-33cfabd17490/.gitconfig'
+2025-11-02T22:59:02.2035000Z Temporarily overriding HOME='/Users/runner/work/_temp/0eeff7e8-9b7f-4181-8d10-33cfabd17490' before making global git config changes
+2025-11-02T22:59:02.2035820Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-02T22:59:02.2042310Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-02T22:59:02.2265250Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-02T22:59:02.2568740Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-02T22:59:02.3383730Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-02T22:59:02.3485520Z http.https://github.com/.extraheader
+2025-11-02T22:59:02.3700780Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2025-11-02T22:59:02.3795270Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-02T22:59:02.4673130Z Cleaning up orphan processes

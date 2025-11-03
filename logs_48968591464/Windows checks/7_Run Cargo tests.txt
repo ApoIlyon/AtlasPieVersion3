@@ -1,0 +1,930 @@
+﻿2025-11-02T22:55:13.7015731Z ##[group]Run cargo test
+2025-11-02T22:55:13.7016045Z [36;1mcargo test[0m
+2025-11-02T22:55:13.7073699Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2025-11-02T22:55:13.7074047Z env:
+2025-11-02T22:55:13.7074198Z   CI: true
+2025-11-02T22:55:13.7074383Z ##[endgroup]
+2025-11-02T22:55:14.8289165Z     Updating crates.io index
+2025-11-02T22:55:16.6229526Z  Downloading crates ...
+2025-11-02T22:55:16.8640062Z   Downloaded crypto-common v0.1.6
+2025-11-02T22:55:16.8754712Z   Downloaded phf_shared v0.8.0
+2025-11-02T22:55:16.8834595Z   Downloaded ptr_meta_derive v0.1.4
+2025-11-02T22:55:16.8941554Z   Downloaded serde-untagged v0.1.9
+2025-11-02T22:55:16.9120082Z   Downloaded rust_decimal v1.39.0
+2025-11-02T22:55:16.9682608Z   Downloaded schemars v0.8.22
+2025-11-02T22:55:17.0856504Z   Downloaded scopeguard v1.2.0
+2025-11-02T22:55:17.1019641Z   Downloaded string_cache v0.8.9
+2025-11-02T22:55:17.1200499Z   Downloaded tauri-plugin-opener v2.5.2
+2025-11-02T22:55:17.1568282Z   Downloaded writeable v0.6.1
+2025-11-02T22:55:17.1759538Z   Downloaded vswhom v0.1.0
+2025-11-02T22:55:17.1878968Z   Downloaded yoke v0.8.0
+2025-11-02T22:55:17.2026030Z   Downloaded zerovec-derive v0.11.1
+2025-11-02T22:55:17.2143705Z   Downloaded zerofrom v0.1.6
+2025-11-02T22:55:17.2215183Z   Downloaded windows-strings v0.4.2
+2025-11-02T22:55:17.2357913Z   Downloaded time v0.3.44
+2025-11-02T22:55:17.2925321Z   Downloaded tauri-runtime-wry v2.9.0
+2025-11-02T22:55:17.3095486Z   Downloaded tauri-plugin-window-state v2.4.1
+2025-11-02T22:55:17.3272762Z   Downloaded tauri-plugin-store v2.4.1
+2025-11-02T22:55:17.3581641Z   Downloaded windows-link v0.2.1
+2025-11-02T22:55:17.3646717Z   Downloaded windows-interface v0.59.3
+2025-11-02T22:55:17.3708319Z   Downloaded windows-implement v0.60.2
+2025-11-02T22:55:17.3777987Z   Downloaded windows-core v0.61.2
+2025-11-02T22:55:17.4006601Z   Downloaded tauri-utils v2.8.0
+2025-11-02T22:55:17.4247389Z   Downloaded winapi v0.3.9
+2025-11-02T22:55:18.1474744Z   Downloaded tauri-plugin-single-instance v2.3.6
+2025-11-02T22:55:18.1594676Z   Downloaded windows-sys v0.60.2
+2025-11-02T22:55:18.9339001Z   Downloaded yoke-derive v0.8.0
+2025-11-02T22:55:18.9410037Z   Downloaded wyz v0.5.1
+2025-11-02T22:55:18.9511871Z   Downloaded winreg v0.50.0
+2025-11-02T22:55:19.2882783Z   Downloaded windows-link v0.1.3
+2025-11-02T22:55:19.2941484Z   Downloaded windows-collections v0.2.0
+2025-11-02T22:55:19.3021866Z   Downloaded webview2-com-macros v0.8.0
+2025-11-02T22:55:19.3072636Z   Downloaded walkdir v2.5.0
+2025-11-02T22:55:19.3203732Z   Downloaded uuid v1.18.1
+2025-11-02T22:55:19.3397550Z   Downloaded zerofrom-derive v0.1.6
+2025-11-02T22:55:19.3464866Z   Downloaded windows-version v0.1.7
+2025-11-02T22:55:19.3538769Z   Downloaded windows-threading v0.1.0
+2025-11-02T22:55:19.3613242Z   Downloaded windows-targets v0.52.6
+2025-11-02T22:55:19.3681947Z   Downloaded windows-targets v0.48.5
+2025-11-02T22:55:19.3738239Z   Downloaded windows-result v0.3.4
+2025-11-02T22:55:19.3844758Z   Downloaded windows-result v0.1.2
+2025-11-02T22:55:19.3948954Z   Downloaded windows-numerics v0.2.0
+2025-11-02T22:55:19.4075635Z   Downloaded windows-interface v0.57.0
+2025-11-02T22:55:19.4131193Z   Downloaded windows-implement v0.57.0
+2025-11-02T22:55:19.4199781Z   Downloaded windows-future v0.2.1
+2025-11-02T22:55:19.4298163Z   Downloaded windows-core v0.57.0
+2025-11-02T22:55:19.4576001Z   Downloaded winapi-util v0.1.11
+2025-11-02T22:55:19.4673908Z   Downloaded webview2-com v0.38.0
+2025-11-02T22:55:19.4758783Z   Downloaded windows_x86_64_msvc v0.48.5
+2025-11-02T22:55:19.4942287Z   Downloaded want v0.3.1
+2025-11-02T22:55:19.5012867Z   Downloaded vswhom-sys v0.1.3
+2025-11-02T22:55:19.5119867Z   Downloaded version_check v0.9.5
+2025-11-02T22:55:19.5204402Z   Downloaded value-bag v1.11.1
+2025-11-02T22:55:19.5390851Z   Downloaded utf8_iter v1.0.4
+2025-11-02T22:55:19.5463639Z   Downloaded utf8-width v0.1.7
+2025-11-02T22:55:19.5534409Z   Downloaded utf-8 v0.7.6
+2025-11-02T22:55:19.5637436Z   Downloaded urlpattern v0.3.0
+2025-11-02T22:55:19.5761927Z   Downloaded tokio v1.48.0
+2025-11-02T22:55:19.8575838Z   Downloaded tao v0.34.5
+2025-11-02T22:55:19.9239067Z   Downloaded syn v2.0.108
+2025-11-02T22:55:19.9837044Z   Downloaded syn v1.0.109
+2025-11-02T22:55:20.0382413Z   Downloaded winreg v0.55.0
+2025-11-02T22:55:20.0592438Z   Downloaded windows-targets v0.53.5
+2025-11-02T22:55:20.0663930Z   Downloaded url v2.5.7
+2025-11-02T22:55:20.0830424Z   Downloaded unicode-segmentation v1.12.0
+2025-11-02T22:55:20.0967435Z   Downloaded typenum v1.19.0
+2025-11-02T22:55:20.1148945Z   Downloaded tracing v0.1.41
+2025-11-02T22:55:20.1402763Z   Downloaded toml_edit v0.23.7
+2025-11-02T22:55:20.1666533Z   Downloaded tokio-util v0.7.16
+2025-11-02T22:55:20.2172996Z   Downloaded tauri-plugin-shell v2.3.3
+2025-11-02T22:55:20.2466420Z   Downloaded serde_with v3.15.1
+2025-11-02T22:55:20.3408685Z   Downloaded serde v1.0.228
+2025-11-02T22:55:20.3616956Z   Downloaded winnow v0.7.13
+2025-11-02T22:55:21.0437095Z   Downloaded ico v0.4.0
+2025-11-02T22:55:21.2012111Z   Downloaded hyper v0.14.32
+2025-11-02T22:55:21.2480304Z   Downloaded wry v0.53.5
+2025-11-02T22:55:21.2989878Z   Downloaded webview2-com-sys v0.38.0
+2025-11-02T22:55:21.4010400Z   Downloaded html5ever v0.29.1
+2025-11-02T22:55:21.4310410Z   Downloaded flate2 v1.1.5
+2025-11-02T22:55:21.4666746Z   Downloaded webpki-roots v0.25.4
+2025-11-02T22:55:21.4795266Z   Downloaded fern v0.7.1
+2025-11-02T22:55:21.5039804Z   Downloaded toml_datetime v0.7.3
+2025-11-02T22:55:21.5120604Z   Downloaded zerotrie v0.2.2
+2025-11-02T22:55:21.5388428Z   Downloaded tinyvec v1.10.0
+2025-11-02T22:55:21.5568207Z   Downloaded thiserror-impl v2.0.17
+2025-11-02T22:55:21.5695522Z   Downloaded thiserror-impl v1.0.69
+2025-11-02T22:55:21.5802820Z   Downloaded windows-sys v0.59.0
+2025-11-02T22:55:22.8784393Z   Downloaded thiserror v1.0.69
+2025-11-02T22:55:22.9279816Z   Downloaded tempfile v3.23.0
+2025-11-02T22:55:22.9459153Z   Downloaded tauri-winres v0.3.3
+2025-11-02T22:55:22.9589901Z   Downloaded tauri-runtime v2.9.1
+2025-11-02T22:55:22.9682230Z   Downloaded tauri-plugin-log v2.7.1
+2025-11-02T22:55:22.9872814Z   Downloaded tauri-plugin-global-shortcut v2.3.1
+2025-11-02T22:55:23.0050907Z   Downloaded tauri-plugin-fs v2.4.4
+2025-11-02T22:55:23.0616044Z   Downloaded tauri-plugin-dialog v2.4.2
+2025-11-02T22:55:23.0936797Z   Downloaded tauri-plugin-autostart v2.5.1
+2025-11-02T22:55:23.1077118Z   Downloaded tauri v2.9.0
+2025-11-02T22:55:23.4575141Z   Downloaded serde_json v1.0.145
+2025-11-02T22:55:23.5100384Z   Downloaded icu_normalizer_data v2.0.0
+2025-11-02T22:55:23.5215103Z   Downloaded hashbrown v0.12.3
+2025-11-02T22:55:23.5429769Z   Downloaded window-vibrancy v0.6.0
+2025-11-02T22:55:23.5700824Z   Downloaded encoding_rs v0.8.35
+2025-11-02T22:55:23.6405001Z   Downloaded winreg v0.10.1
+2025-11-02T22:55:23.6585672Z   Downloaded untrusted v0.9.0
+2025-11-02T22:55:23.6702012Z   Downloaded zerovec v0.11.4
+2025-11-02T22:55:23.7105227Z   Downloaded unicode-ident v1.0.20
+2025-11-02T22:55:23.7295300Z   Downloaded windows_x86_64_msvc v0.53.1
+2025-11-02T22:55:23.7510896Z   Downloaded zerocopy v0.8.27
+2025-11-02T22:55:23.9638725Z   Downloaded windows_x86_64_msvc v0.52.6
+2025-11-02T22:55:23.9841917Z   Downloaded unic-ucd-version v0.9.0
+2025-11-02T22:55:23.9907750Z   Downloaded unic-ucd-ident v0.9.0
+2025-11-02T22:55:24.0021925Z   Downloaded unic-common v0.9.0
+2025-11-02T22:55:24.0075652Z   Downloaded unic-char-range v0.9.0
+2025-11-02T22:55:24.0183630Z   Downloaded unic-char-property v0.9.0
+2025-11-02T22:55:24.0308858Z   Downloaded typeid v1.0.3
+2025-11-02T22:55:24.0391594Z   Downloaded try-lock v0.2.5
+2025-11-02T22:55:24.0468701Z   Downloaded tray-icon v0.21.2
+2025-11-02T22:55:24.0617941Z   Downloaded tracing-core v0.1.34
+2025-11-02T22:55:24.0805420Z   Downloaded tracing-attributes v0.1.30
+2025-11-02T22:55:24.0999637Z   Downloaded tower-service v0.3.3
+2025-11-02T22:55:24.1055348Z   Downloaded windows-sys v0.61.2
+2025-11-02T22:55:24.3488339Z   Downloaded toml_writer v1.0.4
+2025-11-02T22:55:24.3579774Z   Downloaded toml_parser v1.0.4
+2025-11-02T22:55:24.3724505Z   Downloaded toml v0.9.8
+2025-11-02T22:55:24.4011207Z   Downloaded tokio-rustls v0.24.1
+2025-11-02T22:55:24.4177424Z   Downloaded tokio-macros v2.6.0
+2025-11-02T22:55:24.4247025Z   Downloaded tinyvec_macros v0.1.1
+2025-11-02T22:55:24.4303304Z   Downloaded tinystr v0.8.1
+2025-11-02T22:55:24.4435356Z   Downloaded time-macros v0.2.24
+2025-11-02T22:55:24.4600850Z   Downloaded time-core v0.1.6
+2025-11-02T22:55:24.4679773Z   Downloaded thiserror v2.0.17
+2025-11-02T22:55:24.5248452Z   Downloaded tendril v0.4.3
+2025-11-02T22:55:24.5371467Z   Downloaded strsim v0.11.1
+2025-11-02T22:55:24.5457682Z   Downloaded softbuffer v0.4.6
+2025-11-02T22:55:25.3016510Z   Downloaded serde_with_macros v3.15.1
+2025-11-02T22:55:25.3142745Z   Downloaded schemars v1.0.4
+2025-11-02T22:55:25.4429467Z   Downloaded schemars v0.9.0
+2025-11-02T22:55:25.5576118Z   Downloaded rustls v0.21.12
+2025-11-02T22:55:25.6345117Z   Downloaded rkyv v0.7.45
+2025-11-02T22:55:25.6942672Z   Downloaded regex-syntax v0.8.8
+2025-11-02T22:55:25.7255892Z   Downloaded regex-automata v0.4.13
+2025-11-02T22:55:25.8062934Z   Downloaded rand v0.7.3
+2025-11-02T22:55:25.8370320Z   Downloaded tauri-plugin v2.5.1
+2025-11-02T22:55:25.8457846Z   Downloaded tauri-macros v2.5.0
+2025-11-02T22:55:25.8575964Z   Downloaded tauri-codegen v2.5.0
+2025-11-02T22:55:25.8662390Z   Downloaded tauri-build v2.5.1
+2025-11-02T22:55:25.8768593Z   Downloaded tap v1.0.1
+2025-11-02T22:55:25.8830168Z   Downloaded synstructure v0.13.2
+2025-11-02T22:55:25.8902861Z   Downloaded sync_wrapper v0.1.2
+2025-11-02T22:55:25.8958945Z   Downloaded string_cache_codegen v0.5.4
+2025-11-02T22:55:25.9016074Z   Downloaded stable_deref_trait v1.2.1
+2025-11-02T22:55:25.9105233Z   Downloaded socket2 v0.6.1
+2025-11-02T22:55:25.9208664Z   Downloaded socket2 v0.5.10
+2025-11-02T22:55:25.9943795Z   Downloaded simdutf8 v0.1.5
+2025-11-02T22:55:26.3113815Z   Downloaded shlex v1.3.0
+2025-11-02T22:55:26.3195837Z   Downloaded serialize-to-javascript v0.1.2
+2025-11-02T22:55:26.3281071Z   Downloaded serde_repr v0.1.20
+2025-11-02T22:55:26.3432698Z   Downloaded rustls-webpki v0.101.7
+2025-11-02T22:55:26.4915624Z   Downloaded ring v0.17.14
+2025-11-02T22:55:26.7363242Z   Downloaded regex v1.12.2
+2025-11-02T22:55:26.7784823Z   Downloaded rand v0.8.5
+2025-11-02T22:55:26.8005992Z   Downloaded png v0.17.16
+2025-11-02T22:55:27.0364209Z   Downloaded indexmap v2.12.0
+2025-11-02T22:55:27.0618185Z   Downloaded icu_locale_core v2.0.0
+2025-11-02T22:55:27.1157603Z   Downloaded icu_collections v2.0.0
+2025-11-02T22:55:27.1655021Z   Downloaded http v1.3.1
+2025-11-02T22:55:27.1879685Z   Downloaded hashbrown v0.16.0
+2025-11-02T22:55:27.2142927Z   Downloaded h2 v0.3.27
+2025-11-02T22:55:27.2553970Z   Downloaded global-hotkey v0.7.0
+2025-11-02T22:55:27.2744130Z   Downloaded futures-util v0.3.31
+2025-11-02T22:55:27.7370122Z   Downloaded darling_core v0.21.3
+2025-11-02T22:55:27.7806411Z   Downloaded bytes v1.10.1
+2025-11-02T22:55:27.8087408Z   Downloaded borsh v1.5.7
+2025-11-02T22:55:27.8656689Z   Downloaded smallvec v1.15.1
+2025-11-02T22:55:27.8785645Z   Downloaded slab v0.4.11
+2025-11-02T22:55:27.8871478Z   Downloaded siphasher v1.0.1
+2025-11-02T22:55:27.8967533Z   Downloaded siphasher v0.3.11
+2025-11-02T22:55:27.9048069Z   Downloaded simd-adler32 v0.3.7
+2025-11-02T22:55:27.9183138Z   Downloaded shared_child v1.1.1
+2025-11-02T22:55:27.9271128Z   Downloaded sha2 v0.10.9
+2025-11-02T22:55:27.9471805Z   Downloaded servo_arc v0.2.0
+2025-11-02T22:55:27.9524249Z   Downloaded serialize-to-javascript-impl v0.1.2
+2025-11-02T22:55:27.9577797Z   Downloaded serde_urlencoded v0.7.1
+2025-11-02T22:55:27.9711503Z   Downloaded serde_spanned v1.0.3
+2025-11-02T22:55:27.9791189Z   Downloaded serde_derive_internals v0.29.1
+2025-11-02T22:55:27.9890766Z   Downloaded serde_derive v1.0.228
+2025-11-02T22:55:28.0115465Z   Downloaded serde_core v1.0.228
+2025-11-02T22:55:28.0313097Z   Downloaded semver v1.0.27
+2025-11-02T22:55:28.0478269Z   Downloaded selectors v0.24.0
+2025-11-02T22:55:28.0576033Z   Downloaded seahash v4.1.0
+2025-11-02T22:55:28.0685566Z   Downloaded sct v0.7.1
+2025-11-02T22:55:28.1005340Z   Downloaded mio v1.1.0
+2025-11-02T22:55:28.1382000Z   Downloaded miniz_oxide v0.8.9
+2025-11-02T22:55:28.1548804Z   Downloaded libc v0.2.177
+2025-11-02T22:55:28.2907520Z   Downloaded getrandom v0.1.16
+2025-11-02T22:55:28.3079771Z   Downloaded funty v2.0.0
+2025-11-02T22:55:28.3128601Z   Downloaded form_urlencoded v1.2.2
+2025-11-02T22:55:28.3184297Z   Downloaded find-msvc-tools v0.1.4
+2025-11-02T22:55:28.3298668Z   Downloaded fastrand v2.3.0
+2025-11-02T22:55:28.3378544Z   Downloaded erased-serde v0.4.8
+2025-11-02T22:55:28.3538812Z   Downloaded equivalent v1.0.2
+2025-11-02T22:55:28.3606853Z   Downloaded embed-resource v3.0.6
+2025-11-02T22:55:28.3731416Z   Downloaded dyn-clone v1.0.20
+2025-11-02T22:55:28.3857906Z   Downloaded windows-sys v0.48.0
+2025-11-02T22:55:28.6723656Z   Downloaded dtoa v1.0.10
+2025-11-02T22:55:28.6822242Z   Downloaded dirs v6.0.0
+2025-11-02T22:55:28.6908265Z   Downloaded digest v0.10.7
+2025-11-02T22:55:28.7038196Z   Downloaded derive_more v0.99.20
+2025-11-02T22:55:28.7388250Z   Downloaded deranged v0.5.5
+2025-11-02T22:55:28.7462141Z   Downloaded windows-sys v0.52.0
+2025-11-02T22:55:29.6150422Z   Downloaded darling v0.21.3
+2025-11-02T22:55:29.6604763Z   Downloaded ctor v0.2.9
+2025-11-02T22:55:29.6683193Z   Downloaded bytecheck_derive v0.6.12
+2025-11-02T22:55:29.6729932Z   Downloaded schemars_derive v0.8.22
+2025-11-02T22:55:29.6837915Z   Downloaded ryu v1.0.20
+2025-11-02T22:55:29.7051517Z   Downloaded rustls-pemfile v1.0.4
+2025-11-02T22:55:29.7212794Z   Downloaded rustc_version v0.4.1
+2025-11-02T22:55:29.7298832Z   Downloaded rkyv_derive v0.7.45
+2025-11-02T22:55:29.7402300Z   Downloaded rfd v0.15.4
+2025-11-02T22:55:29.7798201Z   Downloaded rend v0.4.2
+2025-11-02T22:55:29.7897794Z   Downloaded ref-cast-impl v1.0.25
+2025-11-02T22:55:29.7953890Z   Downloaded ref-cast v1.0.25
+2025-11-02T22:55:29.8181374Z   Downloaded raw-window-handle v0.6.2
+2025-11-02T22:55:29.8315318Z   Downloaded rand_pcg v0.2.1
+2025-11-02T22:55:29.8402278Z   Downloaded rand_chacha v0.3.1
+2025-11-02T22:55:29.8477422Z   Downloaded quote v1.0.41
+2025-11-02T22:55:29.8678270Z   Downloaded ptr_meta v0.1.4
+2025-11-02T22:55:29.8738774Z   Downloaded proc-macro2 v1.0.103
+2025-11-02T22:55:29.8976749Z   Downloaded proc-macro-hack v0.5.20+deprecated
+2025-11-02T22:55:29.9129374Z   Downloaded proc-macro-crate v3.4.0
+2025-11-02T22:55:29.9220903Z   Downloaded precomputed-hash v0.1.1
+2025-11-02T22:55:29.9267620Z   Downloaded potential_utf v0.1.3
+2025-11-02T22:55:29.9334306Z   Downloaded pin-project-lite v0.2.16
+2025-11-02T22:55:29.9819434Z   Downloaded phf_shared v0.11.3
+2025-11-02T22:55:29.9879251Z   Downloaded phf_macros v0.11.3
+2025-11-02T22:55:29.9948717Z   Downloaded phf_macros v0.10.0
+2025-11-02T22:55:29.9991944Z   Downloaded phf_generator v0.11.3
+2025-11-02T22:55:30.0065286Z   Downloaded phf_generator v0.10.0
+2025-11-02T22:55:30.0125571Z   Downloaded pathdiff v0.2.3
+2025-11-02T22:55:30.0188960Z   Downloaded muda v0.17.1
+2025-11-02T22:55:30.0560195Z   Downloaded memchr v2.7.6
+2025-11-02T22:55:30.0897287Z   Downloaded markup5ever v0.14.1
+2025-11-02T22:55:30.1978784Z   Downloaded kuchikiki v0.8.8-speedreader
+2025-11-02T22:55:30.5219847Z   Downloaded keyboard-types v0.7.0
+2025-11-02T22:55:30.5330287Z   Downloaded json-patch v3.0.1
+2025-11-02T22:55:30.5512698Z   Downloaded indexmap v1.9.3
+2025-11-02T22:55:30.5703260Z   Downloaded ident_case v1.0.1
+2025-11-02T22:55:30.5768512Z   Downloaded icu_normalizer v2.0.0
+2025-11-02T22:55:30.5977940Z   Downloaded futures-task v0.3.31
+2025-11-02T22:55:30.6065329Z   Downloaded futures-sink v0.3.31
+2025-11-02T22:55:30.6118608Z   Downloaded futures-io v0.3.31
+2025-11-02T22:55:30.6171823Z   Downloaded futures-core v0.3.31
+2025-11-02T22:55:30.6253193Z   Downloaded futf v0.1.5
+2025-11-02T22:55:30.6317604Z   Downloaded fnv v1.0.7
+2025-11-02T22:55:30.6377134Z   Downloaded filetime v0.2.26
+2025-11-02T22:55:30.6493812Z   Downloaded dunce v1.0.5
+2025-11-02T22:55:30.6553743Z   Downloaded dpi v0.1.2
+2025-11-02T22:55:30.6618344Z   Downloaded dirs-sys v0.5.0
+2025-11-02T22:55:30.6715869Z   Downloaded darling_macro v0.21.3
+2025-11-02T22:55:30.6763320Z   Downloaded cargo-platform v0.1.9
+2025-11-02T22:55:30.6843862Z   Downloaded camino v1.2.1
+2025-11-02T22:55:30.6955626Z   Downloaded byteorder v1.5.0
+2025-11-02T22:55:30.7048780Z   Downloaded byte-unit v5.1.6
+2025-11-02T22:55:30.7278443Z   Downloaded borsh-derive v1.5.7
+2025-11-02T22:55:30.7474328Z   Downloaded block-buffer v0.10.4
+2025-11-02T22:55:30.7547805Z   Downloaded rand_core v0.6.4
+2025-11-02T22:55:30.7631781Z   Downloaded rand_core v0.5.1
+2025-11-02T22:55:30.7715198Z   Downloaded rand_chacha v0.2.2
+2025-11-02T22:55:30.7784966Z   Downloaded radium v0.7.0
+2025-11-02T22:55:30.7855643Z   Downloaded powerfmt v0.2.0
+2025-11-02T22:55:30.7958359Z   Downloaded pin-utils v0.1.0
+2025-11-02T22:55:30.8037469Z   Downloaded phf_shared v0.10.0
+2025-11-02T22:55:30.8079242Z   Downloaded phf v0.11.3
+2025-11-02T22:55:30.8165432Z   Downloaded phf v0.8.0
+2025-11-02T22:55:30.8214006Z   Downloaded parking_lot_core v0.9.12
+2025-11-02T22:55:30.8366791Z   Downloaded os_pipe v1.2.3
+2025-11-02T22:55:30.8455058Z   Downloaded once_cell v1.21.3
+2025-11-02T22:55:30.8632435Z   Downloaded num-traits v0.2.19
+2025-11-02T22:55:30.8807746Z   Downloaded notify v6.1.1
+2025-11-02T22:55:30.8915865Z   Downloaded nodrop v0.1.14
+2025-11-02T22:55:30.8969712Z   Downloaded matches v0.1.10
+2025-11-02T22:55:30.9023848Z   Downloaded match_token v0.1.0
+2025-11-02T22:55:30.9067875Z   Downloaded mac v0.1.1
+2025-11-02T22:55:30.9176434Z   Downloaded log v0.4.28
+2025-11-02T22:55:30.9334547Z   Downloaded lock_api v0.4.14
+2025-11-02T22:55:30.9406602Z   Downloaded litemap v0.8.0
+2025-11-02T22:55:30.9560575Z   Downloaded lazy_static v1.5.0
+2025-11-02T22:55:30.9693256Z   Downloaded itoa v1.0.15
+2025-11-02T22:55:30.9786283Z   Downloaded ipnet v2.11.0
+2025-11-02T22:55:30.9893732Z   Downloaded infer v0.19.0
+2025-11-02T22:55:31.0056609Z   Downloaded idna_adapter v1.2.1
+2025-11-02T22:55:31.0120885Z   Downloaded idna v1.1.0
+2025-11-02T22:55:31.0283351Z   Downloaded icu_properties_data v2.0.1
+2025-11-02T22:55:31.1023344Z   Downloaded icu_properties v2.0.1
+2025-11-02T22:55:31.1153540Z   Downloaded hyper-rustls v0.24.2
+2025-11-02T22:55:31.1330629Z   Downloaded httpdate v1.0.3
+2025-11-02T22:55:31.1409852Z   Downloaded http-body v0.4.6
+2025-11-02T22:55:31.1538314Z   Downloaded hex v0.4.3
+2025-11-02T22:55:31.1637113Z   Downloaded heck v0.5.0
+2025-11-02T22:55:31.1739156Z   Downloaded glob v0.3.3
+2025-11-02T22:55:31.1857625Z   Downloaded getrandom v0.3.4
+2025-11-02T22:55:31.2106497Z   Downloaded getrandom v0.2.16
+2025-11-02T22:55:31.2300328Z   Downloaded generic-array v0.14.9
+2025-11-02T22:55:31.2410226Z   Downloaded fxhash v0.2.1
+2025-11-02T22:55:31.2458809Z   Downloaded futures-macro v0.3.31
+2025-11-02T22:55:31.2523044Z   Downloaded dtoa-short v0.3.5
+2025-11-02T22:55:31.2571073Z   Downloaded cargo_toml v0.22.3
+2025-11-02T22:55:31.2669834Z   Downloaded autocfg v1.5.0
+2025-11-02T22:55:31.2805294Z   Downloaded anyhow v1.0.100
+2025-11-02T22:55:31.3116947Z   Downloaded reqwest v0.11.27
+2025-11-02T22:55:31.3575278Z   Downloaded ppv-lite86 v0.2.21
+2025-11-02T22:55:31.3653211Z   Downloaded phf_codegen v0.11.3
+2025-11-02T22:55:31.3712441Z   Downloaded phf_codegen v0.8.0
+2025-11-02T22:55:31.3754377Z   Downloaded phf v0.10.1
+2025-11-02T22:55:31.3833971Z   Downloaded percent-encoding v2.3.2
+2025-11-02T22:55:31.3892895Z   Downloaded parking_lot v0.12.5
+2025-11-02T22:55:31.4053318Z   Downloaded option-ext v0.2.0
+2025-11-02T22:55:31.4115864Z   Downloaded num-conv v0.1.0
+2025-11-02T22:55:31.4171451Z   Downloaded new_debug_unreachable v1.0.6
+2025-11-02T22:55:31.4244855Z   Downloaded mime v0.3.17
+2025-11-02T22:55:31.4354321Z   Downloaded icu_provider v2.0.0
+2025-11-02T22:55:31.4509804Z   Downloaded cssparser-macros v0.6.1
+2025-11-02T22:55:31.4554039Z   Downloaded cpufeatures v0.2.17
+2025-11-02T22:55:31.4643326Z   Downloaded colored v2.2.0
+2025-11-02T22:55:31.9603363Z   Downloaded cfb v0.7.3
+2025-11-02T22:55:31.9848833Z   Downloaded cc v1.2.43
+2025-11-02T22:55:32.0022877Z   Downloaded bytecheck v0.6.12
+2025-11-02T22:55:32.0084274Z   Downloaded bitvec v1.0.1
+2025-11-02T22:55:32.1335044Z   Downloaded same-file v1.0.6
+2025-11-02T22:55:32.1429177Z   Downloaded open v5.3.2
+2025-11-02T22:55:32.1563342Z   Downloaded cssparser v0.29.6
+2025-11-02T22:55:32.1713584Z   Downloaded crossbeam-utils v0.8.21
+2025-11-02T22:55:32.1928269Z   Downloaded crc32fast v1.5.0
+2025-11-02T22:55:32.2036336Z   Downloaded cfg_aliases v0.2.1
+2025-11-02T22:55:32.2103686Z   Downloaded bitflags v1.3.2
+2025-11-02T22:55:32.2350919Z   Downloaded auto-launch v0.5.0
+2025-11-02T22:55:32.2438535Z   Downloaded arrayvec v0.7.6
+2025-11-02T22:55:32.2571996Z   Downloaded aho-corasick v1.1.3
+2025-11-02T22:55:32.2889995Z   Downloaded ahash v0.7.8
+2025-11-02T22:55:32.3049120Z   Downloaded adler2 v2.0.1
+2025-11-02T22:55:32.3131437Z   Downloaded jsonptr v0.6.3
+2025-11-02T22:55:32.3311841Z   Downloaded http v0.2.12
+2025-11-02T22:55:32.5447355Z   Downloaded crossbeam-channel v0.5.15
+2025-11-02T22:55:32.5706678Z   Downloaded convert_case v0.4.0
+2025-11-02T22:55:32.5766697Z   Downloaded chrono v0.4.42
+2025-11-02T22:55:32.6123755Z   Downloaded cfg-if v1.0.4
+2025-11-02T22:55:32.6214823Z   Downloaded bitflags v2.10.0
+2025-11-02T22:55:32.6544541Z   Downloaded base64 v0.21.7
+2025-11-02T22:55:32.6770269Z   Downloaded phf_generator v0.8.0
+2025-11-02T22:55:32.6832358Z   Downloaded httparse v1.10.1
+2025-11-02T22:55:32.6972579Z   Downloaded futures-channel v0.3.31
+2025-11-02T22:55:32.7089516Z   Downloaded fdeflate v0.3.7
+2025-11-02T22:55:32.7228666Z   Downloaded displaydoc v0.2.5
+2025-11-02T22:55:32.7453549Z   Downloaded cookie v0.18.1
+2025-11-02T22:55:32.7602770Z   Downloaded cargo_metadata v0.19.2
+2025-11-02T22:55:32.7724422Z   Downloaded base64 v0.22.1
+2025-11-02T22:55:32.8061250Z   Downloaded windows v0.61.3
+2025-11-02T22:55:33.9599686Z   Downloaded windows v0.57.0
+2025-11-02T22:55:36.0745493Z    Compiling proc-macro2 v1.0.103
+2025-11-02T22:55:36.0746431Z    Compiling quote v1.0.41
+2025-11-02T22:55:36.0746921Z    Compiling unicode-ident v1.0.20
+2025-11-02T22:55:36.0747288Z    Compiling cfg-if v1.0.4
+2025-11-02T22:55:36.1436752Z    Compiling windows-link v0.2.1
+2025-11-02T22:55:36.1974047Z    Compiling serde_core v1.0.228
+2025-11-02T22:55:36.2038835Z    Compiling zerocopy v0.8.27
+2025-11-02T22:55:37.9494571Z    Compiling itoa v1.0.15
+2025-11-02T22:55:38.1142518Z    Compiling smallvec v1.15.1
+2025-11-02T22:55:38.3808976Z    Compiling getrandom v0.2.16
+2025-11-02T22:55:38.5317100Z    Compiling litemap v0.8.0
+2025-11-02T22:55:39.2810040Z    Compiling syn v2.0.108
+2025-11-02T22:55:39.4199467Z    Compiling writeable v0.6.1
+2025-11-02T22:55:39.9055270Z    Compiling rand_core v0.6.4
+2025-11-02T22:55:40.1908129Z    Compiling fnv v1.0.7
+2025-11-02T22:55:40.2626336Z    Compiling icu_normalizer_data v2.0.0
+2025-11-02T22:55:40.5360422Z    Compiling ppv-lite86 v0.2.21
+2025-11-02T22:55:40.5464275Z    Compiling serde v1.0.228
+2025-11-02T22:55:40.9050637Z    Compiling stable_deref_trait v1.2.1
+2025-11-02T22:55:40.9729794Z    Compiling icu_properties_data v2.0.1
+2025-11-02T22:55:41.0372308Z    Compiling rand_chacha v0.3.1
+2025-11-02T22:55:41.1879738Z    Compiling memchr v2.7.6
+2025-11-02T22:55:41.5979031Z    Compiling rand v0.8.5
+2025-11-02T22:55:41.8251129Z    Compiling siphasher v1.0.1
+2025-11-02T22:55:42.3478368Z    Compiling phf_shared v0.11.3
+2025-11-02T22:55:42.5534596Z    Compiling bytes v1.10.1
+2025-11-02T22:55:42.5623410Z    Compiling thiserror v2.0.17
+2025-11-02T22:55:42.6570598Z    Compiling ryu v1.0.20
+2025-11-02T22:55:42.9026310Z    Compiling phf_generator v0.11.3
+2025-11-02T22:55:43.0919446Z    Compiling getrandom v0.3.4
+2025-11-02T22:55:43.1690660Z    Compiling siphasher v0.3.11
+2025-11-02T22:55:43.3981534Z    Compiling utf8_iter v1.0.4
+2025-11-02T22:55:43.4977947Z    Compiling getrandom v0.1.16
+2025-11-02T22:55:43.6717008Z    Compiling byteorder v1.5.0
+2025-11-02T22:55:43.7093743Z    Compiling windows_x86_64_msvc v0.52.6
+2025-11-02T22:55:43.9640861Z    Compiling rand_core v0.5.1
+2025-11-02T22:55:43.9641412Z    Compiling parking_lot_core v0.9.12
+2025-11-02T22:55:44.0857063Z    Compiling typeid v1.0.3
+2025-11-02T22:55:44.1882096Z    Compiling syn v1.0.109
+2025-11-02T22:55:44.2684383Z    Compiling autocfg v1.5.0
+2025-11-02T22:55:44.3759659Z    Compiling strsim v0.11.1
+2025-11-02T22:55:44.5894713Z    Compiling winnow v0.7.13
+2025-11-02T22:55:44.8323026Z    Compiling synstructure v0.13.2
+2025-11-02T22:55:44.8925081Z    Compiling ident_case v1.0.1
+2025-11-02T22:55:45.0800683Z    Compiling darling_core v0.21.3
+2025-11-02T22:55:45.9618663Z    Compiling toml_writer v1.0.4
+2025-11-02T22:55:46.2182033Z    Compiling erased-serde v0.4.8
+2025-11-02T22:55:46.5133189Z    Compiling thiserror v1.0.69
+2025-11-02T22:55:46.9102833Z    Compiling toml_parser v1.0.4
+2025-11-02T22:55:47.0854747Z    Compiling scopeguard v1.2.0
+2025-11-02T22:55:47.1678606Z    Compiling lock_api v0.4.14
+2025-11-02T22:55:47.5918635Z    Compiling windows-targets v0.52.6
+2025-11-02T22:55:48.0041990Z    Compiling serde_derive v1.0.228
+2025-11-02T22:55:48.1306467Z    Compiling zerofrom-derive v0.1.6
+2025-11-02T22:55:48.3438546Z    Compiling yoke-derive v0.8.0
+2025-11-02T22:55:49.6366808Z    Compiling zerovec-derive v0.11.1
+2025-11-02T22:55:49.9534043Z    Compiling displaydoc v0.2.5
+2025-11-02T22:55:50.2332081Z    Compiling zerofrom v0.1.6
+2025-11-02T22:55:50.3694449Z    Compiling yoke v0.8.0
+2025-11-02T22:55:50.6247112Z    Compiling thiserror-impl v2.0.17
+2025-11-02T22:55:50.9066714Z    Compiling zerotrie v0.2.2
+2025-11-02T22:55:51.3244966Z    Compiling zerovec v0.11.4
+2025-11-02T22:55:51.3578959Z    Compiling phf_macros v0.11.3
+2025-11-02T22:55:52.3180114Z    Compiling darling_macro v0.21.3
+2025-11-02T22:55:52.7143228Z    Compiling thiserror-impl v1.0.69
+2025-11-02T22:55:52.8403836Z    Compiling tinystr v0.8.1
+2025-11-02T22:55:52.8873895Z    Compiling potential_utf v0.1.3
+2025-11-02T22:55:53.0698985Z    Compiling icu_locale_core v2.0.0
+2025-11-02T22:55:53.1030528Z    Compiling icu_collections v2.0.0
+2025-11-02T22:55:53.8769885Z    Compiling icu_provider v2.0.0
+2025-11-02T22:55:54.3133792Z    Compiling rand_chacha v0.2.2
+2025-11-02T22:55:54.5826787Z    Compiling rand_pcg v0.2.1
+2025-11-02T22:55:54.7140705Z    Compiling phf_shared v0.8.0
+2025-11-02T22:55:54.8149626Z    Compiling aho-corasick v1.1.3
+2025-11-02T22:55:54.8909815Z    Compiling unic-common v0.9.0
+2025-11-02T22:55:54.9055876Z    Compiling unic-char-range v0.9.0
+2025-11-02T22:55:54.9881924Z    Compiling proc-macro-hack v0.5.20+deprecated
+2025-11-02T22:55:55.3359728Z    Compiling regex-syntax v0.8.8
+2025-11-02T22:55:55.6501727Z    Compiling unic-char-property v0.9.0
+2025-11-02T22:55:55.7541969Z    Compiling unic-ucd-version v0.9.0
+2025-11-02T22:55:55.8138547Z    Compiling rand v0.7.3
+2025-11-02T22:55:57.1060636Z    Compiling darling v0.21.3
+2025-11-02T22:55:57.1739370Z    Compiling parking_lot v0.12.5
+2025-11-02T22:55:57.9771709Z    Compiling regex-automata v0.4.13
+2025-11-02T22:55:59.5386892Z    Compiling phf_shared v0.10.0
+2025-11-02T22:55:59.7988495Z    Compiling hashbrown v0.16.0
+2025-11-02T22:56:00.6298009Z    Compiling serde_json v1.0.145
+2025-11-02T22:56:00.9779654Z    Compiling equivalent v1.0.2
+2025-11-02T22:56:01.0430694Z    Compiling new_debug_unreachable v1.0.6
+2025-11-02T22:56:01.0965998Z    Compiling indexmap v2.12.0
+2025-11-02T22:56:01.1239205Z    Compiling regex v1.12.2
+2025-11-02T22:56:01.8684575Z    Compiling phf_generator v0.10.0
+2025-11-02T22:56:01.9393078Z    Compiling serde_with_macros v3.15.1
+2025-11-02T22:56:01.9817304Z    Compiling phf_generator v0.8.0
+2025-11-02T22:56:02.0860272Z    Compiling unic-ucd-ident v0.9.0
+2025-11-02T22:56:03.0559777Z    Compiling icu_normalizer v2.0.0
+2025-11-02T22:56:03.4945955Z    Compiling icu_properties v2.0.1
+2025-11-02T22:56:04.2171574Z    Compiling string_cache_codegen v0.5.4
+2025-11-02T22:56:04.8718921Z    Compiling phf_codegen v0.11.3
+2025-11-02T22:56:04.9930997Z    Compiling windows-sys v0.61.2
+2025-11-02T22:56:05.6973576Z    Compiling anyhow v1.0.100
+2025-11-02T22:56:05.8668339Z    Compiling dunce v1.0.5
+2025-11-02T22:56:05.9328933Z    Compiling mac v0.1.1
+2025-11-02T22:56:05.9990549Z    Compiling precomputed-hash v0.1.1
+2025-11-02T22:56:06.0657558Z    Compiling futf v0.1.5
+2025-11-02T22:56:06.1062390Z    Compiling idna_adapter v1.2.1
+2025-11-02T22:56:06.1427168Z    Compiling markup5ever v0.14.1
+2025-11-02T22:56:06.1884610Z    Compiling phf_macros v0.10.0
+2025-11-02T22:56:06.2387329Z    Compiling phf_codegen v0.8.0
+2025-11-02T22:56:06.3467982Z    Compiling cssparser v0.29.6
+2025-11-02T22:56:07.4312112Z    Compiling http v1.3.1
+2025-11-02T22:56:08.5306823Z    Compiling toml_datetime v0.7.3
+2025-11-02T22:56:08.6621184Z    Compiling semver v1.0.27
+2025-11-02T22:56:08.7004392Z    Compiling serde_spanned v1.0.3
+2025-11-02T22:56:08.8506494Z    Compiling bitflags v1.3.2
+2025-11-02T22:56:08.9074869Z    Compiling dtoa v1.0.10
+2025-11-02T22:56:09.0447524Z    Compiling percent-encoding v2.3.2
+2025-11-02T22:56:09.0847905Z    Compiling shlex v1.3.0
+2025-11-02T22:56:09.0873314Z    Compiling find-msvc-tools v0.1.4
+2025-11-02T22:56:09.2569990Z    Compiling log v0.4.28
+2025-11-02T22:56:09.3129082Z    Compiling utf-8 v0.7.6
+2025-11-02T22:56:09.3451867Z    Compiling form_urlencoded v1.2.2
+2025-11-02T22:56:09.4754739Z    Compiling tendril v0.4.3
+2025-11-02T22:56:09.4788623Z    Compiling dtoa-short v0.3.5
+2025-11-02T22:56:09.5239071Z    Compiling toml v0.9.8
+2025-11-02T22:56:09.7950025Z    Compiling cc v1.2.43
+2025-11-02T22:56:09.9513057Z    Compiling phf v0.10.1
+2025-11-02T22:56:10.3399895Z    Compiling selectors v0.24.0
+2025-11-02T22:56:10.6503649Z    Compiling idna v1.1.0
+2025-11-02T22:56:11.6191828Z    Compiling string_cache v0.8.9
+2025-11-02T22:56:11.8859725Z    Compiling uuid v1.18.1
+2025-11-02T22:56:11.8862975Z    Compiling phf v0.11.3
+2025-11-02T22:56:12.0602502Z    Compiling cssparser-macros v0.6.1
+2025-11-02T22:56:12.2443491Z    Compiling ctor v0.2.9
+2025-11-02T22:56:12.5461724Z    Compiling indexmap v1.9.3
+2025-11-02T22:56:12.5913602Z    Compiling nodrop v0.1.14
+2025-11-02T22:56:12.6824055Z    Compiling convert_case v0.4.0
+2025-11-02T22:56:12.7345963Z    Compiling matches v0.1.10
+2025-11-02T22:56:12.7875522Z    Compiling glob v0.3.3
+2025-11-02T22:56:12.9284484Z    Compiling camino v1.2.1
+2025-11-02T22:56:13.1952156Z    Compiling derive_more v0.99.20
+2025-11-02T22:56:13.4338162Z    Compiling servo_arc v0.2.0
+2025-11-02T22:56:13.6852862Z    Compiling url v2.5.7
+2025-11-02T22:56:14.0535246Z    Compiling winapi-util v0.1.11
+2025-11-02T22:56:14.3702205Z    Compiling phf v0.8.0
+2025-11-02T22:56:14.4838039Z    Compiling match_token v0.1.0
+2025-11-02T22:56:14.9896287Z    Compiling serde_derive_internals v0.29.1
+2025-11-02T22:56:15.0732630Z    Compiling fxhash v0.2.1
+2025-11-02T22:56:15.1865384Z    Compiling schemars v0.8.22
+2025-11-02T22:56:15.3708272Z    Compiling hashbrown v0.12.3
+2025-11-02T22:56:15.5143244Z    Compiling html5ever v0.29.1
+2025-11-02T22:56:16.4687871Z    Compiling schemars_derive v0.8.22
+2025-11-02T22:56:16.6995584Z    Compiling same-file v1.0.6
+2025-11-02T22:56:16.8928863Z    Compiling cfb v0.7.3
+2025-11-02T22:56:17.3405740Z    Compiling jsonptr v0.6.3
+2025-11-02T22:56:18.3014184Z    Compiling cargo-platform v0.1.9
+2025-11-02T22:56:18.3591843Z    Compiling dyn-clone v1.0.20
+2025-11-02T22:56:18.3820295Z    Compiling kuchikiki v0.8.8-speedreader
+2025-11-02T22:56:18.5022065Z    Compiling cargo_metadata v0.19.2
+2025-11-02T22:56:19.0615328Z    Compiling serde-untagged v0.1.9
+2025-11-02T22:56:19.1871605Z    Compiling json-patch v3.0.1
+2025-11-02T22:56:19.3982220Z    Compiling infer v0.19.0
+2025-11-02T22:56:20.0675869Z    Compiling walkdir v2.5.0
+2025-11-02T22:56:20.1649440Z    Compiling urlpattern v0.3.0
+2025-11-02T22:56:20.7363445Z    Compiling serde_with v3.15.1
+2025-11-02T22:56:20.8053913Z    Compiling libc v0.2.177
+2025-11-02T22:56:21.4176963Z    Compiling vswhom-sys v0.1.3
+2025-11-02T22:56:22.3892481Z    Compiling option-ext v0.2.0
+2025-11-02T22:56:22.4532133Z    Compiling windows-sys v0.59.0
+2025-11-02T22:56:23.4150924Z    Compiling tauri-utils v2.8.0
+2025-11-02T22:56:26.9777989Z    Compiling windows_x86_64_msvc v0.53.1
+2025-11-02T22:56:27.5529060Z    Compiling vswhom v0.1.0
+2025-11-02T22:56:27.9489912Z    Compiling winreg v0.55.0
+2025-11-02T22:56:28.3926422Z    Compiling rustc_version v0.4.1
+2025-11-02T22:56:28.7658158Z    Compiling embed-resource v3.0.6
+2025-11-02T22:56:29.1701071Z    Compiling dirs-sys v0.5.0
+2025-11-02T22:56:29.1806530Z    Compiling heck v0.5.0
+2025-11-02T22:56:29.3095346Z    Compiling version_check v0.9.5
+2025-11-02T22:56:29.6543565Z    Compiling dirs v6.0.0
+2025-11-02T22:56:29.6693860Z    Compiling windows-targets v0.53.5
+2025-11-02T22:56:29.7225760Z    Compiling tauri-winres v0.3.3
+2025-11-02T22:56:29.7477247Z    Compiling cargo_toml v0.22.3
+2025-11-02T22:56:29.7725421Z    Compiling windows-link v0.1.3
+2025-11-02T22:56:29.8284205Z    Compiling windows-sys v0.60.2
+2025-11-02T22:56:30.8070862Z    Compiling once_cell v1.21.3
+2025-11-02T22:56:31.0651071Z    Compiling value-bag v1.11.1
+2025-11-02T22:56:35.0948781Z    Compiling tauri-plugin v2.5.1
+2025-11-02T22:56:35.2001295Z    Compiling tauri-build v2.5.1
+2025-11-02T22:56:36.6939180Z    Compiling windows-strings v0.4.2
+2025-11-02T22:56:37.2306741Z    Compiling windows-result v0.3.4
+2025-11-02T22:56:37.2904306Z    Compiling windows-interface v0.59.3
+2025-11-02T22:56:37.7275226Z    Compiling windows-implement v0.60.2
+2025-11-02T22:56:38.4412221Z    Compiling pin-project-lite v0.2.16
+2025-11-02T22:56:38.7381546Z    Compiling windows-core v0.61.2
+2025-11-02T22:56:39.6805750Z    Compiling crossbeam-utils v0.8.21
+2025-11-02T22:56:39.7960743Z    Compiling typenum v1.19.0
+2025-11-02T22:56:40.3516163Z    Compiling windows-threading v0.1.0
+2025-11-02T22:56:40.4810766Z    Compiling generic-array v0.14.9
+2025-11-02T22:56:40.5095497Z    Compiling windows-future v0.2.1
+2025-11-02T22:56:42.8699003Z    Compiling windows-numerics v0.2.0
+2025-11-02T22:56:43.1021419Z    Compiling windows-collections v0.2.0
+2025-11-02T22:56:43.3735419Z    Compiling socket2 v0.6.1
+2025-11-02T22:56:43.4258481Z    Compiling mio v1.1.0
+2025-11-02T22:56:43.6448774Z    Compiling tokio-macros v2.6.0
+2025-11-02T22:56:44.6391012Z    Compiling raw-window-handle v0.6.2
+2025-11-02T22:56:44.9549951Z    Compiling simd-adler32 v0.3.7
+2025-11-02T22:56:44.9717797Z    Compiling crc32fast v1.5.0
+2025-11-02T22:56:45.2025662Z    Compiling tokio v1.48.0
+2025-11-02T22:56:45.3031999Z    Compiling windows v0.61.3
+2025-11-02T22:56:50.4898744Z    Compiling tauri v2.9.0
+2025-11-02T22:56:52.9337202Z    Compiling crossbeam-channel v0.5.15
+2025-11-02T22:56:54.0426684Z    Compiling dpi v0.1.2
+2025-11-02T22:56:54.4236500Z    Compiling bitflags v2.10.0
+2025-11-02T22:56:54.8080814Z    Compiling webview2-com-sys v0.38.0
+2025-11-02T22:56:54.9165932Z    Compiling unicode-segmentation v1.12.0
+2025-11-02T22:56:55.5425929Z    Compiling num-conv v0.1.0
+2025-11-02T22:56:55.7913320Z    Compiling adler2 v2.0.1
+2025-11-02T22:56:55.8545200Z    Compiling time-core v0.1.6
+2025-11-02T22:56:55.9866204Z    Compiling powerfmt v0.2.0
+2025-11-02T22:56:56.2171947Z    Compiling time-macros v0.2.24
+2025-11-02T22:56:56.3934758Z    Compiling deranged v0.5.5
+2025-11-02T22:56:59.0868734Z    Compiling miniz_oxide v0.8.9
+2025-11-02T22:56:59.6730640Z    Compiling cookie v0.18.1
+2025-11-02T22:57:00.3396553Z    Compiling flate2 v1.1.5
+2025-11-02T22:57:00.7443409Z    Compiling time v0.3.44
+2025-11-02T22:57:02.2173705Z    Compiling crypto-common v0.1.6
+2025-11-02T22:57:02.2379274Z    Compiling block-buffer v0.10.4
+2025-11-02T22:57:02.4447330Z    Compiling fdeflate v0.3.7
+2025-11-02T22:57:04.3696835Z    Compiling webview2-com-macros v0.8.0
+2025-11-02T22:57:05.1960075Z    Compiling windows-version v0.1.7
+2025-11-02T22:57:05.2929535Z    Compiling lazy_static v1.5.0
+2025-11-02T22:57:05.3606228Z    Compiling cfg_aliases v0.2.1
+2025-11-02T22:57:05.4804847Z    Compiling softbuffer v0.4.6
+2025-11-02T22:57:07.7272828Z    Compiling png v0.17.16
+2025-11-02T22:57:07.8290051Z    Compiling digest v0.10.7
+2025-11-02T22:57:09.5997348Z    Compiling keyboard-types v0.7.0
+2025-11-02T22:57:12.9716566Z    Compiling tauri-runtime v2.9.1
+2025-11-02T22:57:13.5101381Z    Compiling wry v0.53.5
+2025-11-02T22:57:13.5402615Z    Compiling cpufeatures v0.2.17
+2025-11-02T22:57:13.6076156Z    Compiling sha2 v0.10.9
+2025-11-02T22:57:14.3746298Z    Compiling ico v0.4.0
+2025-11-02T22:57:14.4826255Z    Compiling tauri-runtime-wry v2.9.0
+2025-11-02T22:57:14.9838868Z    Compiling base64 v0.22.1
+2025-11-02T22:57:15.5054220Z    Compiling tauri-codegen v2.5.0
+2025-11-02T22:57:17.5877571Z    Compiling muda v0.17.1
+2025-11-02T22:57:18.1284611Z    Compiling serialize-to-javascript-impl v0.1.2
+2025-11-02T22:57:19.0641495Z    Compiling mime v0.3.17
+2025-11-02T22:57:19.8861829Z    Compiling serialize-to-javascript v0.1.2
+2025-11-02T22:57:20.3315535Z    Compiling tray-icon v0.21.2
+2025-11-02T22:57:21.8493729Z    Compiling tauri-macros v2.5.0
+2025-11-02T22:57:21.9905806Z    Compiling window-vibrancy v0.6.0
+2025-11-02T22:57:22.4324804Z    Compiling serde_repr v0.1.20
+2025-11-02T22:57:23.5642818Z    Compiling ring v0.17.14
+2025-11-02T22:57:26.5088768Z    Compiling tracing-core v0.1.34
+2025-11-02T22:57:27.9521318Z    Compiling tracing-attributes v0.1.30
+2025-11-02T22:57:30.4581826Z    Compiling untrusted v0.9.0
+2025-11-02T22:57:30.7953984Z    Compiling windows_x86_64_msvc v0.48.5
+2025-11-02T22:57:30.8295421Z    Compiling futures-core v0.3.31
+2025-11-02T22:57:31.0917847Z    Compiling tracing v0.1.41
+2025-11-02T22:57:31.7145303Z    Compiling tauri-plugin-fs v2.4.4
+2025-11-02T22:57:34.9210423Z    Compiling num-traits v0.2.19
+2025-11-02T22:57:35.4593829Z    Compiling http v0.2.12
+2025-11-02T22:57:37.1362819Z    Compiling httparse v1.10.1
+2025-11-02T22:57:37.9686369Z    Compiling futures-task v0.3.31
+2025-11-02T22:57:38.0537415Z    Compiling futures-sink v0.3.31
+2025-11-02T22:57:38.2064252Z    Compiling winapi v0.3.9
+2025-11-02T22:57:38.2311397Z    Compiling pin-utils v0.1.0
+2025-11-02T22:57:38.4962606Z    Compiling rustls v0.21.12
+2025-11-02T22:57:38.9410766Z    Compiling futures-util v0.3.31
+2025-11-02T22:57:39.0447357Z    Compiling tokio-util v0.7.16
+2025-11-02T22:57:40.3300581Z    Compiling tao v0.34.5
+2025-11-02T22:57:41.5456911Z    Compiling sct v0.7.1
+2025-11-02T22:57:42.0440074Z    Compiling rustls-webpki v0.101.7
+2025-11-02T22:57:44.4647651Z    Compiling windows-targets v0.48.5
+2025-11-02T22:57:44.6998476Z    Compiling windows-sys v0.52.0
+2025-11-02T22:57:47.3455869Z    Compiling webview2-com v0.38.0
+2025-11-02T22:57:48.0513555Z    Compiling try-lock v0.2.5
+2025-11-02T22:57:48.3689455Z    Compiling slab v0.4.11
+2025-11-02T22:57:48.4351262Z    Compiling rust_decimal v1.39.0
+2025-11-02T22:57:48.6919223Z    Compiling winreg v0.10.1
+2025-11-02T22:57:49.1130229Z    Compiling h2 v0.3.27
+2025-11-02T22:57:49.1181517Z    Compiling want v0.3.1
+2025-11-02T22:57:49.5317399Z    Compiling socket2 v0.5.10
+2025-11-02T22:57:50.9058341Z    Compiling windows-sys v0.48.0
+2025-11-02T22:58:00.1262028Z    Compiling http-body v0.4.6
+2025-11-02T22:58:01.8883118Z    Compiling futures-channel v0.3.31
+2025-11-02T22:58:02.3711430Z    Compiling tauri-plugin-autostart v2.5.1
+2025-11-02T22:58:02.9069967Z    Compiling tauri-plugin-opener v2.5.2
+2025-11-02T22:58:04.7861431Z    Compiling tauri-plugin-global-shortcut v2.3.1
+2025-11-02T22:58:05.5452134Z    Compiling tauri-plugin-window-state v2.4.1
+2025-11-02T22:58:06.8749725Z    Compiling tauri-plugin-dialog v2.4.2
+2025-11-02T22:58:07.6172467Z    Compiling tauri-plugin-shell v2.3.3
+2025-11-02T22:58:09.0647707Z    Compiling tauri-plugin-store v2.4.1
+2025-11-02T22:58:09.0926271Z    Compiling tauri-plugin-log v2.7.1
+2025-11-02T22:58:10.4668025Z    Compiling arrayvec v0.7.6
+2025-11-02T22:58:10.9234936Z    Compiling tower-service v0.3.3
+2025-11-02T22:58:11.0749349Z    Compiling rfd v0.15.4
+2025-11-02T22:58:11.1852549Z    Compiling httpdate v1.0.3
+2025-11-02T22:58:11.6424472Z    Compiling hyper v0.14.32
+2025-11-02T22:58:13.2786592Z    Compiling tokio-rustls v0.24.1
+2025-11-02T22:58:13.2843695Z    Compiling colored v2.2.0
+2025-11-02T22:58:13.8000998Z    Compiling open v5.3.2
+2025-11-02T22:58:14.2284289Z    Compiling windows-implement v0.57.0
+2025-11-02T22:58:14.2796181Z    Compiling windows-interface v0.57.0
+2025-11-02T22:58:15.7395420Z    Compiling windows-result v0.1.2
+2025-11-02T22:58:15.8196025Z    Compiling encoding_rs v0.8.35
+2025-11-02T22:58:16.1826088Z    Compiling base64 v0.21.7
+2025-11-02T22:58:16.9793828Z    Compiling utf8-width v0.1.7
+2025-11-02T22:58:17.2941989Z    Compiling byte-unit v5.1.6
+2025-11-02T22:58:17.8910521Z    Compiling rustls-pemfile v1.0.4
+2025-11-02T22:58:18.3827737Z    Compiling windows-core v0.57.0
+2025-11-02T22:58:18.7122558Z    Compiling hyper-rustls v0.24.2
+2025-11-02T22:58:20.0395152Z    Compiling fern v0.7.1
+2025-11-02T22:58:21.2917470Z    Compiling auto-launch v0.5.0
+2025-11-02T22:58:21.8659362Z    Compiling winreg v0.50.0
+2025-11-02T22:58:22.2895543Z    Compiling global-hotkey v0.7.0
+2025-11-02T22:58:22.7926520Z    Compiling autohotpie-tauri v0.1.2 (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\src-tauri)
+2025-11-02T22:58:23.5601485Z    Compiling serde_urlencoded v0.7.1
+2025-11-02T22:58:23.5603057Z    Compiling filetime v0.2.26
+2025-11-02T22:58:23.7914952Z    Compiling shared_child v1.1.1
+2025-11-02T22:58:23.9222620Z    Compiling os_pipe v1.2.3
+2025-11-02T22:58:24.1009374Z    Compiling webpki-roots v0.25.4
+2025-11-02T22:58:24.1861181Z    Compiling sync_wrapper v0.1.2
+2025-11-02T22:58:24.2629771Z    Compiling ipnet v2.11.0
+2025-11-02T22:58:25.4149873Z    Compiling reqwest v0.11.27
+2025-11-02T22:58:25.4848020Z    Compiling notify v6.1.1
+2025-11-02T22:58:29.9297665Z    Compiling windows v0.57.0
+2025-11-02T22:58:32.9647174Z    Compiling tauri-plugin-single-instance v2.3.6
+2025-11-02T22:58:34.1846767Z    Compiling fastrand v2.3.0
+2025-11-02T22:58:34.5025761Z    Compiling pathdiff v0.2.3
+2025-11-02T22:58:34.5858368Z    Compiling tempfile v3.23.0
+2025-11-02T22:58:47.9472958Z warning: struct `MacroEngine` is never constructed
+2025-11-02T22:58:47.9474204Z  --> src\services\macro_engine.rs:9:12
+2025-11-02T22:58:47.9475281Z   |
+2025-11-02T22:58:47.9477240Z 9 | pub struct MacroEngine {
+2025-11-02T22:58:47.9477913Z   |            ^^^^^^^^^^^
+2025-11-02T22:58:47.9479026Z   |
+2025-11-02T22:58:47.9479684Z   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2025-11-02T22:58:47.9480308Z 
+2025-11-02T22:58:47.9480771Z warning: multiple associated items are never used
+2025-11-02T22:58:47.9482962Z    --> src\services\macro_engine.rs:14:12
+2025-11-02T22:58:47.9483577Z     |
+2025-11-02T22:58:47.9484079Z  13 | impl MacroEngine {
+2025-11-02T22:58:47.9484769Z     | ---------------- associated items in this implementation
+2025-11-02T22:58:47.9485447Z  14 |     pub fn new() -> Self {
+2025-11-02T22:58:47.9486232Z     |            ^^^
+2025-11-02T22:58:47.9487487Z ...
+2025-11-02T22:58:47.9489419Z  18 |     pub fn with_dry_run(dry_run: bool) -> Self {
+2025-11-02T22:58:47.9490072Z     |            ^^^^^^^^^^^^
+2025-11-02T22:58:47.9490633Z ...
+2025-11-02T22:58:47.9491427Z  22 |     pub async fn execute_command(&self, command: &CustomCommand) -> Result<ExecutionResult> {
+2025-11-02T22:58:47.9492169Z     |                  ^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9492513Z ...
+2025-11-02T22:58:47.9492942Z  72 |     async fn execute_step(&self, step: &CommandStep) -> Result<()> {
+2025-11-02T22:58:47.9493538Z     |              ^^^^^^^^^^^^
+2025-11-02T22:58:47.9493887Z ...
+2025-11-02T22:58:47.9494502Z 112 |     async fn execute_key_press(&self, key: &str, modifiers: &[String]) -> Result<()> {
+2025-11-02T22:58:47.9495436Z     |              ^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9495869Z ...
+2025-11-02T22:58:47.9496470Z 119 |     async fn execute_key_sequence(&self, keys: &[String]) -> Result<()> {
+2025-11-02T22:58:47.9497164Z     |              ^^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9497946Z ...
+2025-11-02T22:58:47.9498246Z 125 |     async fn execute_mouse_click(
+2025-11-02T22:58:47.9498667Z     |              ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9499035Z ...
+2025-11-02T22:58:47.9499572Z 136 |     async fn execute_mouse_move(&self, x: i32, y: i32, relative: bool) -> Result<()> {
+2025-11-02T22:58:47.9500184Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9500528Z ...
+2025-11-02T22:58:47.9501182Z 142 |     async fn execute_system_command(&self, command: &str, args: &[String]) -> Result<()> {
+2025-11-02T22:58:47.9501859Z     |              ^^^^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9502221Z ...
+2025-11-02T22:58:47.9502748Z 160 |     async fn execute_launch_app(&self, path: &str, args: &[String]) -> Result<()> {
+2025-11-02T22:58:47.9503252Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9503567Z ...
+2025-11-02T22:58:47.9503949Z 171 |     async fn execute_open_url(&self, url: &str) -> Result<()> {
+2025-11-02T22:58:47.9504384Z     |              ^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9504709Z ...
+2025-11-02T22:58:47.9505570Z 199 |     async fn execute_script(&self, _code: &str, _language: &crate::domain::custom_command::ScriptLanguage) -> Result<()> {
+2025-11-02T22:58:47.9506762Z     |              ^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9507094Z ...
+2025-11-02T22:58:47.9507670Z 205 |     async fn evaluate_condition(&self, condition: &Condition) -> Result<bool> {
+2025-11-02T22:58:47.9508260Z     |              ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9508580Z ...
+2025-11-02T22:58:47.9508980Z 228 |     fn match_string(&self, text: &str, pattern: &str, operator: &ConditionOperator) -> bool {
+2025-11-02T22:58:47.9509335Z     |        ^^^^^^^^^^^^
+2025-11-02T22:58:47.9509468Z 
+2025-11-02T22:58:47.9509633Z warning: struct `ExecutionResult` is never constructed
+2025-11-02T22:58:47.9509939Z    --> src\services\macro_engine.rs:249:12
+2025-11-02T22:58:47.9510162Z     |
+2025-11-02T22:58:47.9510372Z 249 | pub struct ExecutionResult {
+2025-11-02T22:58:47.9510609Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9510759Z 
+2025-11-02T22:58:47.9510914Z warning: struct `CommandLibrary` is never constructed
+2025-11-02T22:58:47.9511216Z  --> src\storage\command_repository.rs:9:12
+2025-11-02T22:58:47.9511447Z   |
+2025-11-02T22:58:47.9511641Z 9 | pub struct CommandLibrary {
+2025-11-02T22:58:47.9511855Z   |            ^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9511981Z 
+2025-11-02T22:58:47.9512124Z warning: multiple associated items are never used
+2025-11-02T22:58:47.9512429Z   --> src\storage\command_repository.rs:15:12
+2025-11-02T22:58:47.9512724Z    |
+2025-11-02T22:58:47.9512954Z 14 | impl CommandLibrary {
+2025-11-02T22:58:47.9513237Z    | ------------------- associated items in this implementation
+2025-11-02T22:58:47.9513577Z 15 |     pub fn new() -> Self {
+2025-11-02T22:58:47.9513868Z    |            ^^^
+2025-11-02T22:58:47.9514064Z ...
+2025-11-02T22:58:47.9514312Z 22 |     pub fn add_command(&mut self, command: CustomCommand) {
+2025-11-02T22:58:47.9514602Z    |            ^^^^^^^^^^^
+2025-11-02T22:58:47.9515067Z ...
+2025-11-02T22:58:47.9515725Z 26 |     pub fn remove_command(&mut self, id: &str) -> Option<CustomCommand> {
+2025-11-02T22:58:47.9516242Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9516553Z ...
+2025-11-02T22:58:47.9516982Z 30 |     pub fn get_command(&self, id: &str) -> Option<&CustomCommand> {
+2025-11-02T22:58:47.9517437Z    |            ^^^^^^^^^^^
+2025-11-02T22:58:47.9517716Z ...
+2025-11-02T22:58:47.9518234Z 34 |     pub fn get_command_mut(&mut self, id: &str) -> Option<&mut CustomCommand> {
+2025-11-02T22:58:47.9518591Z    |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9518765Z ...
+2025-11-02T22:58:47.9519017Z 38 |     pub fn list_commands(&self) -> Vec<&CustomCommand> {
+2025-11-02T22:58:47.9519288Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:58:47.9519472Z ...
+2025-11-02T22:58:47.9519746Z 42 |     pub fn search_by_tag(&self, tag: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:58:47.9520015Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:58:47.9520410Z ...
+2025-11-02T22:58:47.9520694Z 49 |     pub fn search_by_name(&self, query: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:58:47.9520988Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9521132Z 
+2025-11-02T22:58:47.9521305Z warning: struct `CommandRepository` is never constructed
+2025-11-02T22:58:47.9521632Z   --> src\storage\command_repository.rs:64:12
+2025-11-02T22:58:47.9521854Z    |
+2025-11-02T22:58:47.9522061Z 64 | pub struct CommandRepository {
+2025-11-02T22:58:47.9522287Z    |            ^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9522432Z 
+2025-11-02T22:58:47.9522580Z warning: multiple associated items are never used
+2025-11-02T22:58:47.9522887Z    --> src\storage\command_repository.rs:69:12
+2025-11-02T22:58:47.9523104Z     |
+2025-11-02T22:58:47.9523296Z  68 | impl CommandRepository {
+2025-11-02T22:58:47.9523583Z     | ---------------------- associated items in this implementation
+2025-11-02T22:58:47.9523887Z  69 |     pub fn new(data_dir: PathBuf) -> Self {
+2025-11-02T22:58:47.9524133Z     |            ^^^
+2025-11-02T22:58:47.9524288Z ...
+2025-11-02T22:58:47.9524493Z  73 |     fn commands_file_path(&self) -> PathBuf {
+2025-11-02T22:58:47.9524765Z     |        ^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9525063Z ...
+2025-11-02T22:58:47.9525288Z  77 |     fn backup_file_path(&self, index: usize) -> PathBuf {
+2025-11-02T22:58:47.9525555Z     |        ^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9525724Z ...
+2025-11-02T22:58:47.9525945Z  82 |     pub fn load(&self) -> Result<CommandLibrary> {
+2025-11-02T22:58:47.9526188Z     |            ^^^^
+2025-11-02T22:58:47.9526370Z ...
+2025-11-02T22:58:47.9526620Z  98 |     pub fn save(&self, library: &CommandLibrary) -> Result<()> {
+2025-11-02T22:58:47.9526893Z     |            ^^^^
+2025-11-02T22:58:47.9527069Z ...
+2025-11-02T22:58:47.9527292Z 119 |     fn rotate_backups(&self) -> Result<()> {
+2025-11-02T22:58:47.9527525Z     |        ^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9527703Z ...
+2025-11-02T22:58:47.9527946Z 148 |     pub fn list_backups(&self) -> Result<Vec<PathBuf>> {
+2025-11-02T22:58:47.9528212Z     |            ^^^^^^^^^^^^
+2025-11-02T22:58:47.9528401Z ...
+2025-11-02T22:58:47.9528736Z 159 |     pub fn restore_from_backup(&self, backup_index: usize) -> Result<CommandLibrary> {
+2025-11-02T22:58:47.9529105Z     |            ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9529295Z ...
+2025-11-02T22:58:47.9529663Z 175 |     pub fn export_commands(&self, export_path: &PathBuf, command_ids: &[String]) -> Result<()> {
+2025-11-02T22:58:47.9530051Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9530230Z ...
+2025-11-02T22:58:47.9530588Z 194 |     pub fn import_commands(&self, import_path: &PathBuf, merge: bool) -> Result<Vec<String>> {
+2025-11-02T22:58:47.9531008Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:47.9531135Z 
+2025-11-02T22:58:48.0611385Z warning: field `command_id` is never read
+2025-11-02T22:58:48.0612696Z    --> src\services\macro_engine.rs:250:9
+2025-11-02T22:58:48.0614966Z     |
+2025-11-02T22:58:48.0616201Z 249 | pub struct ExecutionResult {
+2025-11-02T22:58:48.0616859Z     |            --------------- field in this struct
+2025-11-02T22:58:48.0617465Z 250 |     pub command_id: String,
+2025-11-02T22:58:48.0617838Z     |         ^^^^^^^^^^
+2025-11-02T22:58:48.0618142Z     |
+2025-11-02T22:58:48.0619007Z     = note: `ExecutionResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+2025-11-02T22:58:48.0620003Z     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+2025-11-02T22:58:48.0620226Z 
+2025-11-02T22:58:48.0620539Z warning: methods `get_command_mut`, `list_commands`, `search_by_tag`, and `search_by_name` are never used
+2025-11-02T22:58:48.0620996Z   --> src\storage\command_repository.rs:34:12
+2025-11-02T22:58:48.0621243Z    |
+2025-11-02T22:58:48.0621417Z 14 | impl CommandLibrary {
+2025-11-02T22:58:48.0621697Z    | ------------------- methods in this implementation
+2025-11-02T22:58:48.0622184Z ...
+2025-11-02T22:58:48.0622499Z 34 |     pub fn get_command_mut(&mut self, id: &str) -> Option<&mut CustomCommand> {
+2025-11-02T22:58:48.0622841Z    |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:48.0623031Z ...
+2025-11-02T22:58:48.0623293Z 38 |     pub fn list_commands(&self) -> Vec<&CustomCommand> {
+2025-11-02T22:58:48.0623572Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:58:48.0623746Z ...
+2025-11-02T22:58:48.0624027Z 42 |     pub fn search_by_tag(&self, tag: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:58:48.0624302Z    |            ^^^^^^^^^^^^^
+2025-11-02T22:58:48.0624493Z ...
+2025-11-02T22:58:48.0624779Z 49 |     pub fn search_by_name(&self, query: &str) -> Vec<&CustomCommand> {
+2025-11-02T22:58:48.0625068Z    |            ^^^^^^^^^^^^^^
+2025-11-02T22:58:48.0625203Z 
+2025-11-02T22:58:48.0625489Z warning: methods `restore_from_backup`, `export_commands`, and `import_commands` are never used
+2025-11-02T22:58:48.0625925Z    --> src\storage\command_repository.rs:159:12
+2025-11-02T22:58:48.0626175Z     |
+2025-11-02T22:58:48.0626366Z  68 | impl CommandRepository {
+2025-11-02T22:58:48.0626636Z     | ---------------------- methods in this implementation
+2025-11-02T22:58:48.0626879Z ...
+2025-11-02T22:58:48.0627227Z 159 |     pub fn restore_from_backup(&self, backup_index: usize) -> Result<CommandLibrary> {
+2025-11-02T22:58:48.0628403Z     |            ^^^^^^^^^^^^^^^^^^^
+2025-11-02T22:58:48.0628605Z ...
+2025-11-02T22:58:48.0629038Z 175 |     pub fn export_commands(&self, export_path: &PathBuf, command_ids: &[String]) -> Result<()> {
+2025-11-02T22:58:48.0629614Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:48.0629820Z ...
+2025-11-02T22:58:48.0630176Z 194 |     pub fn import_commands(&self, import_path: &PathBuf, merge: bool) -> Result<Vec<String>> {
+2025-11-02T22:58:48.0630548Z     |            ^^^^^^^^^^^^^^^
+2025-11-02T22:58:48.0630687Z 
+2025-11-02T22:58:54.9892355Z warning: `autohotpie-tauri` (lib test) generated 3 warnings
+2025-11-02T22:59:13.0979712Z warning: `autohotpie-tauri` (lib) generated 7 warnings
+2025-11-02T22:59:14.2274380Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 59s
+2025-11-02T22:59:14.3626357Z      Running unittests src\lib.rs (target\debug\deps\autohotpie_tauri_lib-7749216efb569ed3.exe)
+2025-11-02T22:59:14.3808284Z 
+2025-11-02T22:59:14.3808807Z running 30 tests
+2025-11-02T22:59:14.3815527Z test domain::context_rules::tests::fails_when_value_missing ... ok
+2025-11-02T22:59:14.3816377Z test domain::context_rules::tests::matches_with_exact_case_insensitive ... ok
+2025-11-02T22:59:14.3819715Z test commands::profiles::tests::validate_record_succeeds_when_actions_present ... ok
+2025-11-02T22:59:14.3820928Z test commands::profiles::tests::validate_record_fails_without_actions ... ok
+2025-11-02T22:59:14.3821933Z test domain::custom_command::tests::test_add_step ... ok
+2025-11-02T22:59:14.3824774Z test domain::custom_command::tests::test_create_command ... ok
+2025-11-02T22:59:14.3826434Z test domain::custom_command::tests::test_validate_empty_name ... ok
+2025-11-02T22:59:14.3827385Z test domain::custom_command::tests::test_validate_no_steps ... ok
+2025-11-02T22:59:14.3831536Z test domain::validation::tests::validate_profile_enforces_max_depth ... ok
+2025-11-02T22:59:14.3833241Z test domain::validation::tests::validate_profile_enforces_slice_lower_bound ... ok
+2025-11-02T22:59:14.3834595Z test domain::validation::tests::validate_profile_enforces_slice_upper_bound ... ok
+2025-11-02T22:59:14.3837567Z test domain::validation::tests::validate_profile_missing_action ... ok
+2025-11-02T22:59:14.3838916Z test domain::validation::tests::validate_profile_ok ... ok
+2025-11-02T22:59:14.3843089Z test models::tests::default_settings_contains_one_profile ... ok
+2025-11-02T22:59:14.3844821Z test models::tests::set_app_version_returns_true_when_updated ... ok
+2025-11-02T22:59:14.3861573Z test services::macro_engine::tests::test_dry_run_execution ... ok
+2025-11-02T22:59:14.3883647Z test services::macro_engine::tests::test_validation_failure ... ok
+2025-11-02T22:59:14.3894666Z test services::profile_router::tests::select_profile_falls_back_to_first_enabled ... ok
+2025-11-02T22:59:14.3900706Z test services::profile_router::tests::select_profile_matches_process_exact ... ok
+2025-11-02T22:59:14.3901698Z test domain::context_rules::tests::matches_with_regex ... ok
+2025-11-02T22:59:14.3907566Z test services::profile_router::tests::select_profile_prefers_first_matching_profile_in_order ... ok
+2025-11-02T22:59:14.3910537Z test services::profile_router::tests::select_profile_uses_specific_match_before_fallback_profiles ... ok
+2025-11-02T22:59:14.3912007Z test services::profile_router::tests::select_profile_matches_window_regex ... ok
+2025-11-02T22:59:14.3916411Z test storage::command_repository::tests::test_command_library_operations ... ok
+2025-11-02T22:59:14.3946341Z test storage::command_repository::tests::test_save_and_load ... ok
+2025-11-02T22:59:14.3961031Z test services::action_runner::tests::emits_failure_payload_when_child_missing ... ok
+2025-11-02T22:59:14.3962578Z test services::action_runner::tests::emits_skipped_payload_for_composite_sequence ... ok
+2025-11-02T22:59:14.3983529Z test storage::profile_repository::tests::to_recovery_maps_payload ... ok
+2025-11-02T22:59:14.3987922Z test storage::profile_repository::tests::load_returns_recovery_info_on_corrupt_json ... ok
+2025-11-02T22:59:14.4077746Z test storage::command_repository::tests::test_backup_rotation ... ok
+2025-11-02T22:59:14.4078151Z 
+2025-11-02T22:59:14.4078820Z test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+2025-11-02T22:59:14.4079114Z 
+2025-11-02T22:59:14.4119582Z      Running unittests src\main.rs (target\debug\deps\autohotpie_tauri-74f44d2c29309fdd.exe)
+2025-11-02T22:59:14.4244070Z 
+2025-11-02T22:59:14.4244503Z running 0 tests
+2025-11-02T22:59:14.4244732Z 
+2025-11-02T22:59:14.4245908Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2025-11-02T22:59:14.4246445Z 
+2025-11-02T22:59:14.4260416Z    Doc-tests autohotpie_tauri_lib
+2025-11-02T22:59:16.1417652Z 
+2025-11-02T22:59:16.1418031Z running 0 tests
+2025-11-02T22:59:16.1420993Z 
+2025-11-02T22:59:16.1421797Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2025-11-02T22:59:16.1422194Z 

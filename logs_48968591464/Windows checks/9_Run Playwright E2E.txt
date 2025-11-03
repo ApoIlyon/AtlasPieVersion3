@@ -1,0 +1,1185 @@
+﻿2025-11-02T22:59:40.1834963Z ##[group]Run npm run test:e2e -- --retries=1
+2025-11-02T22:59:40.1835742Z [36;1mnpm run test:e2e -- --retries=1[0m
+2025-11-02T22:59:40.1903035Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2025-11-02T22:59:40.1903363Z env:
+2025-11-02T22:59:40.1903516Z   CI: true
+2025-11-02T22:59:40.1903723Z ##[endgroup]
+2025-11-02T22:59:40.8965078Z 
+2025-11-02T22:59:40.8965509Z > autohotpie-tauri@0.1.2 test:e2e
+2025-11-02T22:59:40.8966326Z > playwright test --config=tests/e2e/playwright.config.ts --retries=1
+2025-11-02T22:59:40.8966595Z 
+2025-11-02T22:59:43.8661149Z [2m[WebServer] [22m
+2025-11-02T22:59:43.8661918Z [2m[WebServer] [22m> autohotpie-tauri@0.1.2 dev
+2025-11-02T22:59:43.8662709Z [2m[WebServer] [22m> vite --host 127.0.0.1 --port 5173
+2025-11-02T22:59:43.8663277Z [2m[WebServer] [22m
+2025-11-02T22:59:45.1539796Z [2m[WebServer] [22m
+2025-11-02T22:59:45.1541589Z [2m[WebServer] [22m  [32m[1mVITE[22m v7.1.12[39m  [2mready in [0m[1m1221[22m[2m[0m ms[22m
+2025-11-02T22:59:45.1542864Z [2m[WebServer] [22m
+2025-11-02T22:59:45.1544176Z [2m[WebServer] [22m  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+2025-11-02T22:59:46.1747099Z 
+2025-11-02T22:59:46.1747797Z Running 78 tests using 2 workers
+2025-11-02T22:59:46.1748745Z 
+2025-11-02T22:59:53.2310629Z Focus traversal debug: {
+2025-11-02T22:59:53.2316528Z   plan: {
+2025-11-02T22:59:53.2331280Z     activeTag: [32m'BUTTON'[39m,
+2025-11-02T22:59:53.2360330Z     activeTestId: [32m'nav-settings'[39m,
+2025-11-02T22:59:53.2365867Z     stepsFromLanguageSelect: [33m11[39m,
+2025-11-02T22:59:53.2378634Z     snapshot: [
+2025-11-02T22:59:53.2392131Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:59:53.2398508Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:59:53.2414896Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:59:53.2442089Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:59:53.2465698Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T22:59:53.2509416Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m
+2025-11-02T22:59:53.2552840Z     ]
+2025-11-02T22:59:53.2577811Z   },
+2025-11-02T22:59:53.2581239Z   beforeFallbackActive: { activeTag: [32m'BUTTON'[39m, activeTestId: [90mundefined[39m }
+2025-11-02T22:59:53.2601249Z }
+2025-11-02T22:59:53.3774811Z   ok  2 [chromium] › tests\e2e\accessibility.spec.ts:4:3 › Accessibility smoke › keyboard navigation reaches autostart controls (5.6s)
+2025-11-02T22:59:54.3967553Z   ok  3 [chromium] › tests\e2e\accessibility.spec.ts:71:3 › Accessibility smoke › linux fallback status panel toggles via keyboard (1.0s)
+2025-11-02T22:59:57.6567989Z   ok  4 [chromium] › tests\e2e\app-smoke.spec.ts:4:3 › App shell smoke › loads dashboard shell with status widgets (3.2s)
+2025-11-02T22:59:58.9809827Z   ok  5 [chromium] › tests\e2e\autostart.spec.ts:77:3 › US3 - Autostart settings › renders status transitions and read-only guard in desktop mode (1.3s)
+2025-11-02T23:00:03.0564402Z   ok  6 [chromium] › tests\e2e\autostart.spec.ts:178:3 › US3 - Autostart settings › opens quickstart instructions in browser preview (4.1s)
+2025-11-02T23:00:11.0881703Z   ok  7 [chromium] › tests\e2e\fullscreen-safe-mode.spec.ts:26:3 › Edge case - Fullscreen safe-mode › blocks pie menu when fullscreen game detected and shows notification (8.0s)
+2025-11-02T23:00:11.9302403Z   ok  8 [chromium] › tests\e2e\hotkey-conflict.spec.ts:26:3 › US2 - Hotkey conflict gating › shows conflict dialog, suggests alternatives and logs audit entry (817ms)
+2025-11-02T23:00:12.6912622Z   ok  9 [chromium] › tests\e2e\import-export-negative.spec.ts:19:3 › US3 - Import/Export negative scenarios › shows disabled state when input is empty (739ms)
+2025-11-02T23:00:13.5905241Z   ok 10 [chromium] › tests\e2e\import-export-negative.spec.ts:27:3 › US3 - Import/Export negative scenarios › renders error banner on backend import failure (884ms)
+2025-11-02T23:00:15.0419471Z   ok 11 [chromium] › tests\e2e\linux-fallback.spec.ts:67:3 › NFR-006 - Linux fallback panel › shows fallback controls and provider hints (1.4s)
+2025-11-02T23:00:16.3606745Z   ok 12 [chromium] › tests\e2e\linux-fallback.spec.ts:101:3 › NFR-006 - Linux fallback panel › handles enable/disable actions and surfaces errors (1.3s)
+2025-11-02T23:00:16.9439270Z   ok 13 [chromium] › tests\e2e\localization-negative.spec.ts:34:3 › Localization negative cases › bad pack surfaces missing/runtime badges (564ms)
+2025-11-02T23:00:17.5197986Z   ok 14 [chromium] › tests\e2e\localization-negative.spec.ts:52:3 › Localization negative cases › schema mismatch triggers error affordance (564ms)
+2025-11-02T23:00:18.2236053Z   ok 15 [chromium] › tests\e2e\localization-negative.spec.ts:63:3 › Localization negative cases › error affordance clears store error (687ms)
+2025-11-02T23:00:18.9782711Z   ok 16 [chromium] › tests\e2e\localization.spec.ts:23:3 › Localization switching › renders translated strings for EN and RU packs (725ms)
+2025-11-02T23:00:19.8042532Z   ok 17 [chromium] › tests\e2e\log-panel.spec.ts:127:3 › Log panel (web build) › shows desktop guard when Tauri environment is unavailable (802ms)
+2025-11-02T23:00:21.2151004Z   x   1 [chromium] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (33.2s)
+2025-11-02T23:00:21.2404619Z   ok 18 [chromium] › tests\e2e\log-panel.spec.ts:136:3 › Log panel (mocked Tauri) › filters entries by level and search term (1.4s)
+2025-11-02T23:00:22.0122927Z   ok 19 [chromium] › tests\e2e\log-panel.spec.ts:191:3 › Log panel (mocked Tauri) › shows error banner when backend invoke fails (756ms)
+2025-11-02T23:00:22.8785991Z   ok 20 [chromium] › tests\e2e\offline.spec.ts:4:3 › Offline mode resilience (NFR-005) › autostart and logs remain accessible when offline (840ms)
+2025-11-02T23:00:29.1352170Z   x  21 [chromium] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (6.1s)
+2025-11-02T23:00:36.5271572Z   x  23 [chromium] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (retry #1) (6.2s)
+2025-11-02T23:00:43.6838384Z   x  24 [chromium] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (6.1s)
+2025-11-02T23:00:50.9166604Z   x  25 [chromium] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (retry #1) (6.1s)
+2025-11-02T23:00:55.1017384Z   x  22 [chromium] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (retry #1) (31.6s)
+2025-11-02T23:00:58.0542801Z   x  26 [chromium] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (6.1s)
+2025-11-02T23:01:00.5663602Z   ok 27 [chromium] › tests\perf\fps.spec.ts:174:3 › Perf - FPS stability › frame time stays within NFR threshold (4.5s)
+2025-11-02T23:01:05.4927741Z   x  28 [chromium] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (retry #1) (6.4s)
+2025-11-02T23:01:08.4348025Z   ok 30 [chromium] › tests\perf\menu-latency.spec.ts:27:3 › Perf - Hotkey to menu latency › pie menu appears under SLA after triggering hotkey (2.0s)
+2025-11-02T23:01:12.7230931Z Focus traversal debug: {
+2025-11-02T23:01:12.7231847Z   plan: {
+2025-11-02T23:01:12.7232786Z     activeTag: [32m'BUTTON'[39m,
+2025-11-02T23:01:12.7233539Z     activeTestId: [32m'nav-settings'[39m,
+2025-11-02T23:01:12.7234538Z     stepsFromLanguageSelect: [33m11[39m,
+2025-11-02T23:01:12.7235110Z     snapshot: [
+2025-11-02T23:01:12.7235835Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:01:12.7236744Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:01:12.7237597Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:01:12.7239961Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:01:12.7240868Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:01:12.7241662Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m
+2025-11-02T23:01:12.7242279Z     ]
+2025-11-02T23:01:12.7242679Z   },
+2025-11-02T23:01:12.7243495Z   beforeFallbackActive: { activeTag: [32m'BUTTON'[39m, activeTestId: [90mundefined[39m }
+2025-11-02T23:01:12.7244682Z }
+2025-11-02T23:01:12.8518711Z   ok 31 [firefox] › tests\e2e\accessibility.spec.ts:4:3 › Accessibility smoke › keyboard navigation reaches autostart controls (2.7s)
+2025-11-02T23:01:14.2001448Z   ok 32 [firefox] › tests\e2e\accessibility.spec.ts:71:3 › Accessibility smoke › linux fallback status panel toggles via keyboard (1.3s)
+2025-11-02T23:01:32.3988561Z   x  29 [chromium] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured (31.7s)
+2025-11-02T23:01:45.7177323Z   x  33 [firefox] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (30.4s)
+2025-11-02T23:02:05.2054905Z   x  34 [chromium] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured (retry #1) (31.7s)
+2025-11-02T23:02:08.8485074Z   ok 36 [firefox] › tests\e2e\app-smoke.spec.ts:4:3 › App shell smoke › loads dashboard shell with status widgets (2.2s)
+2025-11-02T23:02:10.7618782Z   ok 37 [firefox] › tests\e2e\autostart.spec.ts:77:3 › US3 - Autostart settings › renders status transitions and read-only guard in desktop mode (1.9s)
+2025-11-02T23:02:13.5744019Z   ok 38 [firefox] › tests\e2e\autostart.spec.ts:178:3 › US3 - Autostart settings › opens quickstart instructions in browser preview (2.8s)
+2025-11-02T23:02:18.5348391Z   x  35 [firefox] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (retry #1) (30.4s)
+2025-11-02T23:02:22.1691820Z   ok 39 [firefox] › tests\e2e\fullscreen-safe-mode.spec.ts:26:3 › Edge case - Fullscreen safe-mode › blocks pie menu when fullscreen game detected and shows notification (8.6s)
+2025-11-02T23:02:23.3023504Z   ok 40 [firefox] › tests\e2e\hotkey-conflict.spec.ts:26:3 › US2 - Hotkey conflict gating › shows conflict dialog, suggests alternatives and logs audit entry (3.4s)
+2025-11-02T23:02:24.2224112Z   ok 41 [firefox] › tests\e2e\import-export-negative.spec.ts:19:3 › US3 - Import/Export negative scenarios › shows disabled state when input is empty (2.0s)
+2025-11-02T23:02:26.6701628Z   ok 43 [firefox] › tests\e2e\import-export-negative.spec.ts:27:3 › US3 - Import/Export negative scenarios › renders error banner on backend import failure (2.4s)
+2025-11-02T23:02:28.6388471Z   ok 44 [firefox] › tests\e2e\localization-negative.spec.ts:34:3 › Localization negative cases › bad pack surfaces missing/runtime badges (1.9s)
+2025-11-02T23:02:28.7242690Z   ok 42 [firefox] › tests\e2e\linux-fallback.spec.ts:67:3 › NFR-006 - Linux fallback panel › shows fallback controls and provider hints (5.4s)
+2025-11-02T23:02:30.4460510Z   ok 45 [firefox] › tests\e2e\localization-negative.spec.ts:52:3 › Localization negative cases › schema mismatch triggers error affordance (1.8s)
+2025-11-02T23:02:32.0819646Z   ok 46 [firefox] › tests\e2e\linux-fallback.spec.ts:101:3 › NFR-006 - Linux fallback panel › handles enable/disable actions and surfaces errors (3.3s)
+2025-11-02T23:02:32.1390412Z   ok 47 [firefox] › tests\e2e\localization-negative.spec.ts:63:3 › Localization negative cases › error affordance clears store error (1.7s)
+2025-11-02T23:02:33.5878612Z   ok 48 [firefox] › tests\e2e\localization.spec.ts:23:3 › Localization switching › renders translated strings for EN and RU packs (1.5s)
+2025-11-02T23:02:34.9432735Z   ok 49 [firefox] › tests\e2e\log-panel.spec.ts:127:3 › Log panel (web build) › shows desktop guard when Tauri environment is unavailable (2.8s)
+2025-11-02T23:02:35.2429069Z   ok 50 [firefox] › tests\e2e\offline.spec.ts:4:3 › Offline mode resilience (NFR-005) › autostart and logs remain accessible when offline (1.6s)
+2025-11-02T23:02:38.8270776Z   ok 51 [firefox] › tests\e2e\log-panel.spec.ts:136:3 › Log panel (mocked Tauri) › filters entries by level and search term (3.9s)
+2025-11-02T23:02:39.9529538Z   ok 53 [firefox] › tests\e2e\log-panel.spec.ts:191:3 › Log panel (mocked Tauri) › shows error banner when backend invoke fails (1.1s)
+2025-11-02T23:02:42.8243978Z   x  52 [firefox] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (6.7s)
+2025-11-02T23:02:44.1697330Z   ok 54 [firefox] › tests\perf\fps.spec.ts:174:3 › Perf - FPS stability › frame time stays within NFR threshold (4.2s)
+2025-11-02T23:02:53.8722953Z   x  55 [firefox] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (retry #1) (8.4s)
+2025-11-02T23:03:03.7587033Z   x  57 [firefox] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (7.6s)
+2025-11-02T23:03:14.0386000Z   x  58 [firefox] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (retry #1) (7.8s)
+2025-11-02T23:03:16.0836797Z   x  56 [firefox] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured (30.5s)
+2025-11-02T23:03:24.5015200Z   x  59 [firefox] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (7.7s)
+2025-11-02T23:03:34.3906980Z   x  61 [firefox] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (retry #1) (7.6s)
+2025-11-02T23:03:39.7307098Z   ok 62 [firefox] › tests\perf\menu-latency.spec.ts:27:3 › Perf - Hotkey to menu latency › pie menu appears under SLA after triggering hotkey (4.0s)
+2025-11-02T23:03:44.2805701Z Focus traversal debug: {
+2025-11-02T23:03:44.2806242Z   plan: {
+2025-11-02T23:03:44.2807178Z     activeTag: [32m'BODY'[39m,
+2025-11-02T23:03:44.2807790Z     activeTestId: [90mundefined[39m,
+2025-11-02T23:03:44.2808415Z     stepsFromLanguageSelect: [33m11[39m,
+2025-11-02T23:03:44.2808944Z     snapshot: [
+2025-11-02T23:03:44.2809599Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:03:44.2810421Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:03:44.2811250Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:03:44.2812033Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:03:44.2812855Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m,
+2025-11-02T23:03:44.2813659Z       [36m[Object][39m, [36m[Object][39m, [36m[Object][39m
+2025-11-02T23:03:44.2814182Z     ]
+2025-11-02T23:03:44.2814555Z   },
+2025-11-02T23:03:44.2815403Z   beforeFallbackActive: { activeTag: [32m'BUTTON'[39m, activeTestId: [90mundefined[39m }
+2025-11-02T23:03:44.2816182Z }
+2025-11-02T23:03:44.4001972Z   ok 63 [webkit] › tests\e2e\accessibility.spec.ts:4:3 › Accessibility smoke › keyboard navigation reaches autostart controls (2.8s)
+2025-11-02T23:03:46.2264307Z   ok 64 [webkit] › tests\e2e\accessibility.spec.ts:71:3 › Accessibility smoke › linux fallback status panel toggles via keyboard (1.8s)
+2025-11-02T23:03:50.6475102Z   x  60 [firefox] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured (retry #1) (30.5s)
+2025-11-02T23:03:52.7086131Z   ok 66 [webkit] › tests\e2e\app-smoke.spec.ts:4:3 › App shell smoke › loads dashboard shell with status widgets (1.1s)
+2025-11-02T23:03:56.7566931Z   ok 67 [webkit] › tests\e2e\autostart.spec.ts:77:3 › US3 - Autostart settings › renders status transitions and read-only guard in desktop mode (4.0s)
+2025-11-02T23:04:00.6827900Z   ok 68 [webkit] › tests\e2e\autostart.spec.ts:178:3 › US3 - Autostart settings › opens quickstart instructions in browser preview (3.9s)
+2025-11-02T23:04:09.9463570Z   ok 69 [webkit] › tests\e2e\fullscreen-safe-mode.spec.ts:26:3 › Edge case - Fullscreen safe-mode › blocks pie menu when fullscreen game detected and shows notification (9.2s)
+2025-11-02T23:04:11.2458566Z   ok 70 [webkit] › tests\e2e\hotkey-conflict.spec.ts:26:3 › US2 - Hotkey conflict gating › shows conflict dialog, suggests alternatives and logs audit entry (1.3s)
+2025-11-02T23:04:13.5780171Z   ok 71 [webkit] › tests\e2e\import-export-negative.spec.ts:19:3 › US3 - Import/Export negative scenarios › shows disabled state when input is empty (2.3s)
+2025-11-02T23:04:16.4566756Z   ok 72 [webkit] › tests\e2e\import-export-negative.spec.ts:27:3 › US3 - Import/Export negative scenarios › renders error banner on backend import failure (2.9s)
+2025-11-02T23:04:16.5321981Z   x  65 [webkit] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (30.1s)
+2025-11-02T23:04:22.9458817Z   ok 73 [webkit] › tests\e2e\linux-fallback.spec.ts:67:3 › NFR-006 - Linux fallback panel › shows fallback controls and provider hints (6.4s)
+2025-11-02T23:04:27.9757071Z   ok 75 [webkit] › tests\e2e\linux-fallback.spec.ts:101:3 › NFR-006 - Linux fallback panel › handles enable/disable actions and surfaces errors (5.0s)
+2025-11-02T23:04:29.2732339Z   ok 76 [webkit] › tests\e2e\localization-negative.spec.ts:34:3 › Localization negative cases › bad pack surfaces missing/runtime badges (1.3s)
+2025-11-02T23:04:30.3385691Z   ok 77 [webkit] › tests\e2e\localization-negative.spec.ts:52:3 › Localization negative cases › schema mismatch triggers error affordance (1.0s)
+2025-11-02T23:04:32.3153615Z   ok 78 [webkit] › tests\e2e\localization-negative.spec.ts:63:3 › Localization negative cases › error affordance clears store error (2.0s)
+2025-11-02T23:04:33.5309691Z   ok 79 [webkit] › tests\e2e\localization.spec.ts:23:3 › Localization switching › renders translated strings for EN and RU packs (1.2s)
+2025-11-02T23:04:35.5199220Z   ok 80 [webkit] › tests\e2e\log-panel.spec.ts:127:3 › Log panel (web build) › shows desktop guard when Tauri environment is unavailable (1.9s)
+2025-11-02T23:04:39.3993566Z   ok 81 [webkit] › tests\e2e\log-panel.spec.ts:136:3 › Log panel (mocked Tauri) › filters entries by level and search term (3.9s)
+2025-11-02T23:04:41.6227346Z   ok 82 [webkit] › tests\e2e\log-panel.spec.ts:191:3 › Log panel (mocked Tauri) › shows error banner when backend invoke fails (2.2s)
+2025-11-02T23:04:43.9878013Z   ok 83 [webkit] › tests\e2e\offline.spec.ts:4:3 › Offline mode resilience (NFR-005) › autostart and logs remain accessible when offline (2.3s)
+2025-11-02T23:04:48.2246185Z   x  74 [webkit] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs (retry #1) (30.1s)
+2025-11-02T23:04:50.2547029Z   x  84 [webkit] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (6.2s)
+2025-11-02T23:04:56.1480633Z   ok 85 [webkit] › tests\perf\fps.spec.ts:174:3 › Perf - FPS stability › frame time stays within NFR threshold (6.9s)
+2025-11-02T23:04:56.4056633Z   -  87 [webkit] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured
+2025-11-02T23:04:57.7304899Z   x  86 [webkit] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches (retry #1) (6.3s)
+2025-11-02T23:05:00.2391158Z   ok 88 [webkit] › tests\perf\menu-latency.spec.ts:27:3 › Perf - Hotkey to menu latency › pie menu appears under SLA after triggering hotkey (3.8s)
+2025-11-02T23:05:05.5608607Z   x  89 [webkit] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (6.5s)
+2025-11-02T23:05:12.5885159Z   x  90 [webkit] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches (retry #1) (6.0s)
+2025-11-02T23:05:19.7174955Z   x  91 [webkit] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (6.1s)
+2025-11-02T23:05:26.8378701Z   x  92 [webkit] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches (retry #1) (6.1s)
+2025-11-02T23:05:26.9830875Z 
+2025-11-02T23:05:26.9844468Z 
+2025-11-02T23:05:26.9862623Z   1) [chromium] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:26.9863493Z 
+2025-11-02T23:05:26.9863870Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:26.9864199Z 
+2025-11-02T23:05:26.9864509Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:26.9865007Z     Call log:
+2025-11-02T23:05:26.9865822Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:26.9866302Z 
+2025-11-02T23:05:26.9866316Z 
+2025-11-02T23:05:26.9866484Z       34 |
+2025-11-02T23:05:26.9866932Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:26.9867508Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:26.9867899Z          |                       ^
+2025-11-02T23:05:26.9868357Z       37 |     await targetSlice.click();
+2025-11-02T23:05:26.9868863Z       38 |
+2025-11-02T23:05:26.9869850Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:26.9870998Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:26.9871561Z 
+2025-11-02T23:05:26.9872219Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9873173Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium\video.webm
+2025-11-02T23:05:26.9874462Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9874871Z 
+2025-11-02T23:05:26.9875313Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium\error-context.md
+2025-11-02T23:05:26.9875761Z 
+2025-11-02T23:05:26.9876133Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9876762Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium\trace.zip
+2025-11-02T23:05:26.9877220Z     Usage:
+2025-11-02T23:05:26.9877330Z 
+2025-11-02T23:05:26.9877739Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium\trace.zip
+2025-11-02T23:05:26.9878200Z 
+2025-11-02T23:05:26.9878461Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9878965Z 
+2025-11-02T23:05:26.9879466Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9879845Z 
+2025-11-02T23:05:26.9880045Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:26.9880258Z 
+2025-11-02T23:05:26.9880419Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:26.9880906Z     Call log:
+2025-11-02T23:05:26.9881302Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:26.9881585Z 
+2025-11-02T23:05:26.9881592Z 
+2025-11-02T23:05:26.9881674Z       34 |
+2025-11-02T23:05:26.9881981Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:26.9882311Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:26.9882652Z          |                       ^
+2025-11-02T23:05:26.9883095Z       37 |     await targetSlice.click();
+2025-11-02T23:05:26.9883350Z       38 |
+2025-11-02T23:05:26.9883726Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:26.9884362Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:26.9884706Z 
+2025-11-02T23:05:26.9885119Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9885926Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium-retry1\video.webm
+2025-11-02T23:05:26.9886622Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9886835Z 
+2025-11-02T23:05:26.9887292Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium-retry1\error-context.md
+2025-11-02T23:05:26.9887984Z 
+2025-11-02T23:05:26.9888321Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9889003Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9889496Z     Usage:
+2025-11-02T23:05:26.9889596Z 
+2025-11-02T23:05:26.9890461Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9891100Z 
+2025-11-02T23:05:26.9891397Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9891646Z 
+2025-11-02T23:05:26.9892232Z   2) [chromium] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:26.9892931Z 
+2025-11-02T23:05:26.9893623Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9894264Z 
+2025-11-02T23:05:26.9894650Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:26.9895388Z     Expected: visible
+2025-11-02T23:05:26.9895644Z     Timeout: 5000ms
+2025-11-02T23:05:26.9895868Z     Error: element(s) not found
+2025-11-02T23:05:26.9896050Z 
+2025-11-02T23:05:26.9896132Z     Call log:
+2025-11-02T23:05:26.9896494Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9897118Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:26.9897777Z 
+2025-11-02T23:05:26.9897785Z 
+2025-11-02T23:05:26.9897901Z       61 |     });
+2025-11-02T23:05:26.9898161Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9898454Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9898763Z          |                           ^
+2025-11-02T23:05:26.9899024Z       64 |     } else {
+2025-11-02T23:05:26.9899303Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9899763Z       66 |     }
+2025-11-02T23:05:26.9900504Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9901225Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:26.9901600Z 
+2025-11-02T23:05:26.9902164Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9902800Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium\video.webm
+2025-11-02T23:05:26.9903415Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9903714Z 
+2025-11-02T23:05:26.9904297Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium\error-context.md
+2025-11-02T23:05:26.9904712Z 
+2025-11-02T23:05:26.9905072Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9905702Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium\trace.zip
+2025-11-02T23:05:26.9906137Z     Usage:
+2025-11-02T23:05:26.9906274Z 
+2025-11-02T23:05:26.9906679Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium\trace.zip
+2025-11-02T23:05:26.9907112Z 
+2025-11-02T23:05:26.9907418Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9907629Z 
+2025-11-02T23:05:26.9907900Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9908144Z 
+2025-11-02T23:05:26.9908450Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9908762Z 
+2025-11-02T23:05:26.9909061Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:26.9909596Z     Expected: visible
+2025-11-02T23:05:26.9909808Z     Timeout: 5000ms
+2025-11-02T23:05:26.9910167Z     Error: element(s) not found
+2025-11-02T23:05:26.9910354Z 
+2025-11-02T23:05:26.9910441Z     Call log:
+2025-11-02T23:05:26.9911060Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9911883Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:26.9912397Z 
+2025-11-02T23:05:26.9912405Z 
+2025-11-02T23:05:26.9912488Z       61 |     });
+2025-11-02T23:05:26.9912775Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9913111Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9913391Z          |                           ^
+2025-11-02T23:05:26.9913662Z       64 |     } else {
+2025-11-02T23:05:26.9913940Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9914238Z       66 |     }
+2025-11-02T23:05:26.9914759Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9916048Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:26.9916534Z 
+2025-11-02T23:05:26.9916911Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9917815Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium-retry1\video.webm
+2025-11-02T23:05:26.9918792Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9919108Z 
+2025-11-02T23:05:26.9919749Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium-retry1\error-context.md
+2025-11-02T23:05:26.9920485Z 
+2025-11-02T23:05:26.9920848Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9921891Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9922555Z     Usage:
+2025-11-02T23:05:26.9922721Z 
+2025-11-02T23:05:26.9923377Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9924134Z 
+2025-11-02T23:05:26.9924601Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9924996Z 
+2025-11-02T23:05:26.9925777Z   3) [chromium] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:26.9926390Z 
+2025-11-02T23:05:26.9926914Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9927341Z 
+2025-11-02T23:05:26.9927762Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:26.9928773Z     Expected: visible
+2025-11-02T23:05:26.9929008Z     Timeout: 5000ms
+2025-11-02T23:05:26.9929232Z     Error: element(s) not found
+2025-11-02T23:05:26.9929419Z 
+2025-11-02T23:05:26.9929504Z     Call log:
+2025-11-02T23:05:26.9929854Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9930434Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:26.9930967Z 
+2025-11-02T23:05:26.9930974Z 
+2025-11-02T23:05:26.9931053Z       61 |     });
+2025-11-02T23:05:26.9931301Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9931589Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9931889Z          |                           ^
+2025-11-02T23:05:26.9932122Z       64 |     } else {
+2025-11-02T23:05:26.9932400Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9932678Z       66 |     }
+2025-11-02T23:05:26.9933145Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9934602Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:26.9934918Z 
+2025-11-02T23:05:26.9935286Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9935873Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium\video.webm
+2025-11-02T23:05:26.9936523Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9936762Z 
+2025-11-02T23:05:26.9937150Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium\error-context.md
+2025-11-02T23:05:26.9937561Z 
+2025-11-02T23:05:26.9937911Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9938516Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium\trace.zip
+2025-11-02T23:05:26.9938969Z     Usage:
+2025-11-02T23:05:26.9939073Z 
+2025-11-02T23:05:26.9939507Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium\trace.zip
+2025-11-02T23:05:26.9939934Z 
+2025-11-02T23:05:26.9940202Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9940463Z 
+2025-11-02T23:05:26.9940734Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9940983Z 
+2025-11-02T23:05:26.9941286Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9941560Z 
+2025-11-02T23:05:26.9941837Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:26.9942298Z     Expected: visible
+2025-11-02T23:05:26.9942533Z     Timeout: 5000ms
+2025-11-02T23:05:26.9942778Z     Error: element(s) not found
+2025-11-02T23:05:26.9942930Z 
+2025-11-02T23:05:26.9943042Z     Call log:
+2025-11-02T23:05:26.9943339Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9943914Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:26.9944343Z 
+2025-11-02T23:05:26.9944349Z 
+2025-11-02T23:05:26.9944459Z       61 |     });
+2025-11-02T23:05:26.9944682Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9945006Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9945323Z          |                           ^
+2025-11-02T23:05:26.9945557Z       64 |     } else {
+2025-11-02T23:05:26.9945834Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9946115Z       66 |     }
+2025-11-02T23:05:26.9946581Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9947357Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:26.9947689Z 
+2025-11-02T23:05:26.9948218Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9949023Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium-retry1\video.webm
+2025-11-02T23:05:26.9949713Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9949927Z 
+2025-11-02T23:05:26.9950367Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium-retry1\error-context.md
+2025-11-02T23:05:26.9950807Z 
+2025-11-02T23:05:26.9951159Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9951781Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9952287Z     Usage:
+2025-11-02T23:05:26.9952394Z 
+2025-11-02T23:05:26.9952860Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9953327Z 
+2025-11-02T23:05:26.9953593Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9953842Z 
+2025-11-02T23:05:26.9954300Z   4) [chromium] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:26.9954726Z 
+2025-11-02T23:05:26.9955024Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9955297Z 
+2025-11-02T23:05:26.9955582Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:26.9955955Z     Expected: visible
+2025-11-02T23:05:26.9956199Z     Timeout: 5000ms
+2025-11-02T23:05:26.9956417Z     Error: element(s) not found
+2025-11-02T23:05:26.9956584Z 
+2025-11-02T23:05:26.9956657Z     Call log:
+2025-11-02T23:05:26.9956976Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9957511Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:26.9957854Z 
+2025-11-02T23:05:26.9957860Z 
+2025-11-02T23:05:26.9957934Z       61 |     });
+2025-11-02T23:05:26.9958173Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9958456Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9958760Z          |                           ^
+2025-11-02T23:05:26.9959017Z       64 |     } else {
+2025-11-02T23:05:26.9959265Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9959553Z       66 |     }
+2025-11-02T23:05:26.9960044Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9960705Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:26.9961048Z 
+2025-11-02T23:05:26.9961366Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9961973Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium\video.webm
+2025-11-02T23:05:26.9963346Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9963592Z 
+2025-11-02T23:05:26.9963979Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium\error-context.md
+2025-11-02T23:05:26.9964415Z 
+2025-11-02T23:05:26.9964735Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9965344Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium\trace.zip
+2025-11-02T23:05:26.9965872Z     Usage:
+2025-11-02T23:05:26.9966007Z 
+2025-11-02T23:05:26.9966402Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium\trace.zip
+2025-11-02T23:05:26.9966822Z 
+2025-11-02T23:05:26.9967121Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9967341Z 
+2025-11-02T23:05:26.9967610Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9967856Z 
+2025-11-02T23:05:26.9968258Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:26.9968810Z 
+2025-11-02T23:05:26.9969071Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:26.9969477Z     Expected: visible
+2025-11-02T23:05:26.9969686Z     Timeout: 5000ms
+2025-11-02T23:05:26.9969959Z     Error: element(s) not found
+2025-11-02T23:05:26.9970123Z 
+2025-11-02T23:05:26.9970236Z     Call log:
+2025-11-02T23:05:26.9970550Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:26.9971126Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:26.9971445Z 
+2025-11-02T23:05:26.9971451Z 
+2025-11-02T23:05:26.9971563Z       61 |     });
+2025-11-02T23:05:26.9971785Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:26.9972095Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:26.9972368Z          |                           ^
+2025-11-02T23:05:26.9972630Z       64 |     } else {
+2025-11-02T23:05:26.9972905Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:26.9973157Z       66 |     }
+2025-11-02T23:05:26.9973654Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:26.9974345Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:26.9974660Z 
+2025-11-02T23:05:26.9974973Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9975609Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium-retry1\video.webm
+2025-11-02T23:05:26.9976396Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9976603Z 
+2025-11-02T23:05:26.9977045Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium-retry1\error-context.md
+2025-11-02T23:05:26.9977484Z 
+2025-11-02T23:05:26.9977812Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9978465Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9979046Z     Usage:
+2025-11-02T23:05:26.9979150Z 
+2025-11-02T23:05:26.9979578Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-chromium-retry1\trace.zip
+2025-11-02T23:05:26.9980066Z 
+2025-11-02T23:05:26.9980325Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9980582Z 
+2025-11-02T23:05:26.9981032Z   5) [chromium] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured 
+2025-11-02T23:05:26.9981415Z 
+2025-11-02T23:05:26.9981629Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:26.9981815Z 
+2025-11-02T23:05:26.9981983Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:26.9982298Z     Call log:
+2025-11-02T23:05:26.9982755Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:26.9983026Z 
+2025-11-02T23:05:26.9983032Z 
+2025-11-02T23:05:26.9983193Z        98 |       // Wait for animation to settle before interacting
+2025-11-02T23:05:26.9983564Z        99 |       await page.waitForTimeout(200);
+2025-11-02T23:05:26.9983907Z     > 100 |       await slice.hover({ force: true });
+2025-11-02T23:05:26.9984190Z           |                   ^
+2025-11-02T23:05:26.9984442Z       101 |
+2025-11-02T23:05:26.9984679Z       102 |       const start = Date.now();
+2025-11-02T23:05:26.9984977Z       103 |       await slice.click({ force: true });
+2025-11-02T23:05:26.9985458Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\perf\latency.spec.ts:100:19
+2025-11-02T23:05:26.9985781Z 
+2025-11-02T23:05:26.9986128Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9986736Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium\video.webm
+2025-11-02T23:05:26.9987385Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9987598Z 
+2025-11-02T23:05:26.9988020Z     Error Context: test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium\error-context.md
+2025-11-02T23:05:26.9988568Z 
+2025-11-02T23:05:26.9989108Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9989877Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium\trace.zip
+2025-11-02T23:05:26.9990348Z     Usage:
+2025-11-02T23:05:26.9990453Z 
+2025-11-02T23:05:26.9990864Z         npx playwright show-trace test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium\trace.zip
+2025-11-02T23:05:26.9991318Z 
+2025-11-02T23:05:26.9991572Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9991779Z 
+2025-11-02T23:05:26.9992075Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9992416Z 
+2025-11-02T23:05:26.9992601Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:26.9992782Z 
+2025-11-02T23:05:26.9992941Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:26.9993237Z     Call log:
+2025-11-02T23:05:26.9993615Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:26.9993911Z 
+2025-11-02T23:05:26.9993918Z 
+2025-11-02T23:05:26.9994072Z        98 |       // Wait for animation to settle before interacting
+2025-11-02T23:05:26.9994397Z        99 |       await page.waitForTimeout(200);
+2025-11-02T23:05:26.9994712Z     > 100 |       await slice.hover({ force: true });
+2025-11-02T23:05:26.9995011Z           |                   ^
+2025-11-02T23:05:26.9995254Z       101 |
+2025-11-02T23:05:26.9995471Z       102 |       const start = Date.now();
+2025-11-02T23:05:26.9995789Z       103 |       await slice.click({ force: true });
+2025-11-02T23:05:26.9996281Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\perf\latency.spec.ts:100:19
+2025-11-02T23:05:26.9996627Z 
+2025-11-02T23:05:26.9996941Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9997588Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium-retry1\video.webm
+2025-11-02T23:05:26.9998255Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:26.9998455Z 
+2025-11-02T23:05:26.9998874Z     Error Context: test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium-retry1\error-context.md
+2025-11-02T23:05:26.9999345Z 
+2025-11-02T23:05:26.9999663Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0000309Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium-retry1\trace.zip
+2025-11-02T23:05:27.0000802Z     Usage:
+2025-11-02T23:05:27.0000897Z 
+2025-11-02T23:05:27.0001328Z         npx playwright show-trace test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-chromium-retry1\trace.zip
+2025-11-02T23:05:27.0001826Z 
+2025-11-02T23:05:27.0002089Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0002396Z 
+2025-11-02T23:05:27.0002932Z   6) [firefox] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:27.0003367Z 
+2025-11-02T23:05:27.0003569Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0003732Z 
+2025-11-02T23:05:27.0003880Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0004191Z     Call log:
+2025-11-02T23:05:27.0004598Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0004925Z 
+2025-11-02T23:05:27.0004931Z 
+2025-11-02T23:05:27.0005002Z       34 |
+2025-11-02T23:05:27.0005311Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:27.0005686Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:27.0005949Z          |                       ^
+2025-11-02T23:05:27.0006231Z       37 |     await targetSlice.click();
+2025-11-02T23:05:27.0006466Z       38 |
+2025-11-02T23:05:27.0006824Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:27.0007453Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:27.0007797Z 
+2025-11-02T23:05:27.0008148Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0009045Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox\video.webm
+2025-11-02T23:05:27.0009727Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0009935Z 
+2025-11-02T23:05:27.0010357Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox\error-context.md
+2025-11-02T23:05:27.0010776Z 
+2025-11-02T23:05:27.0011100Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0011735Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox\trace.zip
+2025-11-02T23:05:27.0012196Z     Usage:
+2025-11-02T23:05:27.0012299Z 
+2025-11-02T23:05:27.0012699Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox\trace.zip
+2025-11-02T23:05:27.0013158Z 
+2025-11-02T23:05:27.0013418Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0013660Z 
+2025-11-02T23:05:27.0013940Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0014163Z 
+2025-11-02T23:05:27.0014363Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0014543Z 
+2025-11-02T23:05:27.0014697Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0014992Z     Call log:
+2025-11-02T23:05:27.0015380Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0015773Z 
+2025-11-02T23:05:27.0015779Z 
+2025-11-02T23:05:27.0015855Z       34 |
+2025-11-02T23:05:27.0016160Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:27.0016503Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:27.0016769Z          |                       ^
+2025-11-02T23:05:27.0017053Z       37 |     await targetSlice.click();
+2025-11-02T23:05:27.0017316Z       38 |
+2025-11-02T23:05:27.0017653Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:27.0018348Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:27.0018696Z 
+2025-11-02T23:05:27.0019026Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0019641Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox-retry1\video.webm
+2025-11-02T23:05:27.0020330Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0020542Z 
+2025-11-02T23:05:27.0020988Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox-retry1\error-context.md
+2025-11-02T23:05:27.0021444Z 
+2025-11-02T23:05:27.0021761Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0022409Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0022908Z     Usage:
+2025-11-02T23:05:27.0022997Z 
+2025-11-02T23:05:27.0023452Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0023902Z 
+2025-11-02T23:05:27.0024144Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0024364Z 
+2025-11-02T23:05:27.0024763Z   7) [firefox] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:27.0025109Z 
+2025-11-02T23:05:27.0025415Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0025679Z 
+2025-11-02T23:05:27.0025942Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:27.0026290Z     Expected: visible
+2025-11-02T23:05:27.0026494Z     Timeout: 5000ms
+2025-11-02T23:05:27.0026680Z     Error: element(s) not found
+2025-11-02T23:05:27.0026825Z 
+2025-11-02T23:05:27.0026887Z     Call log:
+2025-11-02T23:05:27.0027174Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0027693Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:27.0028021Z 
+2025-11-02T23:05:27.0028027Z 
+2025-11-02T23:05:27.0028093Z       61 |     });
+2025-11-02T23:05:27.0028389Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0028736Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0029432Z          |                           ^
+2025-11-02T23:05:27.0029675Z       64 |     } else {
+2025-11-02T23:05:27.0029971Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0030233Z       66 |     }
+2025-11-02T23:05:27.0030732Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0031514Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:27.0031969Z 
+2025-11-02T23:05:27.0032322Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0032926Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox\video.webm
+2025-11-02T23:05:27.0033743Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0033954Z 
+2025-11-02T23:05:27.0034366Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox\error-context.md
+2025-11-02T23:05:27.0034774Z 
+2025-11-02T23:05:27.0035098Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0035701Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox\trace.zip
+2025-11-02T23:05:27.0036256Z     Usage:
+2025-11-02T23:05:27.0036361Z 
+2025-11-02T23:05:27.0036742Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox\trace.zip
+2025-11-02T23:05:27.0037204Z 
+2025-11-02T23:05:27.0037471Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0037723Z 
+2025-11-02T23:05:27.0037992Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0038214Z 
+2025-11-02T23:05:27.0038541Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0038808Z 
+2025-11-02T23:05:27.0039070Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:27.0039467Z     Expected: visible
+2025-11-02T23:05:27.0039693Z     Timeout: 5000ms
+2025-11-02T23:05:27.0039919Z     Error: element(s) not found
+2025-11-02T23:05:27.0040101Z 
+2025-11-02T23:05:27.0040177Z     Call log:
+2025-11-02T23:05:27.0040505Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0041056Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:27.0041406Z 
+2025-11-02T23:05:27.0041422Z 
+2025-11-02T23:05:27.0041499Z       61 |     });
+2025-11-02T23:05:27.0041752Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0042041Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0042341Z          |                           ^
+2025-11-02T23:05:27.0042611Z       64 |     } else {
+2025-11-02T23:05:27.0042858Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0043136Z       66 |     }
+2025-11-02T23:05:27.0043610Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0044295Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:27.0044641Z 
+2025-11-02T23:05:27.0044955Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0045588Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox-retry1\video.webm
+2025-11-02T23:05:27.0046320Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0046559Z 
+2025-11-02T23:05:27.0046962Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox-retry1\error-context.md
+2025-11-02T23:05:27.0047402Z 
+2025-11-02T23:05:27.0047759Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0048365Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0050341Z     Usage:
+2025-11-02T23:05:27.0050456Z 
+2025-11-02T23:05:27.0050905Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0051367Z 
+2025-11-02T23:05:27.0051708Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0051932Z 
+2025-11-02T23:05:27.0052359Z   8) [firefox] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:27.0052763Z 
+2025-11-02T23:05:27.0053066Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0053349Z 
+2025-11-02T23:05:27.0053643Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:27.0054026Z     Expected: visible
+2025-11-02T23:05:27.0054274Z     Timeout: 5000ms
+2025-11-02T23:05:27.0054541Z     Error: element(s) not found
+2025-11-02T23:05:27.0054689Z 
+2025-11-02T23:05:27.0054769Z     Call log:
+2025-11-02T23:05:27.0055096Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0055682Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:27.0055996Z 
+2025-11-02T23:05:27.0056010Z 
+2025-11-02T23:05:27.0056086Z       61 |     });
+2025-11-02T23:05:27.0056339Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0056655Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0056932Z          |                           ^
+2025-11-02T23:05:27.0057200Z       64 |     } else {
+2025-11-02T23:05:27.0057486Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0057742Z       66 |     }
+2025-11-02T23:05:27.0058247Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0058939Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:27.0059256Z 
+2025-11-02T23:05:27.0059575Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0060176Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox\video.webm
+2025-11-02T23:05:27.0060959Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0061169Z 
+2025-11-02T23:05:27.0061546Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox\error-context.md
+2025-11-02T23:05:27.0061980Z 
+2025-11-02T23:05:27.0062302Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0062915Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox\trace.zip
+2025-11-02T23:05:27.0063430Z     Usage:
+2025-11-02T23:05:27.0063559Z 
+2025-11-02T23:05:27.0063949Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox\trace.zip
+2025-11-02T23:05:27.0064396Z 
+2025-11-02T23:05:27.0064653Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0064876Z 
+2025-11-02T23:05:27.0065179Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0065399Z 
+2025-11-02T23:05:27.0065703Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0065996Z 
+2025-11-02T23:05:27.0066247Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:27.0066649Z     Expected: visible
+2025-11-02T23:05:27.0066852Z     Timeout: 5000ms
+2025-11-02T23:05:27.0067098Z     Error: element(s) not found
+2025-11-02T23:05:27.0067262Z 
+2025-11-02T23:05:27.0067374Z     Call log:
+2025-11-02T23:05:27.0067672Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0068237Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:27.0068609Z 
+2025-11-02T23:05:27.0068615Z 
+2025-11-02T23:05:27.0068720Z       61 |     });
+2025-11-02T23:05:27.0068958Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0069329Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0070049Z          |                           ^
+2025-11-02T23:05:27.0070294Z       64 |     } else {
+2025-11-02T23:05:27.0070572Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0070852Z       66 |     }
+2025-11-02T23:05:27.0071321Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0072012Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:27.0072333Z 
+2025-11-02T23:05:27.0072691Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0073301Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox-retry1\video.webm
+2025-11-02T23:05:27.0073962Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0074289Z 
+2025-11-02T23:05:27.0074726Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox-retry1\error-context.md
+2025-11-02T23:05:27.0075166Z 
+2025-11-02T23:05:27.0075525Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0076140Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0076728Z     Usage:
+2025-11-02T23:05:27.0076830Z 
+2025-11-02T23:05:27.0077276Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0077735Z 
+2025-11-02T23:05:27.0077992Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0078235Z 
+2025-11-02T23:05:27.0078829Z   9) [firefox] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:27.0079244Z 
+2025-11-02T23:05:27.0079539Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0079809Z 
+2025-11-02T23:05:27.0080078Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:27.0080447Z     Expected: visible
+2025-11-02T23:05:27.0080676Z     Timeout: 5000ms
+2025-11-02T23:05:27.0080917Z     Error: element(s) not found
+2025-11-02T23:05:27.0081071Z 
+2025-11-02T23:05:27.0081149Z     Call log:
+2025-11-02T23:05:27.0081475Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0082008Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:27.0082345Z 
+2025-11-02T23:05:27.0082351Z 
+2025-11-02T23:05:27.0082428Z       61 |     });
+2025-11-02T23:05:27.0082681Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0082988Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0083256Z          |                           ^
+2025-11-02T23:05:27.0083508Z       64 |     } else {
+2025-11-02T23:05:27.0083751Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0084026Z       66 |     }
+2025-11-02T23:05:27.0084524Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0085177Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:27.0085524Z 
+2025-11-02T23:05:27.0085839Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0086439Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox\video.webm
+2025-11-02T23:05:27.0087406Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0087677Z 
+2025-11-02T23:05:27.0088053Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox\error-context.md
+2025-11-02T23:05:27.0088492Z 
+2025-11-02T23:05:27.0088827Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0089448Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox\trace.zip
+2025-11-02T23:05:27.0089859Z     Usage:
+2025-11-02T23:05:27.0090128Z 
+2025-11-02T23:05:27.0090549Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox\trace.zip
+2025-11-02T23:05:27.0090957Z 
+2025-11-02T23:05:27.0091247Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0091461Z 
+2025-11-02T23:05:27.0091760Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0092071Z 
+2025-11-02T23:05:27.0092367Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0092664Z 
+2025-11-02T23:05:27.0092909Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:27.0093312Z     Expected: visible
+2025-11-02T23:05:27.0093520Z     Timeout: 5000ms
+2025-11-02T23:05:27.0093763Z     Error: element(s) not found
+2025-11-02T23:05:27.0093909Z 
+2025-11-02T23:05:27.0094030Z     Call log:
+2025-11-02T23:05:27.0094329Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0094884Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:27.0095197Z 
+2025-11-02T23:05:27.0095203Z 
+2025-11-02T23:05:27.0095310Z       61 |     });
+2025-11-02T23:05:27.0095531Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0095852Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0096162Z          |                           ^
+2025-11-02T23:05:27.0096466Z       64 |     } else {
+2025-11-02T23:05:27.0096862Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0097262Z       66 |     }
+2025-11-02T23:05:27.0098078Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0099297Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:27.0099857Z 
+2025-11-02T23:05:27.0100424Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0101162Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox-retry1\video.webm
+2025-11-02T23:05:27.0102004Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0102222Z 
+2025-11-02T23:05:27.0102659Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox-retry1\error-context.md
+2025-11-02T23:05:27.0103092Z 
+2025-11-02T23:05:27.0103411Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0104042Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0104514Z     Usage:
+2025-11-02T23:05:27.0104614Z 
+2025-11-02T23:05:27.0105036Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0105513Z 
+2025-11-02T23:05:27.0105767Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0105999Z 
+2025-11-02T23:05:27.0106435Z   10) [firefox] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured 
+2025-11-02T23:05:27.0106969Z 
+2025-11-02T23:05:27.0107208Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0107641Z 
+2025-11-02T23:05:27.0107805Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0108119Z     Call log:
+2025-11-02T23:05:27.0108530Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0108786Z 
+2025-11-02T23:05:27.0108792Z 
+2025-11-02T23:05:27.0108947Z        98 |       // Wait for animation to settle before interacting
+2025-11-02T23:05:27.0109407Z        99 |       await page.waitForTimeout(200);
+2025-11-02T23:05:27.0109740Z     > 100 |       await slice.hover({ force: true });
+2025-11-02T23:05:27.0110012Z           |                   ^
+2025-11-02T23:05:27.0110251Z       101 |
+2025-11-02T23:05:27.0110482Z       102 |       const start = Date.now();
+2025-11-02T23:05:27.0110768Z       103 |       await slice.click({ force: true });
+2025-11-02T23:05:27.0111245Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\perf\latency.spec.ts:100:19
+2025-11-02T23:05:27.0111558Z 
+2025-11-02T23:05:27.0111889Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0112465Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox\video.webm
+2025-11-02T23:05:27.0113091Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0113308Z 
+2025-11-02T23:05:27.0113725Z     Error Context: test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox\error-context.md
+2025-11-02T23:05:27.0114138Z 
+2025-11-02T23:05:27.0114459Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0115071Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox\trace.zip
+2025-11-02T23:05:27.0115540Z     Usage:
+2025-11-02T23:05:27.0115647Z 
+2025-11-02T23:05:27.0116068Z         npx playwright show-trace test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox\trace.zip
+2025-11-02T23:05:27.0116494Z 
+2025-11-02T23:05:27.0116755Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0117002Z 
+2025-11-02T23:05:27.0117268Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0117498Z 
+2025-11-02T23:05:27.0117703Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0117881Z 
+2025-11-02T23:05:27.0118038Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0118339Z     Call log:
+2025-11-02T23:05:27.0118734Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0118985Z 
+2025-11-02T23:05:27.0118990Z 
+2025-11-02T23:05:27.0119239Z        98 |       // Wait for animation to settle before interacting
+2025-11-02T23:05:27.0119591Z        99 |       await page.waitForTimeout(200);
+2025-11-02T23:05:27.0119926Z     > 100 |       await slice.hover({ force: true });
+2025-11-02T23:05:27.0120198Z           |                   ^
+2025-11-02T23:05:27.0120435Z       101 |
+2025-11-02T23:05:27.0120684Z       102 |       const start = Date.now();
+2025-11-02T23:05:27.0120980Z       103 |       await slice.click({ force: true });
+2025-11-02T23:05:27.0121466Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\perf\latency.spec.ts:100:19
+2025-11-02T23:05:27.0121860Z 
+2025-11-02T23:05:27.0122199Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0122805Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox-retry1\video.webm
+2025-11-02T23:05:27.0123474Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0123726Z 
+2025-11-02T23:05:27.0124168Z     Error Context: test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox-retry1\error-context.md
+2025-11-02T23:05:27.0124608Z 
+2025-11-02T23:05:27.0124950Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0125574Z     test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0126054Z     Usage:
+2025-11-02T23:05:27.0126167Z 
+2025-11-02T23:05:27.0126608Z         npx playwright show-trace test-results\perf-latency-Perf---Latenc-f0825-hin-SLA-and-report-captured-firefox-retry1\trace.zip
+2025-11-02T23:05:27.0127066Z 
+2025-11-02T23:05:27.0127331Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0127856Z 
+2025-11-02T23:05:27.0128367Z   11) [webkit] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:27.0128837Z 
+2025-11-02T23:05:27.0129010Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0129185Z 
+2025-11-02T23:05:27.0129372Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0129655Z     Call log:
+2025-11-02T23:05:27.0130050Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0130303Z 
+2025-11-02T23:05:27.0130309Z 
+2025-11-02T23:05:27.0130414Z       34 |
+2025-11-02T23:05:27.0130700Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:27.0131052Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:27.0131309Z          |                       ^
+2025-11-02T23:05:27.0131594Z       37 |     await targetSlice.click();
+2025-11-02T23:05:27.0131858Z       38 |
+2025-11-02T23:05:27.0132203Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:27.0132950Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:27.0133296Z 
+2025-11-02T23:05:27.0133645Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0134216Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit\video.webm
+2025-11-02T23:05:27.0134852Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0135175Z 
+2025-11-02T23:05:27.0135553Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit\error-context.md
+2025-11-02T23:05:27.0135962Z 
+2025-11-02T23:05:27.0136315Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0137057Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit\trace.zip
+2025-11-02T23:05:27.0137527Z     Usage:
+2025-11-02T23:05:27.0137628Z 
+2025-11-02T23:05:27.0138052Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit\trace.zip
+2025-11-02T23:05:27.0138583Z 
+2025-11-02T23:05:27.0138854Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0139093Z 
+2025-11-02T23:05:27.0139360Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0139621Z 
+2025-11-02T23:05:27.0139794Z     [31mTest timeout of 30000ms exceeded.[39m
+2025-11-02T23:05:27.0139978Z 
+2025-11-02T23:05:27.0140166Z     Error: locator.hover: Test timeout of 30000ms exceeded.
+2025-11-02T23:05:27.0140444Z     Call log:
+2025-11-02T23:05:27.0140918Z     [2m  - waiting for getByTestId('pie-menu').getByRole('button').first()[22m
+2025-11-02T23:05:27.0141176Z 
+2025-11-02T23:05:27.0141192Z 
+2025-11-02T23:05:27.0141302Z       34 |
+2025-11-02T23:05:27.0141579Z       35 |     const targetSlice = pieMenu.getByRole('button').first();
+2025-11-02T23:05:27.0141944Z     > 36 |     await targetSlice.hover();
+2025-11-02T23:05:27.0142233Z          |                       ^
+2025-11-02T23:05:27.0142491Z       37 |     await targetSlice.click();
+2025-11-02T23:05:27.0142749Z       38 |
+2025-11-02T23:05:27.0143093Z       39 |     const confirmationDialog = page.getByRole('dialog', { name: /confirm action/i });
+2025-11-02T23:05:27.0143718Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\action-execution.spec.ts:36:23
+2025-11-02T23:05:27.0144095Z 
+2025-11-02T23:05:27.0144409Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0145049Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1\video.webm
+2025-11-02T23:05:27.0145767Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0146120Z 
+2025-11-02T23:05:27.0146528Z     Error Context: test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1\error-context.md
+2025-11-02T23:05:27.0146982Z 
+2025-11-02T23:05:27.0147390Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0148596Z     test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0149540Z     Usage:
+2025-11-02T23:05:27.0149710Z 
+2025-11-02T23:05:27.0150525Z         npx playwright show-trace test-results\e2e-action-execution-US1---1c1b3-ithout-confirmation-dialogs-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0151351Z 
+2025-11-02T23:05:27.0151927Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0152317Z 
+2025-11-02T23:05:27.0153013Z   12) [webkit] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:27.0153756Z 
+2025-11-02T23:05:27.0154322Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0154864Z 
+2025-11-02T23:05:27.0155423Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:27.0156093Z     Expected: visible
+2025-11-02T23:05:27.0156492Z     Timeout: 5000ms
+2025-11-02T23:05:27.0156914Z     Error: element(s) not found
+2025-11-02T23:05:27.0157163Z 
+2025-11-02T23:05:27.0157283Z     Call log:
+2025-11-02T23:05:27.0157852Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0158901Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:27.0159520Z 
+2025-11-02T23:05:27.0159531Z 
+2025-11-02T23:05:27.0159647Z       61 |     });
+2025-11-02T23:05:27.0160081Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0160617Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0161114Z          |                           ^
+2025-11-02T23:05:27.0161553Z       64 |     } else {
+2025-11-02T23:05:27.0161995Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0162449Z       66 |     }
+2025-11-02T23:05:27.0163437Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0164785Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:27.0165372Z 
+2025-11-02T23:05:27.0166050Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0167102Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit\video.webm
+2025-11-02T23:05:27.0168833Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0169282Z 
+2025-11-02T23:05:27.0170007Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit\error-context.md
+2025-11-02T23:05:27.0170838Z 
+2025-11-02T23:05:27.0171485Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0172631Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit\trace.zip
+2025-11-02T23:05:27.0173382Z     Usage:
+2025-11-02T23:05:27.0173821Z 
+2025-11-02T23:05:27.0174581Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit\trace.zip
+2025-11-02T23:05:27.0175420Z 
+2025-11-02T23:05:27.0175968Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0176385Z 
+2025-11-02T23:05:27.0176904Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0177468Z 
+2025-11-02T23:05:27.0177993Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0178506Z 
+2025-11-02T23:05:27.0178981Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })
+2025-11-02T23:05:27.0179688Z     Expected: visible
+2025-11-02T23:05:27.0180041Z     Timeout: 5000ms
+2025-11-02T23:05:27.0180459Z     Error: element(s) not found
+2025-11-02T23:05:27.0180723Z 
+2025-11-02T23:05:27.0180928Z     Call log:
+2025-11-02T23:05:27.0181511Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0182626Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Launch Calculator/i })[22m
+2025-11-02T23:05:27.0183215Z 
+2025-11-02T23:05:27.0183226Z 
+2025-11-02T23:05:27.0183393Z       61 |     });
+2025-11-02T23:05:27.0183773Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0184336Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0184863Z          |                           ^
+2025-11-02T23:05:27.0185266Z       64 |     } else {
+2025-11-02T23:05:27.0185728Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0186161Z       66 |     }
+2025-11-02T23:05:27.0187054Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0188557Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:83:5
+2025-11-02T23:05:27.0189237Z 
+2025-11-02T23:05:27.0189948Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0191092Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1\video.webm
+2025-11-02T23:05:27.0192328Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0192743Z 
+2025-11-02T23:05:27.0193550Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1\error-context.md
+2025-11-02T23:05:27.0194376Z 
+2025-11-02T23:05:27.0195047Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0196161Z     test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0196953Z     Usage:
+2025-11-02T23:05:27.0197128Z 
+2025-11-02T23:05:27.0198243Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-38db2-sed-when-no-context-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0199113Z 
+2025-11-02T23:05:27.0199608Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0200045Z 
+2025-11-02T23:05:27.0200789Z   13) [webkit] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:27.0202040Z 
+2025-11-02T23:05:27.0202611Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0203105Z 
+2025-11-02T23:05:27.0203606Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:27.0204279Z     Expected: visible
+2025-11-02T23:05:27.0204628Z     Timeout: 5000ms
+2025-11-02T23:05:27.0204994Z     Error: element(s) not found
+2025-11-02T23:05:27.0205297Z 
+2025-11-02T23:05:27.0205456Z     Call log:
+2025-11-02T23:05:27.0206048Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0207079Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:27.0207717Z 
+2025-11-02T23:05:27.0207728Z 
+2025-11-02T23:05:27.0207858Z       61 |     });
+2025-11-02T23:05:27.0208608Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0209102Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0209949Z          |                           ^
+2025-11-02T23:05:27.0210364Z       64 |     } else {
+2025-11-02T23:05:27.0210763Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0211200Z       66 |     }
+2025-11-02T23:05:27.0212011Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0213277Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:27.0213946Z 
+2025-11-02T23:05:27.0214626Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0215773Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit\video.webm
+2025-11-02T23:05:27.0216941Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0217403Z 
+2025-11-02T23:05:27.0218088Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit\error-context.md
+2025-11-02T23:05:27.0218889Z 
+2025-11-02T23:05:27.0219532Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0221032Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit\trace.zip
+2025-11-02T23:05:27.0221841Z     Usage:
+2025-11-02T23:05:27.0222075Z 
+2025-11-02T23:05:27.0222839Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit\trace.zip
+2025-11-02T23:05:27.0223689Z 
+2025-11-02T23:05:27.0224290Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0224701Z 
+2025-11-02T23:05:27.0225236Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0226997Z 
+2025-11-02T23:05:27.0227622Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0228196Z 
+2025-11-02T23:05:27.0229012Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })
+2025-11-02T23:05:27.0229759Z     Expected: visible
+2025-11-02T23:05:27.0230124Z     Timeout: 5000ms
+2025-11-02T23:05:27.0230534Z     Error: element(s) not found
+2025-11-02T23:05:27.0230796Z 
+2025-11-02T23:05:27.0230942Z     Call log:
+2025-11-02T23:05:27.0231473Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0232737Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Switch Terminal/i })[22m
+2025-11-02T23:05:27.0233332Z 
+2025-11-02T23:05:27.0233343Z 
+2025-11-02T23:05:27.0233520Z       61 |     });
+2025-11-02T23:05:27.0233899Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0234395Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0234802Z          |                           ^
+2025-11-02T23:05:27.0235072Z       64 |     } else {
+2025-11-02T23:05:27.0235364Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0235620Z       66 |     }
+2025-11-02T23:05:27.0236130Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0237019Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:111:5
+2025-11-02T23:05:27.0237558Z 
+2025-11-02T23:05:27.0238154Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0239284Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1\video.webm
+2025-11-02T23:05:27.0240506Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0240888Z 
+2025-11-02T23:05:27.0241702Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1\error-context.md
+2025-11-02T23:05:27.0242461Z 
+2025-11-02T23:05:27.0243045Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0243804Z     test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0244904Z     Usage:
+2025-11-02T23:05:27.0245075Z 
+2025-11-02T23:05:27.0245772Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-a0dfa-lected-when-process-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0246860Z 
+2025-11-02T23:05:27.0247362Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0247816Z 
+2025-11-02T23:05:27.0248596Z   14) [webkit] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:27.0249604Z 
+2025-11-02T23:05:27.0250153Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0250621Z 
+2025-11-02T23:05:27.0251035Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:27.0251883Z     Expected: visible
+2025-11-02T23:05:27.0252159Z     Timeout: 5000ms
+2025-11-02T23:05:27.0252379Z     Error: element(s) not found
+2025-11-02T23:05:27.0252550Z 
+2025-11-02T23:05:27.0252634Z     Call log:
+2025-11-02T23:05:27.0252985Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0253656Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:27.0254001Z 
+2025-11-02T23:05:27.0254008Z 
+2025-11-02T23:05:27.0254086Z       61 |     });
+2025-11-02T23:05:27.0254338Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0254630Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0254950Z          |                           ^
+2025-11-02T23:05:27.0255187Z       64 |     } else {
+2025-11-02T23:05:27.0255472Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0255754Z       66 |     }
+2025-11-02T23:05:27.0256226Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0256914Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:27.0257233Z 
+2025-11-02T23:05:27.0257587Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0258195Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit\video.webm
+2025-11-02T23:05:27.0258801Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0259042Z 
+2025-11-02T23:05:27.0259434Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit\error-context.md
+2025-11-02T23:05:27.0259829Z 
+2025-11-02T23:05:27.0260186Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0260776Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit\trace.zip
+2025-11-02T23:05:27.0261252Z     Usage:
+2025-11-02T23:05:27.0261363Z 
+2025-11-02T23:05:27.0261775Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit\trace.zip
+2025-11-02T23:05:27.0262205Z 
+2025-11-02T23:05:27.0262467Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0262704Z 
+2025-11-02T23:05:27.0262972Z     Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0263225Z 
+2025-11-02T23:05:27.0263528Z     Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+2025-11-02T23:05:27.0263910Z 
+2025-11-02T23:05:27.0264189Z     Locator: getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })
+2025-11-02T23:05:27.0264570Z     Expected: visible
+2025-11-02T23:05:27.0264817Z     Timeout: 5000ms
+2025-11-02T23:05:27.0265113Z     Error: element(s) not found
+2025-11-02T23:05:27.0265269Z 
+2025-11-02T23:05:27.0265350Z     Call log:
+2025-11-02T23:05:27.0265683Z     [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+2025-11-02T23:05:27.0266344Z     [2m  - waiting for getByTestId('pie-menu').last().getByRole('button', { name: /Open DevTools/i })[22m
+2025-11-02T23:05:27.0266789Z 
+2025-11-02T23:05:27.0266800Z 
+2025-11-02T23:05:27.0266915Z       61 |     });
+2025-11-02T23:05:27.0267175Z       62 |     if (assertion.visible) {
+2025-11-02T23:05:27.0267493Z     > 63 |       await expect(slice).toBeVisible();
+2025-11-02T23:05:27.0267772Z          |                           ^
+2025-11-02T23:05:27.0268036Z       64 |     } else {
+2025-11-02T23:05:27.0268284Z       65 |       await expect(slice).toHaveCount(0);
+2025-11-02T23:05:27.0268571Z       66 |     }
+2025-11-02T23:05:27.0269061Z         at expectPieMenuSlices (D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:63:27)
+2025-11-02T23:05:27.0269720Z         at D:\a\AtlasPieVersion3\AtlasPieVersion3\autohotpie-tauri\tests\e2e\pie-menu.spec.ts:126:5
+2025-11-02T23:05:27.0270065Z 
+2025-11-02T23:05:27.0270384Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0271016Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1\video.webm
+2025-11-02T23:05:27.0271851Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0272063Z 
+2025-11-02T23:05:27.0272467Z     Error Context: test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1\error-context.md
+2025-11-02T23:05:27.0272954Z 
+2025-11-02T23:05:27.0273279Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0273915Z     test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0274357Z     Usage:
+2025-11-02T23:05:27.0274491Z 
+2025-11-02T23:05:27.0274908Z         npx playwright show-trace test-results\e2e-pie-menu-US1---Pie-men-136eb-d-when-window-title-matches-webkit-retry1\trace.zip
+2025-11-02T23:05:27.0275401Z 
+2025-11-02T23:05:27.0275655Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+2025-11-02T23:05:27.0275869Z 
+2025-11-02T23:05:27.0275977Z   14 failed
+2025-11-02T23:05:27.0276577Z     [chromium] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:27.0277465Z     [chromium] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:27.0278264Z     [chromium] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:27.0279048Z     [chromium] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:27.0279879Z     [chromium] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured 
+2025-11-02T23:05:27.0280890Z     [firefox] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:27.0281742Z     [firefox] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:27.0282498Z     [firefox] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:27.0283396Z     [firefox] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:27.0284225Z     [firefox] › tests\perf\latency.spec.ts:63:3 › Perf - Latency benchmarks › hotkey → pie → action within SLA and report captured 
+2025-11-02T23:05:27.0285069Z     [webkit] › tests\e2e\action-execution.spec.ts:10:3 › US1 - Action execution flow › actions trigger immediately without confirmation dialogs 
+2025-11-02T23:05:27.0285925Z     [webkit] › tests\e2e\pie-menu.spec.ts:75:3 › US1 - Pie menu invocation › default profile is used when no context matches 
+2025-11-02T23:05:27.0286701Z     [webkit] › tests\e2e\pie-menu.spec.ts:103:3 › US1 - Pie menu invocation › VS Code profile is selected when process matches 
+2025-11-02T23:05:27.0287764Z     [webkit] › tests\e2e\pie-menu.spec.ts:118:3 › US1 - Pie menu invocation › browser profile is selected when window title matches 
+2025-11-02T23:05:27.0288218Z   1 skipped
+2025-11-02T23:05:27.0288434Z   63 passed (5.7m)
+2025-11-02T23:05:27.2779497Z ##[error]Process completed with exit code 1.

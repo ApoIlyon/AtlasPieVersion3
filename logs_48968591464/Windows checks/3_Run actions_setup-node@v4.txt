@@ -1,0 +1,20 @@
+﻿2025-11-02T22:54:17.4741902Z ##[group]Run actions/setup-node@v4
+2025-11-02T22:54:17.4742225Z with:
+2025-11-02T22:54:17.4742381Z   node-version: 22
+2025-11-02T22:54:17.4742542Z   cache: npm
+2025-11-02T22:54:17.4742785Z   cache-dependency-path: autohotpie-tauri/package-lock.json
+2025-11-02T22:54:17.4743787Z   always-auth: false
+2025-11-02T22:54:17.4743969Z   check-latest: false
+2025-11-02T22:54:17.4744302Z   token: ***
+2025-11-02T22:54:17.4744456Z env:
+2025-11-02T22:54:17.4744598Z   CI: true
+2025-11-02T22:54:17.4744748Z ##[endgroup]
+2025-11-02T22:54:17.7200603Z Found in cache @ C:\hostedtoolcache\windows\node\22.21.0\x64
+2025-11-02T22:54:17.7209732Z ##[group]Environment details
+2025-11-02T22:54:24.6659932Z node: v22.21.0
+2025-11-02T22:54:24.6663096Z npm: 10.9.4
+2025-11-02T22:54:24.6663406Z yarn: 1.22.22
+2025-11-02T22:54:24.6664586Z ##[endgroup]
+2025-11-02T22:54:24.7316693Z [command]C:\Windows\system32\cmd.exe /D /S /C "C:\hostedtoolcache\windows\node\22.21.0\x64\npm.cmd config get cache"
+2025-11-02T22:54:25.3345678Z C:\npm\cache
+2025-11-02T22:54:25.7680254Z npm cache is not found

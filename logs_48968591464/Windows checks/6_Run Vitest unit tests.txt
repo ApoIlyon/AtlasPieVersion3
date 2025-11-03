@@ -1,0 +1,26 @@
+﻿2025-11-02T22:55:05.9394951Z ##[group]Run npm run test:unit
+2025-11-02T22:55:05.9395484Z [36;1mnpm run test:unit[0m
+2025-11-02T22:55:05.9456118Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2025-11-02T22:55:05.9456432Z env:
+2025-11-02T22:55:05.9456583Z   CI: true
+2025-11-02T22:55:05.9456743Z ##[endgroup]
+2025-11-02T22:55:06.6401596Z 
+2025-11-02T22:55:06.6402209Z > autohotpie-tauri@0.1.2 test:unit
+2025-11-02T22:55:06.6402748Z > vitest run
+2025-11-02T22:55:06.6402959Z 
+2025-11-02T22:55:07.9265676Z 
+2025-11-02T22:55:07.9270139Z [1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mD:/a/AtlasPieVersion3/AtlasPieVersion3/autohotpie-tauri[39m
+2025-11-02T22:55:07.9270523Z 
+2025-11-02T22:55:09.8828433Z  [32m✓[39m src/state/__tests__/logStore.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+2025-11-02T22:55:09.9315642Z  [32m✓[39m src/state/__tests__/updateStore.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+2025-11-02T22:55:10.9569934Z  [32m✓[39m src/components/hotkeys/__tests__/HotkeyConflictDialog.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 559[2mms[22m[39m
+2025-11-02T22:55:10.9575139Z    [33m[2m✓[22m[39m HotkeyConflictDialog[2m > [22mrenders conflict messages and disables retry when blocking conflicts are present [33m 393[2mms[22m[39m
+2025-11-02T22:55:11.6618881Z  [32m✓[39m src/state/__tests__/profileStore.recovery.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+2025-11-02T22:55:12.1046191Z  [32m✓[39m src/hooks/__tests__/usePieMenuHotkey.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+2025-11-02T22:55:13.4376631Z  [32m✓[39m src/__tests__/AppShell.spec.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 123[2mms[22m[39m
+2025-11-02T22:55:13.4656418Z 
+2025-11-02T22:55:13.4661383Z [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+2025-11-02T22:55:13.4662998Z [2m      Tests [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+2025-11-02T22:55:13.4664057Z [2m   Start at [22m 22:55:07
+2025-11-02T22:55:13.4664998Z [2m   Duration [22m 5.54s[2m (transform 794ms, setup 921ms, collect 2.30s, tests 740ms, environment 6.41s, prepare 1.56s)[22m
+2025-11-02T22:55:13.4665558Z 

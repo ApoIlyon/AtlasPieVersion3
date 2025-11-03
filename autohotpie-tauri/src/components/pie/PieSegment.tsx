@@ -90,7 +90,12 @@ export function PieSegment({
   const state = getSegmentState();
 
   return (
-    <g>
+    <g
+      role="button"
+      aria-label={label}
+      aria-disabled={isDisabled}
+      tabIndex={isDisabled ? -1 : 0}
+    >
       <motion.path
         d={path}
         fill={state.fill}

@@ -1,0 +1,87 @@
+﻿2025-11-02T22:54:15.6617909Z ##[group]Run actions/checkout@v4
+2025-11-02T22:54:15.6618785Z with:
+2025-11-02T22:54:15.6619247Z   repository: ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:15.6620326Z   token: ***
+2025-11-02T22:54:15.6620782Z   ssh-strict: true
+2025-11-02T22:54:15.6621186Z   ssh-user: git
+2025-11-02T22:54:15.6621588Z   persist-credentials: true
+2025-11-02T22:54:15.6622045Z   clean: true
+2025-11-02T22:54:15.6622466Z   sparse-checkout-cone-mode: true
+2025-11-02T22:54:15.6622969Z   fetch-depth: 1
+2025-11-02T22:54:15.6623389Z   fetch-tags: false
+2025-11-02T22:54:15.6623790Z   show-progress: true
+2025-11-02T22:54:15.6624189Z   lfs: false
+2025-11-02T22:54:15.6624544Z   submodules: false
+2025-11-02T22:54:15.6624969Z   set-safe-directory: true
+2025-11-02T22:54:15.6625694Z env:
+2025-11-02T22:54:15.6626064Z   CI: true
+2025-11-02T22:54:15.6626415Z ##[endgroup]
+2025-11-02T22:54:15.7781418Z Syncing repository: ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:15.7783225Z ##[group]Getting Git version info
+2025-11-02T22:54:15.7784014Z Working directory is '/home/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-02T22:54:15.7785101Z [command]/usr/bin/git version
+2025-11-02T22:54:15.7880714Z git version 2.51.2
+2025-11-02T22:54:15.7907773Z ##[endgroup]
+2025-11-02T22:54:15.7923340Z Temporarily overriding HOME='/home/runner/work/_temp/a5c20dd3-ea76-4900-a9db-51fe9e58072d' before making global git config changes
+2025-11-02T22:54:15.7928792Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-02T22:54:15.7931212Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-02T22:54:15.7971178Z Deleting the contents of '/home/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-02T22:54:15.7975250Z ##[group]Initializing the repository
+2025-11-02T22:54:15.7980475Z [command]/usr/bin/git init /home/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-02T22:54:15.8128661Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-11-02T22:54:15.8130353Z hint: is subject to change. To configure the initial branch name to use in all
+2025-11-02T22:54:15.8131307Z hint: of your new repositories, which will suppress this warning, call:
+2025-11-02T22:54:15.8132824Z hint:
+2025-11-02T22:54:15.8133571Z hint: 	git config --global init.defaultBranch <name>
+2025-11-02T22:54:15.8134304Z hint:
+2025-11-02T22:54:15.8135267Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-11-02T22:54:15.8136851Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-11-02T22:54:15.8138068Z hint:
+2025-11-02T22:54:15.8138764Z hint: 	git branch -m <name>
+2025-11-02T22:54:15.8139542Z hint:
+2025-11-02T22:54:15.8140771Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-11-02T22:54:15.8142717Z Initialized empty Git repository in /home/runner/work/AtlasPieVersion3/AtlasPieVersion3/.git/
+2025-11-02T22:54:15.8149326Z [command]/usr/bin/git remote add origin https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:15.8195829Z ##[endgroup]
+2025-11-02T22:54:15.8196669Z ##[group]Disabling automatic garbage collection
+2025-11-02T22:54:15.8200213Z [command]/usr/bin/git config --local gc.auto 0
+2025-11-02T22:54:15.8229562Z ##[endgroup]
+2025-11-02T22:54:15.8230541Z ##[group]Setting up auth
+2025-11-02T22:54:15.8236902Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-02T22:54:15.8268349Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-02T22:54:15.8643304Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-02T22:54:15.8674892Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-02T22:54:15.8912659Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-11-02T22:54:15.8958309Z ##[endgroup]
+2025-11-02T22:54:15.8967291Z ##[group]Fetching the repository
+2025-11-02T22:54:15.8968752Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +7b25fe387df77184e1e07b36225cf9fb27effefd:refs/remotes/pull/60/merge
+2025-11-02T22:54:17.6229714Z From https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-02T22:54:17.6233467Z  * [new ref]         7b25fe387df77184e1e07b36225cf9fb27effefd -> pull/60/merge
+2025-11-02T22:54:17.6264965Z ##[endgroup]
+2025-11-02T22:54:17.6266269Z ##[group]Determining the checkout info
+2025-11-02T22:54:17.6269088Z ##[endgroup]
+2025-11-02T22:54:17.6274591Z [command]/usr/bin/git sparse-checkout disable
+2025-11-02T22:54:17.6319175Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-11-02T22:54:17.6349455Z ##[group]Checking out the ref
+2025-11-02T22:54:17.6353761Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/60/merge
+2025-11-02T22:54:18.0182108Z Note: switching to 'refs/remotes/pull/60/merge'.
+2025-11-02T22:54:18.0182928Z 
+2025-11-02T22:54:18.0184425Z You are in 'detached HEAD' state. You can look around, make experimental
+2025-11-02T22:54:18.0185162Z changes and commit them, and you can discard any commits you make in this
+2025-11-02T22:54:18.0185838Z state without impacting any branches by switching back to a branch.
+2025-11-02T22:54:18.0186254Z 
+2025-11-02T22:54:18.0186571Z If you want to create a new branch to retain commits you create, you may
+2025-11-02T22:54:18.0187203Z do so (now or later) by using -c with the switch command. Example:
+2025-11-02T22:54:18.0187527Z 
+2025-11-02T22:54:18.0187667Z   git switch -c <new-branch-name>
+2025-11-02T22:54:18.0187891Z 
+2025-11-02T22:54:18.0188025Z Or undo this operation with:
+2025-11-02T22:54:18.0188225Z 
+2025-11-02T22:54:18.0188334Z   git switch -
+2025-11-02T22:54:18.0188521Z 
+2025-11-02T22:54:18.0188856Z Turn off this advice by setting config variable advice.detachedHead to false
+2025-11-02T22:54:18.0189227Z 
+2025-11-02T22:54:18.0189619Z HEAD is now at 7b25fe3 Merge 7a5a0f09825f972e41e208c90e5639717741b41b into fcf751ecaa822e1addfbf065143031aad87d7305
+2025-11-02T22:54:18.0221921Z ##[endgroup]
+2025-11-02T22:54:18.0264328Z [command]/usr/bin/git log -1 --format=%H
+2025-11-02T22:54:18.0287881Z 7b25fe387df77184e1e07b36225cf9fb27effefd

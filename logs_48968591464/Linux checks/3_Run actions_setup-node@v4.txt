@@ -1,0 +1,20 @@
+﻿2025-11-02T22:54:18.0517753Z ##[group]Run actions/setup-node@v4
+2025-11-02T22:54:18.0518167Z with:
+2025-11-02T22:54:18.0518416Z   node-version: 22
+2025-11-02T22:54:18.0518667Z   cache: npm
+2025-11-02T22:54:18.0519014Z   cache-dependency-path: autohotpie-tauri/package-lock.json
+2025-11-02T22:54:18.0519436Z   always-auth: false
+2025-11-02T22:54:18.0519709Z   check-latest: false
+2025-11-02T22:54:18.0520416Z   token: ***
+2025-11-02T22:54:18.0520661Z env:
+2025-11-02T22:54:18.0520886Z   CI: true
+2025-11-02T22:54:18.0521107Z ##[endgroup]
+2025-11-02T22:54:18.2335806Z Found in cache @ /opt/hostedtoolcache/node/22.21.1/x64
+2025-11-02T22:54:18.2337293Z ##[group]Environment details
+2025-11-02T22:54:18.8724649Z node: v22.21.1
+2025-11-02T22:54:18.8725207Z npm: 10.9.4
+2025-11-02T22:54:18.8725949Z yarn: 1.22.22
+2025-11-02T22:54:18.8727069Z ##[endgroup]
+2025-11-02T22:54:18.8754007Z [command]/opt/hostedtoolcache/node/22.21.1/x64/bin/npm config get cache
+2025-11-02T22:54:18.9932175Z /home/runner/.npm
+2025-11-02T22:54:19.2613842Z npm cache is not found
