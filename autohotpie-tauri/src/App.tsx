@@ -20,7 +20,7 @@ const FALLBACK_SLICES = [
   { id: 'fallback-4', label: 'Screen Record', order: 3 },
 ];
 
-export function App() {
+export default function App() {
   const profiles = useProfileStore((state) => state.profiles);
   const activeProfileId = useProfileStore((state) => state.activeProfileId);
   const loadProfiles = useProfileStore((state) => state.loadProfiles);
