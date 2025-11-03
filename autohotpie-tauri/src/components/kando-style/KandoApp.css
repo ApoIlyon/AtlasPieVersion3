@@ -1,0 +1,144 @@
+/* Kando-style App Layout */
+.kando-app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: var(--background);
+  color: var(--text);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Sidebars */
+.kando-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.kando-sidebar-left {
+  width: 300px;
+  min-width: 250px;
+  max-width: 400px;
+  resize: horizontal;
+  border-right: 2px solid var(--border);
+}
+
+.kando-sidebar-right {
+  width: 350px;
+  min-width: 300px;
+  max-width: 500px;
+  resize: horizontal;
+  border-left: 2px solid var(--border);
+}
+
+/* Center Area */
+.kando-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.kando-preview-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: radial-gradient(circle at center, rgba(53, 177, 255, 0.05) 0%, transparent 70%);
+}
+
+/* Grid Pattern Background */
+.kando-preview-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* CSS Variables - Dark Theme */
+:root {
+  --background: #0a0e14;
+  --sidebar-bg: #0d1117;
+  --canvas-bg: #010409;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #e6edf3;
+  --text-secondary: #7d8590;
+  --accent: #35b1ff;
+  --accent-hover: #58c4ff;
+  --danger: #f85149;
+  --success: #3fb950;
+  --warning: #d29922;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(53, 177, 255, 0.3);
+}
+
+/* Light Theme Override */
+.light-theme {
+  --background: #ffffff;
+  --sidebar-bg: #f6f8fa;
+  --canvas-bg: #f0f3f6;
+  --border: rgba(0, 0, 0, 0.1);
+  --text: #24292f;
+  --text-secondary: #57606a;
+  --accent: #0969da;
+  --accent-hover: #0550ae;
+}
+
+/* Scrollbar Styling */
+.kando-sidebar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.kando-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kando-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.kando-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kando-sidebar-left {
+    width: 250px;
+  }
+  
+  .kando-sidebar-right {
+    width: 300px;
+  }
+}
+
+@media (max-width: 900px) {
+  .kando-app {
+    flex-direction: column;
+  }
+  
+  .kando-sidebar-left,
+  .kando-sidebar-right {
+    width: 100%;
+    max-height: 200px;
+    resize: vertical;
+  }
+}
