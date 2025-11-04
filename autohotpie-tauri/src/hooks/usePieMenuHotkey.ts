@@ -279,7 +279,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     profiles: state.profiles,
     activeProfileId: state.activeProfileId,
   }));
-  
+
   // Compute safe mode reason from systemStore (for E2E tests compatibility)
   const currentSafeModeReason = useMemo(() => {
     if (systemWindowSnapshot.isFullscreen) {
@@ -290,6 +290,21 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     }
     return null;
   }, [systemWindowSnapshot.isFullscreen, lastSafeModeReason]);
+
+  const hasConflictDialogOpenRef = useRef(hasConflictDialogOpen);
+  useEffect(() => {
+    hasConflictDialogOpenRef.current = hasConflictDialogOpen;
+  }, [hasConflictDialogOpen]);
+
+  const hasHotkeyConflictsRef = useRef(hasHotkeyConflicts);
+  useEffect(() => {
+    hasHotkeyConflictsRef.current = hasHotkeyConflicts;
+  }, [hasHotkeyConflicts]);
+
+  const currentSafeModeReasonRef = useRef(currentSafeModeReason);
+  useEffect(() => {
+    currentSafeModeReasonRef.current = currentSafeModeReason;
+  }, [currentSafeModeReason]);
 
   const clearTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -765,9 +780,9 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         lastHotkeyEventAtRef.current = now;
-        
+
         // Block if in safe mode (checked via state)
-        const safeModeReason = currentSafeModeReason;
+        const safeModeReason = currentSafeModeReasonRef.current;
         if (safeModeReason) {
           clearTimer();
           // Show notification about blocked action
@@ -781,7 +796,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         }
         
         setIsOpen((prev) => {
-          if (hasConflictDialogOpen) {
+          if (hasConflictDialogOpenRef.current || hasHotkeyConflictsRef.current) {
             clearTimer();
             return false;
           }
@@ -841,7 +856,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       windowUnlisten?.();
       profileUnlisten?.();
     };
-  }, [autoCloseMs, clearTimer, currentSafeModeReason, hasConflictDialogOpen, hasHotkeyConflicts, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
+  }, [autoCloseMs, clearTimer, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
