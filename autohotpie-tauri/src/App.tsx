@@ -16,10 +16,16 @@ import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
 import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
+import { ActionBuilder } from './components/actions/ActionBuilder';
 import { useLocalization } from './hooks/useLocalization';
 import { LogPanel } from './components/log/LogPanel';
 import { useUpdateStore } from './state/updateStore';
 import type { UpdateStatus } from './state/types';
+import {
+  createEmptyActionDefinition,
+  type ActionDefinition,
+  type ActionValidationResult,
+} from './types/actions';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -109,6 +115,8 @@ export function App() {
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [actionDraft, setActionDraft] = useState<ActionDefinition>(() => createEmptyActionDefinition());
+  const [actionValidation, setActionValidation] = useState<ActionValidationResult | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -323,6 +331,14 @@ export function App() {
     setIsLogPanelOpen(true);
   }, []);
 
+  const handleActionChange = useCallback((next: ActionDefinition | null) => {
+    setActionDraft(next ?? createEmptyActionDefinition());
+  }, []);
+
+  const handleActionValidate = useCallback((result: ActionValidationResult) => {
+    setActionValidation(result);
+  }, []);
+
   const navItems = useMemo(
     () =>
       ([
@@ -505,8 +521,37 @@ export function App() {
           )}
 
           {activeSection === 'actions' && (
-            <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-white/60">
-              Actions workspace coming soon.
+            <div className="space-y-8" data-testid="actions-workspace">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold text-white">Action Builder (Preview)</h2>
+                <p className="text-sm text-white/70">
+                  Prototype workspace for assembling macro actions. Configure steps, validate, and prepare for
+                  upcoming automation flows.
+                </p>
+              </div>
+
+              <ActionBuilder value={actionDraft} onChange={handleActionChange} onValidate={handleActionValidate} />
+
+              {actionValidation && (
+                <div
+                  className={clsx(
+                    'rounded-3xl border p-6 text-sm transition',
+                    actionValidation.isValid
+                      ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100'
+                      : 'border-red-400/40 bg-red-400/10 text-red-100',
+                  )}
+                >
+                  <p className="text-xs uppercase tracking-[0.3em]">Live validation summary</p>
+                  <p className="mt-2 text-sm text-inherit">
+                    {actionValidation.isValid
+                      ? 'Macro passes validation and is ready for persistence.'
+                      : `Resolve ${actionValidation.errors.length} error(s) to proceed.`}
+                  </p>
+                  <div className="mt-2 text-xs text-white/80">
+                    <span>{`Warnings: ${actionValidation.warnings.length}`}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
