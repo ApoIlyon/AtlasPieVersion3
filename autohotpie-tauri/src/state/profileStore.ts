@@ -670,7 +670,13 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     }
   },
   async activateProfile(profileId) {
+    const record = get().getProfileById(profileId);
     if (!isTauriEnvironment()) {
+      if (!record) {
+        set({ error: `Profile ${profileId} not found.` });
+        return;
+      }
+      set({ activeProfileId: profileId, error: null });
       return;
     }
     if (get().recovery) {
@@ -679,9 +685,9 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     }
     try {
       await invoke('activate_profile', { profileId });
-      const record = get().getProfileById(profileId);
-      await syncRadialOverlayModeWithProfile(record?.profile ?? null);
-      const status = await registerActiveHotkey(record?.profile, profileId, set, get);
+      const currentRecord = record ?? get().getProfileById(profileId);
+      await syncRadialOverlayModeWithProfile(currentRecord?.profile ?? null);
+      const status = await registerActiveHotkey(currentRecord?.profile, profileId, set, get);
       if (status) {
         set({ lastHotkeyStatus: status });
       }

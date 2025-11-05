@@ -229,30 +229,27 @@ fn select_profile(
         }
     }
 
-    let mut result = best.or(fallback).map(|candidate| candidate.snapshot);
+    let manual = store.active_profile_id.and_then(|active| {
+        store
+            .profiles
+            .iter()
+            .enumerate()
+            .find(|(_, entry)| entry.profile.id == active && entry.profile.enabled)
+            .map(|(index, record)| ActiveProfileSnapshot {
+                index,
+                name: record.profile.name.clone(),
+                match_kind: MatchKind::Fallback,
+                selector_score: Some(0),
+                matched_rule: Some("manual".into()),
+                selected_at: None,
+                fallback_applied: true,
+            })
+    });
 
-    if result.is_none() {
-        if let Some(active) = store.active_profile_id {
-            if let Some((index, record)) = store
-                .profiles
-                .iter()
-                .enumerate()
-                .find(|(_, entry)| entry.profile.id == active && entry.profile.enabled)
-            {
-                result = Some(ActiveProfileSnapshot {
-                    index,
-                    name: record.profile.name.clone(),
-                    match_kind: MatchKind::Fallback,
-                    selector_score: Some(0),
-                    matched_rule: Some("manual".into()),
-                    selected_at: None,
-                    fallback_applied: true,
-                });
-            }
-        }
-    }
-
-    result
+    best
+        .map(|candidate| candidate.snapshot)
+        .or(manual)
+        .or_else(|| fallback.map(|candidate| candidate.snapshot))
 }
 
 fn update_active_profile(
