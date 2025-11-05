@@ -21,8 +21,11 @@ import { useLocalization } from './hooks/useLocalization';
 import { LogPanel } from './components/log/LogPanel';
 import { useUpdateStore } from './state/updateStore';
 import type { UpdateStatus } from './state/types';
-import { useActionsStore } from './state/actionsStore';
-import { type ActionDefinition, type ActionValidationResult } from './types/actions';
+import {
+  createEmptyActionDefinition,
+  type ActionDefinition,
+  type ActionValidationResult,
+} from './types/actions';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
 
@@ -110,29 +113,10 @@ export function App() {
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const systemActiveProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
-  const actions = useActionsStore((state) => state.actions);
-  const activeActionId = useActionsStore((state) => state.activeActionId);
-  const actionsLoading = useActionsStore((state) => state.isLoading);
-  const actionsError = useActionsStore((state) => state.error);
-  const lastSavedAt = useActionsStore((state) => state.lastSavedAt);
-  const loadActions = useActionsStore((state) => state.loadActions);
-  const selectAction = useActionsStore((state) => state.selectAction);
-  const createAction = useActionsStore((state) => state.createAction);
-  const updateAction = useActionsStore((state) => state.updateAction);
-  const deleteAction = useActionsStore((state) => state.deleteAction);
-  const duplicateAction = useActionsStore((state) => state.duplicateAction);
-  const clearActionsError = useActionsStore((state) => state.clearError);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-  const [validationSnapshot, setValidationSnapshot] = useState<{ actionId: string | null; result: ActionValidationResult | null }>({
-    actionId: null,
-    result: null,
-  });
-  const activeAction = useMemo(() => actions.find((action) => action.id === activeActionId) ?? null, [actions, activeActionId]);
-  const activeActionIdRef = useRef<string | null>(activeAction?.id ?? null);
-  useEffect(() => {
-    activeActionIdRef.current = activeAction?.id ?? null;
-  }, [activeAction]);
+  const [actionDraft, setActionDraft] = useState<ActionDefinition>(() => createEmptyActionDefinition());
+  const [actionValidation, setActionValidation] = useState<ActionValidationResult | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -149,21 +133,6 @@ export function App() {
       setSystemStorageMode('read_only');
     }
   }, [setSystemOffline, setSystemStorageMode]);
-  useEffect(() => {
-    void loadActions();
-  }, [loadActions]);
-  useEffect(() => {
-    if (!actionsLoading && actions.length > 0 && !activeActionId) {
-      selectAction(actions[0].id);
-    }
-  }, [actionsLoading, actions, activeActionId, selectAction]);
-  useEffect(() => {
-    setValidationSnapshot((snapshot) =>
-      snapshot.actionId === activeActionIdRef.current
-        ? snapshot
-        : { actionId: activeActionIdRef.current, result: null },
-    );
-  }, [actions, activeActionId]);
   useEffect(() => {
     if (typeof window === 'undefined') {
       return undefined;
@@ -362,67 +331,13 @@ export function App() {
     setIsLogPanelOpen(true);
   }, []);
 
-  const handleActionChange = useCallback(
-    (next: ActionDefinition | null) => {
-      if (!next) {
-        return;
-      }
-      updateAction(next);
-      selectAction(next.id);
-    },
-    [selectAction, updateAction],
-  );
+  const handleActionChange = useCallback((next: ActionDefinition | null) => {
+    setActionDraft(next ?? createEmptyActionDefinition());
+  }, []);
 
-  const handleActionValidate = useCallback(
-    (result: ActionValidationResult) => {
-      setValidationSnapshot({ actionId: activeActionIdRef.current, result });
-    },
-    [],
-  );
-
-  const handleCreateAction = useCallback(() => {
-    const created = createAction();
-    setValidationSnapshot({ actionId: created.id, result: null });
-  }, [createAction]);
-
-  const handleDuplicateAction = useCallback(() => {
-    if (!activeActionIdRef.current) {
-      return;
-    }
-    const clone = duplicateAction(activeActionIdRef.current);
-    if (clone) {
-      setValidationSnapshot({ actionId: clone.id, result: null });
-    }
-  }, [duplicateAction]);
-
-  const handleDeleteAction = useCallback(() => {
-    if (!activeActionIdRef.current) {
-      return;
-    }
-    deleteAction(activeActionIdRef.current);
-    setValidationSnapshot({ actionId: null, result: null });
-  }, [deleteAction]);
-
-  const handleSelectAction = useCallback(
-    (actionId: string) => {
-      selectAction(actionId);
-    },
-    [selectAction],
-  );
-
-  const activeValidation = validationSnapshot.actionId === activeActionIdRef.current ? validationSnapshot.result : null;
-
-  const savedAtLabel = useMemo(() => {
-    if (!lastSavedAt) {
-      return null;
-    }
-    try {
-      return new Date(lastSavedAt).toLocaleString();
-    } catch (error) {
-      console.warn('Failed to format savedAt', error);
-      return lastSavedAt;
-    }
-  }, [lastSavedAt]);
+  const handleActionValidate = useCallback((result: ActionValidationResult) => {
+    setActionValidation(result);
+  }, []);
 
   const navItems = useMemo(
     () =>
@@ -606,116 +521,37 @@ export function App() {
           )}
 
           {activeSection === 'actions' && (
-            <div className="space-y-6" data-testid="actions-workspace">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">Actions Workspace</h2>
-                  <p className="text-sm text-white/70">
-                    Создавай, редактируй и сохраняй макросы. Все изменения автоматически помещаются в локальное хранилище.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/70 transition hover:border-white/20 hover:text-white"
-                    onClick={handleCreateAction}
-                    disabled={actionsLoading}
-                  >
-                    New Action
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/70 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={handleDuplicateAction}
-                    disabled={!activeAction || actionsLoading}
-                  >
-                    Duplicate
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-2xl border border-red-400/40 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-red-200 transition hover:border-red-500/60 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={handleDeleteAction}
-                    disabled={!activeAction || actionsLoading}
-                  >
-                    Delete
-                  </button>
-                </div>
+            <div className="space-y-8" data-testid="actions-workspace">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold text-white">Action Builder (Preview)</h2>
+                <p className="text-sm text-white/70">
+                  Prototype workspace for assembling macro actions. Configure steps, validate, and prepare for
+                  upcoming automation flows.
+                </p>
               </div>
 
-              {actionsError && (
-                <div className="flex items-center justify-between rounded-2xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-100">
-                  <span>{actionsError}</span>
-                  <button
-                    type="button"
-                    className="rounded-xl border border-red-400/40 px-3 py-1 text-xs uppercase tracking-[0.3em] text-red-100 hover:border-red-300"
-                    onClick={clearActionsError}
-                  >
-                    Скрыть
-                  </button>
+              <ActionBuilder value={actionDraft} onChange={handleActionChange} onValidate={handleActionValidate} />
+
+              {actionValidation && (
+                <div
+                  className={clsx(
+                    'rounded-3xl border p-6 text-sm transition',
+                    actionValidation.isValid
+                      ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100'
+                      : 'border-red-400/40 bg-red-400/10 text-red-100',
+                  )}
+                >
+                  <p className="text-xs uppercase tracking-[0.3em]">Live validation summary</p>
+                  <p className="mt-2 text-sm text-inherit">
+                    {actionValidation.isValid
+                      ? 'Macro passes validation and is ready for persistence.'
+                      : `Resolve ${actionValidation.errors.length} error(s) to proceed.`}
+                  </p>
+                  <div className="mt-2 text-xs text-white/80">
+                    <span>{`Warnings: ${actionValidation.warnings.length}`}</span>
+                  </div>
                 </div>
               )}
-
-              <div className="grid gap-6 lg:grid-cols-[minmax(260px,320px),1fr]">
-                <div className="space-y-4">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-white">Saved Actions</h3>
-                      {savedAtLabel && <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">{savedAtLabel}</span>}
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      {actionsLoading && <p className="text-sm text-white/50">Loading actions…</p>}
-                      {!actionsLoading && actions.length === 0 && (
-                        <p className="text-sm text-white/50">No actions saved yet. Создай новый макрос.</p>
-                      )}
-                      {!actionsLoading &&
-                        actions.map((action) => (
-                          <button
-                            key={action.id}
-                            type="button"
-                            className={clsx(
-                              'w-full rounded-2xl border px-4 py-3 text-left text-sm transition',
-                              activeActionId === action.id
-                                ? 'border-accent/70 bg-accent/10 text-white'
-                                : 'border-white/10 bg-black/20 text-white/70 hover:border-white/20 hover:bg-black/30',
-                            )}
-                            onClick={() => handleSelectAction(action.id)}
-                          >
-                            <span className="block text-xs uppercase tracking-[0.3em] text-white/40">{action.kind}</span>
-                            <span className="mt-1 block text-sm font-semibold text-white">{action.name}</span>
-                            <span className="mt-1 block text-[11px] text-white/40">{action.steps.length} step(s)</span>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                    <ActionBuilder value={activeAction} onChange={handleActionChange} onValidate={handleActionValidate} />
-                  </div>
-
-                  {activeValidation && (
-                    <div
-                      className={clsx(
-                        'rounded-3xl border p-6 text-sm transition',
-                        activeValidation.isValid
-                          ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100'
-                          : 'border-red-400/40 bg-red-400/10 text-red-100',
-                      )}
-                    >
-                      <p className="text-xs uppercase tracking-[0.3em]">Validation Summary</p>
-                      <p className="mt-2 text-sm text-inherit">
-                        {activeValidation.isValid
-                          ? 'Макрос проходит проверку и готов к запуску.'
-                          : `Исправь ${activeValidation.errors.length} ошиб(ок).`}
-                      </p>
-                      <div className="mt-2 text-xs text-white/80">
-                        <span>{`Warnings: ${activeValidation.warnings.length}`}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           )}
 
