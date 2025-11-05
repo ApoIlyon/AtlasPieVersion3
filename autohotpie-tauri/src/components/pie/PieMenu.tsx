@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import clsx from 'clsx';
 
@@ -62,34 +62,19 @@ export function PieMenu({
     return Math.max(base, radius * 0.65);
   }, [radius, innerInset]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const runAnimation = async () => {
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-start');
-      }
-      await controls.start({
-        opacity: visible ? 1 : 0,
-        scale: visible ? 1 : 0.92,
-        transition: { type: 'spring', stiffness: 260, damping: 22 },
+  useLayoutEffect(() => {
+    // Use layout effect for synchronous DOM updates - instant appearance
+    if (visible) {
+      controls.set({
+        opacity: 1,
+        scale: 1,
       });
-      if (cancelled) {
-        return;
-      }
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-end');
-        const hasStart = performance.getEntriesByName('PieMenu:animation-start').length > 0;
-        if (hasStart) {
-          performance.measure('PieMenu:animation', 'PieMenu:animation-start', 'PieMenu:animation-end');
-        }
-      }
-    };
-
-    runAnimation();
-
-    return () => {
-      cancelled = true;
-    };
+    } else {
+      controls.set({
+        opacity: 0,
+        scale: 0.95,
+      });
+    }
   }, [controls, visible]);
 
   useEffect(() => {
@@ -121,8 +106,7 @@ export function PieMenu({
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
       animate={controls}
-      initial={{ opacity: 0, scale: 0.92 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       style={{ width: containerSize, height: containerSize }}
     >
       <div

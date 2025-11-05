@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
@@ -852,17 +852,17 @@ export function App() {
         </section>
       </main>
 
-      <AnimatePresence>
-        {isPieMenuVisible && (
-          <motion.div
-            key="pie-menu-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm"
-            onClick={closePieMenu}
-          >
+      <div
+        className={clsx(
+          'fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm',
+          isPieMenuVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+        style={{ 
+          transition: isPieMenuVisible ? 'none' : 'opacity 0.05s ease-out',
+        }}
+        onClick={closePieMenu}
+        hidden={!isPieMenuVisible}
+      >
             <div
               className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
               onClick={(event) => event.stopPropagation()}
@@ -898,9 +898,7 @@ export function App() {
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
 
       <ActionToast action={lastAction} onDismiss={clearLastAction} />
       <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
