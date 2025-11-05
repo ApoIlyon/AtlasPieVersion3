@@ -696,7 +696,6 @@ export function App() {
           )}
         </section>
       </main>
-
       <LogPanel isOpen={isLogPanelOpen} onClose={() => setIsLogPanelOpen(false)} />
       <ProfileRecoveryDialog />
     </div>

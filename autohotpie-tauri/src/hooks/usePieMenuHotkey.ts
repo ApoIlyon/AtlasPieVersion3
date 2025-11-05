@@ -29,8 +29,9 @@ function getTauriInvoke(): TauriInvoke | null {
   return tauriWindow.__TAURI__?.core?.invoke ?? tauriWindow.__TAURI__?.invoke ?? null;
 }
 
-const HOTKEY_DEBOUNCE_MS = 200;
-const HOTKEY_REPRESS_GRACE_MS = 600;
+const HOTKEY_DEBOUNCE_MS = 50;
+const HOTKEY_REPRESS_GRACE_MS = 150; // Increased to prevent accidental rapid toggles
+const MENU_OPEN_PROTECTION_MS = 200; // Protection window after opening
 const ACTION_TOAST_DEDUP_MS = 2000;
 
 declare global {
@@ -321,19 +322,27 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     }
   }, [autoCloseMs, clearTimer]);
 
-  useEffect(() => clearTimer, [clearTimer, isOpen]);
+  // Clear timer when menu closes, but don't interfere with opening
+  useEffect(() => {
+    if (!isOpen) {
+      clearTimer();
+    }
+  }, [clearTimer, isOpen]);
 
   useEffect(() => {
     if (hasConflictDialogOpen || hasHotkeyConflicts) {
       if (conflictCloseTimerRef.current) {
         clearTimeout(conflictCloseTimerRef.current);
       }
-      conflictCloseTimerRef.current = setTimeout(() => {
-        clearTimer();
-        setIsOpen(false);
-        lastToggleAtRef.current = Date.now();
-        conflictCloseTimerRef.current = null;
-      }, 250);
+      // Only close if menu is actually open
+      if (isOpen) {
+        conflictCloseTimerRef.current = setTimeout(() => {
+          clearTimer();
+          setIsOpen(false);
+          lastToggleAtRef.current = Date.now();
+          conflictCloseTimerRef.current = null;
+        }, 250);
+      }
       return;
     }
 
@@ -341,7 +350,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       clearTimeout(conflictCloseTimerRef.current);
       conflictCloseTimerRef.current = null;
     }
-  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts]);
+  }, [clearTimer, hasConflictDialogOpen, hasHotkeyConflicts, isOpen]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -409,13 +418,19 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         durationMs,
         invocationId,
       });
+      
+      // Only close menu on success, and only if it was recently opened (not just opened)
       if (payload.status === 'success') {
-        setIsOpen(false);
-        clearTimer();
+        const timeSinceOpen = now - (lastToggleAtRef.current ?? 0);
+        // Don't close if menu was just opened to prevent accidental closure
+        if (timeSinceOpen > MENU_OPEN_PROTECTION_MS) {
+          setIsOpen(false);
+          clearTimer();
+        }
         return;
       }
-      setIsOpen(false);
-      clearTimer();
+      
+      // For other statuses, don't auto-close - let user control it
     },
     [clearTimer],
   );
@@ -423,15 +438,19 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   // Auto-close menu if safe mode is enabled
   useEffect(() => {
     if (currentSafeModeReason && isOpen) {
-      setIsOpen(false);
-      clearTimer();
-      // Show notification about forced closure
-      recordActionOutcome({
-        id: 'safe-mode-forced-close',
-        name: 'Pie Menu Closed',
-        status: 'skipped',
-        message: currentSafeModeReason,
-      });
+      // Don't close if menu was just opened to prevent race conditions
+      const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
+      if (timeSinceOpen > MENU_OPEN_PROTECTION_MS) {
+        setIsOpen(false);
+        clearTimer();
+        // Show notification about forced closure
+        recordActionOutcome({
+          id: 'safe-mode-forced-close',
+          name: 'Pie Menu Closed',
+          status: 'skipped',
+          message: currentSafeModeReason,
+        });
+      }
     }
   }, [clearTimer, currentSafeModeReason, isOpen, recordActionOutcome]);
 
@@ -786,12 +805,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
       hotkeyUnlisten = await listen(hotkeyEvent, () => {
         const now = Date.now();
-        if (now - (lastHotkeyEventAtRef.current ?? 0) < HOTKEY_DEBOUNCE_MS) {
-          lastHotkeyEventAtRef.current = now;
-          return;
-        }
-        lastHotkeyEventAtRef.current = now;
-
+        
         // Block if in safe mode (checked via state)
         const safeModeReason = currentSafeModeReasonRef.current;
         if (safeModeReason) {
@@ -806,28 +820,35 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         
+        // Check conflicts before processing
+        if (hasConflictDialogOpenRef.current || hasHotkeyConflictsRef.current) {
+          clearTimer();
+          setIsOpen(false);
+          return;
+        }
+        
+        // Use lastToggleAtRef for debouncing to prevent rapid toggles
+        const timeSinceLastToggle = now - (lastToggleAtRef.current ?? 0);
+        const wasRecentlyToggled = timeSinceLastToggle < HOTKEY_REPRESS_GRACE_MS;
+        
         setIsOpen((prev) => {
-          if (hasConflictDialogOpenRef.current || hasHotkeyConflictsRef.current) {
-            clearTimer();
-            return false;
-          }
-
+          // If menu is closed, open immediately (no debounce)
           if (!prev) {
             lastToggleAtRef.current = now;
+            lastHotkeyEventAtRef.current = now;
             scheduleAutoClose();
             return true;
           }
 
-          if (now - lastToggleAtRef.current < HOTKEY_REPRESS_GRACE_MS) {
+          // If menu is open and was recently opened, ignore to prevent rapid toggling
+          if (wasRecentlyToggled) {
             return prev;
           }
 
+          // Close menu (with debounce protection)
           lastToggleAtRef.current = now;
-          if (autoCloseMs > 0) {
-            scheduleAutoClose();
-          } else {
-            clearTimer();
-          }
+          lastHotkeyEventAtRef.current = now;
+          clearTimer();
           return false;
         });
       });

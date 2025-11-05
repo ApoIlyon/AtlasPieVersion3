@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import clsx from 'clsx';
 
@@ -50,34 +50,19 @@ export function PieMenu({
   const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const runAnimation = async () => {
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-start');
-      }
-      await controls.start({
-        opacity: visible ? 1 : 0,
-        scale: visible ? 1 : 0.92,
-        transition: { type: 'spring', stiffness: 260, damping: 22 },
+  useLayoutEffect(() => {
+    // Use layout effect for synchronous DOM updates - instant appearance
+    if (visible) {
+      controls.set({
+        opacity: 1,
+        scale: 1,
       });
-      if (cancelled) {
-        return;
-      }
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-end');
-        const hasStart = performance.getEntriesByName('PieMenu:animation-start').length > 0;
-        if (hasStart) {
-          performance.measure('PieMenu:animation', 'PieMenu:animation-start', 'PieMenu:animation-end');
-        }
-      }
-    };
-
-    runAnimation();
-
-    return () => {
-      cancelled = true;
-    };
+    } else {
+      controls.set({
+        opacity: 0,
+        scale: 0.95,
+      });
+    }
   }, [controls, visible]);
 
   useEffect(() => {
