@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
@@ -17,6 +17,9 @@ import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
+import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
+import type { PieSliceDefinition } from './components/pie/PieMenu';
+import { slicesForProfile } from './mocks/contextProfiles';
 import { LogPanel } from './components/log/LogPanel';
 import { useUpdateStore } from './state/updateStore';
 import type { UpdateStatus } from './state/types';
@@ -292,6 +295,74 @@ export function App() {
     return profiles.find((record) => record.profile.id === selectedProfileId) ?? null;
   }, [profiles, selectedProfileId]);
 
+  const pieMenuState = usePieMenuHotkey({
+    hotkeyEvent: 'hotkeys://trigger',
+    autoCloseMs: 0,
+    profileHoldToOpen: systemActiveProfile?.holdToOpen,
+  });
+  const {
+    isOpen: isPieMenuVisible,
+    activeSliceId,
+    setActiveSlice,
+    handleSelect,
+    lastAction,
+    clearLastAction,
+    lastSafeModeReason,
+    activeProfile: pieMenuActiveProfile,
+    toggle: togglePieMenu,
+    open: openPieMenu,
+    close: closePieMenu,
+  } = pieMenuState;
+
+  const menuSlices = useMemo<PieSliceDefinition[]>(() => {
+    const fallbackSlices: PieSliceDefinition[] = slicesForProfile(0);
+    const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
+
+    if (!isTauriEnvironment()) {
+      if (activeSnapshot) {
+        const mockSlices = slicesForProfile(activeSnapshot.index) as PieSliceDefinition[];
+        if (mockSlices.length) {
+          return mockSlices;
+        }
+      }
+      const fallbackMock = slicesForProfile(0) as PieSliceDefinition[];
+      return fallbackMock.length ? fallbackMock : fallbackSlices;
+    }
+
+    if (!profiles.length) {
+      return fallbackSlices;
+    }
+
+    let activeRecord =
+      (activeSnapshot?.index != null ? profiles[activeSnapshot.index] : undefined) ??
+      (activeProfileId ? profiles.find((record) => record.profile.id === activeProfileId) : undefined) ??
+      profiles[0];
+
+    if (!activeRecord) {
+      return fallbackSlices;
+    }
+
+    const rootMenu =
+      activeRecord.menus.find((menu) => menu.id === activeRecord.profile.rootMenu) ??
+      activeRecord.menus[0];
+
+    if (!rootMenu) {
+      return fallbackSlices;
+    }
+
+    const derivedSlices = [...rootMenu.slices]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map<PieSliceDefinition>((slice, order) => ({
+        id: slice.id,
+        label: slice.label || `Slice ${order + 1}`,
+        order: slice.order ?? order,
+      }));
+
+    return derivedSlices.length ? derivedSlices : fallbackSlices;
+  }, [activeProfileId, pieMenuActiveProfile, profiles, systemActiveProfile]);
+
+  const previousMatchKindRef = useRef<string | null>(null);
+
   const isProfileConflictOnly = useMemo(
     () => Boolean(!dialogStatus && profileHotkeyStatus && !profileHotkeyStatus.registered),
     [dialogStatus, profileHotkeyStatus],
@@ -430,13 +501,6 @@ export function App() {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
           </svg>
         );
       default:
@@ -445,7 +509,7 @@ export function App() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-white">
+    <div className="relative min-h-screen overflow-x-hidden bg-background text-white">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),transparent_65%)]" />
         <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
@@ -471,59 +535,56 @@ export function App() {
         }
         onDisable={isProfileConflictOnly ? undefined : disableConflictingHotkey}
       />
-      <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
+      <nav className="fixed left-0 right-0 top-4 z-30 flex justify-center px-8">
+        <div className="flex items-center gap-4 rounded-[2.25rem] border border-white/10 bg-white/5 px-6 py-4 shadow-[0_0_45px_rgba(59,130,246,0.2)] backdrop-blur-xl">
+          {navItems.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                className={clsx(
+                  'flex h-14 w-14 items-center justify-center rounded-2xl border transition',
+                  isActive
+                    ? 'border-accent/70 bg-accent text-white shadow-[0_0_30px_rgba(59,130,246,0.45)]'
+                    : 'border-white/10 bg-white/10 text-white/60 hover:border-white/20 hover:bg-white/20 hover:text-white',
+                )}
+                type="button"
+                data-testid={`nav-${item.id}`}
+                onClick={() => {
+                  setActiveSection(item.id);
+                  if (item.id !== 'profiles') {
+                    setSelectedProfileId(null);
+                  }
+                }}
+              >
+                <span className="sr-only">{item.label}</span>
+                {renderNavIcon(item.id)}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+      <header className="relative z-20 mt-28 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-md">
         <div>
           <p className="text-sm uppercase tracking-[0.35em] text-white/40">{t('header.brand')}</p>
           <h1 className="mt-1 text-3xl font-semibold text-white">{t('header.title')}</h1>
         </div>
-        <div className="flex items-start gap-4">
+        <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          <div className="flex flex-col items-end gap-2">
-            <button
-              type="button"
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
-              onClick={openLogPanel}
-            >
-              {t('header.openLog')}
-            </button>
-            <div className="rounded-full bg-white/5 px-4 py-2 text-sm text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
-              {version ? `${t('app.title')} v${version}` : t('header.versionLoading')}
-            </div>
-          </div>
+          <button
+            type="button"
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
+            onClick={openLogPanel}
+          >
+            {t('header.openLog')}
+          </button>
+          <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
+            {version ? `${t('app.title')} v${version}` : t('header.versionLoading')}
+          </span>
         </div>
       </header>
 
-      <main className="relative z-10 flex flex-col gap-8 px-8 py-10">
-        <nav className="flex justify-center">
-          <div className="flex items-center gap-4 rounded-[2.25rem] border border-white/10 bg-white/5 px-6 py-4 shadow-[0_0_45px_rgba(59,130,246,0.2)] backdrop-blur-xl">
-            {navItems.map((item) => {
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  className={clsx(
-                    'flex h-14 w-14 items-center justify-center rounded-2xl border transition',
-                    isActive
-                      ? 'border-accent/70 bg-accent text-white shadow-[0_0_30px_rgba(59,130,246,0.45)]'
-                      : 'border-white/10 bg-white/10 text-white/60 hover:border-white/20 hover:bg-white/20 hover:text-white',
-                  )}
-                  type="button"
-                  data-testid={`nav-${item.id}`}
-                  onClick={() => {
-                    setActiveSection(item.id);
-                    if (item.id !== 'profiles') {
-                      setSelectedProfileId(null);
-                    }
-                  }}
-                >
-                  <span className="sr-only">{item.label}</span>
-                  {renderNavIcon(item.id)}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-
+      <main className="relative z-10 flex flex-col gap-6 px-8 pt-10 pb-10">
         <section className="rounded-3xl border border-white/5 bg-white/5 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           {activeSection === 'dashboard' && (
             <>

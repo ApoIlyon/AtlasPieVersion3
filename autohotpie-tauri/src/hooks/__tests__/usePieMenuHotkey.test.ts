@@ -82,4 +82,69 @@ describe('usePieMenuHotkey (fallback mode)', () => {
     expect(store.actionOutcomeCounts.total).toBe(1);
     expect(store.actionOutcomeCounts.success).toBe(1);
   });
+
+  test('opens only while fallback hotkey is held in hold-to-open mode', () => {
+    const { result } = renderHook(() =>
+      usePieMenuHotkey({ fallbackHotkey: 'Control+Shift+P', profileHoldToOpen: true, autoCloseMs: 0 }),
+    );
+
+    expect(result.current.isOpen).toBe(false);
+
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Control',
+          code: 'ControlLeft',
+          ctrlKey: true,
+        }),
+      );
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Shift',
+          code: 'ShiftLeft',
+          ctrlKey: true,
+          shiftKey: true,
+        }),
+      );
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'P',
+          code: 'KeyP',
+          ctrlKey: true,
+          shiftKey: true,
+        }),
+      );
+    });
+
+    expect(result.current.isOpen).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keyup', {
+          key: 'P',
+          code: 'KeyP',
+          ctrlKey: true,
+          shiftKey: true,
+        }),
+      );
+    });
+
+    expect(result.current.isOpen).toBe(false);
+
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keyup', {
+          key: 'Shift',
+          code: 'ShiftLeft',
+          ctrlKey: true,
+        }),
+      );
+      window.dispatchEvent(
+        new KeyboardEvent('keyup', {
+          key: 'Control',
+          code: 'ControlLeft',
+        }),
+      );
+    });
+  });
 });
