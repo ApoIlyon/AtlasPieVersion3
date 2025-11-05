@@ -82,6 +82,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
               index: mockSelection.index,
               name: mockSelection.name,
               matchKind: mockSelection.matchKind,
+              holdToOpen: mockSelection.holdToOpen,
             }
           : null,
         hotkeyStatus: null,
@@ -109,6 +110,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
             index: profileStore.profiles.findIndex((entry: ProfileRecord) => entry.profile.id === activeRecord.profile.id),
             name: activeRecord.profile.name,
             matchKind: 'fallback',
+            holdToOpen: activeRecord.profile.holdToOpen ?? false,
           },
         });
       }
@@ -168,6 +170,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
               index: selection.index,
               name: selection.name,
               matchKind: selection.matchKind,
+              holdToOpen: selection.holdToOpen,
             }
           : null;
       }

@@ -119,6 +119,7 @@ pub(crate) fn build_default_profile_record(
             }),
             activation_rules: Vec::new(),
             root_menu: root_menu_id,
+            hold_to_open: false,
         },
         menus: vec![menu],
         actions,
@@ -599,18 +600,26 @@ impl ProfileRepository {
 }
 
 fn convert_legacy_profile(source: &AppProfile) -> ProfileRecord {
+    let legacy_hotkey = extract_global_hotkey(source);
+    let hold_to_open = if source.pie_enable_key.use_enable_key {
+        !source.pie_enable_key.toggle
+    } else {
+        false
+    };
+
     let profile = Profile {
         id: ProfileId::new(),
         name: if source.name.trim().is_empty() {
             "Untitled Profile".to_string()
         } else {
-            source.name.clone()
+            source.name.trim().to_string()
         },
         description: None,
         enabled: source.enable,
-        global_hotkey: extract_global_hotkey(source),
-        activation_rules: convert_activation_rules(&source.ahk_handles),
+        global_hotkey: legacy_hotkey,
+        activation_rules: Vec::new(),
         root_menu: PieMenuId::new(),
+        hold_to_open,
     };
 
     let mut menus = Vec::new();

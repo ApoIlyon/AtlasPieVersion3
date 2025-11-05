@@ -36,6 +36,10 @@ fn default_enabled() -> bool {
     true
 }
 
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
@@ -50,6 +54,8 @@ pub struct Profile {
     #[serde(default)]
     pub activation_rules: Vec<ActivationRule>,
     pub root_menu: PieMenuId,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub hold_to_open: bool,
 }
 
 impl Profile {
@@ -62,6 +68,7 @@ impl Profile {
             global_hotkey: None,
             activation_rules: Vec::new(),
             root_menu,
+            hold_to_open: false,
         }
     }
 }

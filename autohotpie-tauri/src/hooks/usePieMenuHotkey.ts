@@ -4,6 +4,7 @@ import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import type { PieSliceDefinition } from '../components/pie/PieMenu';
 import type { ActionEventPayload, ActionEventStatus } from '../types/actionEvents';
 import type { ActiveProfileSnapshot } from '../types/hotkeys';
+
 import { useHotkeyStore } from '../state/hotkeyStore';
 import { useSystemStore } from '../state/systemStore';
 import { useAppStore } from '../state/appStore';
@@ -199,11 +200,6 @@ function normalizeEventKey(eventKey: string | undefined): string | null {
   return lower;
 }
 
-interface WindowEventPayload {
-  isFullscreen: boolean;
-  storageMode: 'readWrite' | 'readOnly' | string;
-}
-
 export interface LastActionState {
   status: ActionEventStatus;
   message: string | null;
@@ -219,6 +215,7 @@ export interface UsePieMenuHotkeyOptions {
   autoCloseMs?: number;
   fallbackHotkey?: string | string[];
   activationMode?: 'toggle' | 'hold';
+  profileHoldToOpen?: boolean;
 }
 
 export interface PieMenuHotkeyState {
@@ -250,7 +247,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     hotkeyEvent = 'hotkeys://trigger',
     autoCloseMs = 0,
     fallbackHotkey = 'Control+Alt+Space',
-    activationMode = 'toggle',
+    activationMode: activationModeOverride,
+    profileHoldToOpen,
   } = options;
   const [isOpen, setIsOpen] = useState(false);
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
@@ -471,7 +469,20 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         .filter((parsed): parsed is ParsedHotkey => Boolean(parsed)),
     [fallbackHotkeys],
   );
-  const isHoldMode = activationMode === 'hold';
+  const resolvedActivationMode = useMemo<'toggle' | 'hold'>(() => {
+    if (activationModeOverride) {
+      return activationModeOverride;
+    }
+    if (profileHoldToOpen != null) {
+      return profileHoldToOpen ? 'hold' : 'toggle';
+    }
+    if (activeProfile?.holdToOpen) {
+      return 'hold';
+    }
+    return 'toggle';
+  }, [activationModeOverride, profileHoldToOpen, activeProfile?.holdToOpen]);
+
+  const isHoldMode = resolvedActivationMode === 'hold';
 
   useEffect(() => {
     if (!isTauriEnvironment() && typeof window !== 'undefined') {
@@ -860,24 +871,27 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
-      return;
-    }
-    const index = profileStoreState.activeProfileId
-      ? profileStoreState.profiles.findIndex((entry) => entry.profile.id === profileStoreState.activeProfileId)
-      : profileStoreState.profiles.length ? 0 : -1;
-    if (index >= 0) {
-      const record = profileStoreState.profiles[index];
-      setActiveProfile({
-        index,
-        name: record.profile.name,
-        matchKind: 'fallback',
-      });
+      const index = profileStoreState.activeProfileId
+        ? profileStoreState.profiles.findIndex((entry) => entry.profile.id === profileStoreState.activeProfileId)
+        : profileStoreState.profiles.length ? 0 : -1;
+
+      if (index >= 0) {
+        const record = profileStoreState.profiles[index];
+        setActiveProfile({
+          index,
+          name: record.profile.name,
+          matchKind: 'fallback',
+          holdToOpen: record.profile.holdToOpen ?? false,
+        });
+      } else {
+        setActiveProfile(null);
+      }
     }
   }, [profileStoreState.activeProfileId, profileStoreState.profiles]);
 
   const toggle = useCallback(() => {
     const now = Date.now();
-    
+
     // Block if in safe mode (fullscreen or read-only)
     if (currentSafeModeReason) {
       clearTimer();
@@ -890,7 +904,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       });
       return;
     }
-    
+
     setIsOpen((prev) => {
       if (hasConflictDialogOpen || hasHotkeyConflicts) {
         clearTimer();

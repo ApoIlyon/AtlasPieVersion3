@@ -32,10 +32,17 @@ export interface HotkeyConflictSnapshot {
   conflicts: HotkeyConflict[];
 }
 
-export type MatchKind = 'processName' | 'windowTitle' | 'fallback';
+export type MatchKind =
+  | 'processName'
+  | 'windowTitle'
+  | 'windowClass'
+  | 'screenArea'
+  | 'custom'
+  | 'fallback';
 
 export interface ActiveProfileSnapshot {
   index: number;
   name: string;
   matchKind: MatchKind;
+  holdToOpen: boolean;
 }

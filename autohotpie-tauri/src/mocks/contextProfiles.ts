@@ -11,6 +11,7 @@ export interface MockSelection {
   index: number;
   name: string;
   matchKind: 'processName' | 'windowTitle' | 'fallback';
+  holdToOpen: boolean;
 }
 
 function normalize(value: string | null | undefined): string {
@@ -63,6 +64,7 @@ export function selectMockActiveProfile(
         index,
         name: record.profile.name,
         matchKind: 'fallback',
+        holdToOpen: record.profile.holdToOpen ?? false,
       };
     }
   });
@@ -81,6 +83,7 @@ export function selectMockActiveProfile(
           index,
           name: record.profile.name,
           matchKind,
+          holdToOpen: record.profile.holdToOpen ?? false,
         };
       }
     }

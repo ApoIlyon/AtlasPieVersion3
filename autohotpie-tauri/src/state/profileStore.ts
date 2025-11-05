@@ -40,6 +40,7 @@ export interface Profile {
   globalHotkey?: string | null;
   activationRules: ActivationRule[];
   rootMenu: string;
+  holdToOpen?: boolean | null;
 }
 
 export interface PieSlice {
@@ -135,7 +136,10 @@ interface MockContextProfilesFile {
 
 function normalizeProfileRecord(record: ProfileRecordLike): ProfileRecord {
   return {
-    profile: { ...record.profile },
+    profile: {
+      ...record.profile,
+      holdToOpen: record.profile.holdToOpen ?? false,
+    },
     menus: (record.menus ?? []).map((menu) => ({
       ...menu,
       appearance: { ...menu.appearance },
@@ -501,6 +505,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       profile: {
         ...record.profile,
         activationRules: rules,
+        holdToOpen: record.profile.holdToOpen ?? false,
       },
     };
     const saved = await get().saveProfile(updated);
@@ -560,6 +565,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
       const payload = {
         name: input?.name,
         globalHotkey: input?.globalHotkey ?? null,
+        holdToOpen: false,
       };
       const record = await invoke<ProfileRecord>('create_profile', { payload });
       await get().refreshProfiles();
