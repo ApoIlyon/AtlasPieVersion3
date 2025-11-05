@@ -507,22 +507,122 @@ export function App() {
         { id: 'profiles' as AppSection, label: t('nav.profiles') },
         { id: 'actions' as AppSection, label: t('nav.actions') },
         { id: 'settings' as AppSection, label: t('nav.settings') },
-      ]),
-    [t, currentLanguage],
+      ] satisfies { id: AppSection; label: string }[]),
+    [t],
   );
 
+  const renderNavIcon = (section: AppSection) => {
+    switch (section) {
+      case 'dashboard':
+        return (
+          <svg
+            className="h-6 w-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2.25 12L11.204 3.045a.75.75 0 011.06 0L21.75 12"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M4.5 9.75v10.5A1.5 1.5 0 006 21.75h12a1.5 1.5 0 001.5-1.5V9.75"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M9 21.75V12h6v9.75"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case 'profiles':
+        return (
+          <svg
+            className="h-6 w-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M4.5 20.25a9.75 9.75 0 0115 0"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case 'actions':
+        return (
+          <svg
+            className="h-6 w-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2.25 12.75V6a1.5 1.5 0 011.5-1.5h5.379a1.5 1.5 0 011.06.44l1.121 1.12a1.5 1.5 0 001.06.44h5.13a1.5 1.5 0 011.5 1.5v4.13"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M2.25 12.75v7.5a1.5 1.5 0 001.5 1.5h16.5a1.5 1.5 0 001.5-1.5v-7.5H2.25z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      case 'settings':
+        return (
+          <svg
+            className="h-6 w-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9.594 2.25l-.413 1.654a1.125 1.125 0 01-1.095.846H6.75a1.125 1.125 0 00-1.125 1.125v1.336a1.125 1.125 0 01-.846 1.095l-1.654.413a1.125 1.125 0 00-.84 1.278l.286 1.429a1.125 1.125 0 00.756.84l.972.27a7.5 7.5 0 000 3.054l-.972.27a1.125 1.125 0 00-.756.84l-.286 1.429a1.125 1.125 0 00.84 1.278l1.654.413a1.125 1.125 0 01.846 1.095V18.75A1.125 1.125 0 006.75 19.875h1.336c.533 0 .994.36 1.095.846l.413 1.654a1.125 1.125 0 001.278.84l1.429-.286a1.125 1.125 0 00.84-.756l.27-.972a7.5 7.5 0 003.054 0l.27.972a1.125 1.125 0 00.84.756l1.429.286a1.125 1.125 0 001.278-.84l.413-1.654a1.125 1.125 0 011.095-.846h1.336A1.125 1.125 0 0021.75 18.75v-1.336a1.125 1.125 0 01.846-1.095l1.654-.413a1.125 1.125 0 00.84-1.278l-.286-1.429a1.125 1.125 0 00-.756-.84l-.972-.27a7.5 7.5 0 000-3.054l.972-.27a1.125 1.125 0 00.756-.84l.286-1.429a1.125 1.125 0 00-.84-1.278l-1.654-.413a1.125 1.125 0 01-.846-1.095V5.875A1.125 1.125 0 0018.75 4.75h-1.336a1.125 1.125 0 01-1.095-.846l-.413-1.654a1.125 1.125 0 00-1.278-.84l-1.429.286a1.125 1.125 0 00-.84.756l-.27.972a7.5 7.5 0 00-3.054 0l-.27-.972a1.125 1.125 0 00-.84-.756l-1.429-.286a1.125 1.125 0 00-1.278.84z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#090a13] text-text-primary">
-      {isMac && (
-        <MenuBarToggle
-          isPieMenuOpen={isPieMenuVisible}
-          onTogglePieMenu={togglePieMenu}
-          onOpenPieMenu={openPieMenu}
-          onClosePieMenu={closePieMenu}
-          lastAction={lastAction}
-          lastSafeModeReason={lastSafeModeReason}
-        />
-      )}
+    <div className="relative min-h-screen overflow-hidden bg-background text-white">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),transparent_65%)]" />
         <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
@@ -570,32 +670,38 @@ export function App() {
         </div>
       </header>
 
-      <main className="relative z-10 grid gap-6 px-8 py-10 lg:grid-cols-[320px,1fr]">
-        <nav className="space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              className={clsx(
-                'w-full rounded-2xl border px-4 py-3 text-left text-sm font-medium transition',
-                activeSection === item.id
-                  ? 'border-white/15 bg-white/15 text-white'
-                  : 'border-white/5 bg-white/5 text-white/70 hover:border-white/10 hover:bg-white/10 hover:text-white',
-              )}
-              type="button"
-              data-testid={`nav-${item.id}`}
-              onClick={() => {
-                setActiveSection(item.id);
-                if (item.id !== 'profiles') {
-                  setSelectedProfileId(null);
-                }
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
+      <main className="relative z-10 flex flex-col gap-8 px-8 py-10">
+        <nav className="flex justify-center">
+          <div className="flex items-center gap-4 rounded-[2.25rem] border border-white/10 bg-white/5 px-6 py-4 shadow-[0_0_45px_rgba(59,130,246,0.2)] backdrop-blur-xl">
+            {navItems.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  className={clsx(
+                    'flex h-14 w-14 items-center justify-center rounded-2xl border transition',
+                    isActive
+                      ? 'border-accent/70 bg-accent text-white shadow-[0_0_30px_rgba(59,130,246,0.45)]'
+                      : 'border-white/10 bg-white/10 text-white/60 hover:border-white/20 hover:bg-white/20 hover:text-white',
+                  )}
+                  type="button"
+                  data-testid={`nav-${item.id}`}
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    if (item.id !== 'profiles') {
+                      setSelectedProfileId(null);
+                    }
+                  }}
+                >
+                  <span className="sr-only">{item.label}</span>
+                  {renderNavIcon(item.id)}
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
-        <section className="rounded-3xl border border-white/5 bg-white/10/10 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+        <section className="rounded-3xl border border-white/5 bg-white/5 p-8 shadow-[0_0_35px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           {activeSection === 'dashboard' && (
             <>
               <h2 className="text-2xl font-semibold text-white">{t('dashboard.welcomeTitle')}</h2>
