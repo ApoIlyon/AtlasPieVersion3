@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { motion, useAnimationControls } from 'framer-motion';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -54,7 +53,6 @@ export function PieMenu({
   }, [sortedSlices.length]);
   const gapRadians = useMemo(() => toRadians(gapDeg), [gapDeg]);
 
-  const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
   const buttonDistance = useMemo(() => {
@@ -64,26 +62,51 @@ export function PieMenu({
 
   useLayoutEffect(() => {
     // Use layout effect for synchronous DOM updates - instant appearance
+    // Directly manipulate DOM to prevent any animation delays or flickering
+    if (!rootRef.current) return;
+    
+    const el = rootRef.current;
+    // CRITICAL: Disable all transitions first
+    el.style.transition = 'none';
+    // CRITICAL: Keep element in DOM always - don't remove it
+    // This prevents re-creation which causes flickering
+    
     if (visible) {
-      controls.set({
-        opacity: 1,
-        scale: 1,
-      });
+      // Instantly show - synchronous DOM update before paint
+      // Remove hidden attribute first
+      el.removeAttribute('hidden');
+      el.removeAttribute('aria-hidden');
+      // Then set styles
+      el.style.opacity = '1';
+      el.style.transform = 'scale(1) translateZ(0)';
+      el.style.pointerEvents = 'auto';
+      el.style.visibility = 'visible';
+      el.style.display = 'block';
+      // Force reflow to ensure styles are applied immediately
+      void el.offsetHeight;
     } else {
-      controls.set({
-        opacity: 0,
-        scale: 0.95,
-      });
+      // Instantly hide - but keep in DOM
+      el.style.opacity = '0';
+      el.style.transform = 'scale(1) translateZ(0)';
+      el.style.pointerEvents = 'none';
+      el.style.visibility = 'hidden';
+      // Keep display: block to prevent reflow
+      el.style.display = 'block';
+      el.setAttribute('hidden', '');
+      el.setAttribute('aria-hidden', 'true');
     }
-  }, [controls, visible]);
+  }, [visible]);
 
   useEffect(() => {
-    if (!visible && rootRef.current) {
-      const activeElement = document.activeElement;
-      if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
-        activeElement.blur();
-      }
-    }
+    // CRITICAL: Don't blur on hide - it can cause focus issues
+    // Only blur when menu is actually hidden and user interacted with it
+    // Removing this to prevent any focus-related menu closing
+    // if (!visible && rootRef.current) {
+    //   const activeElement = document.activeElement;
+    //   if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
+    //     activeElement.blur();
+    //   }
+    // }
   }, [visible]);
 
   if (sortedSlices.length === 0) {
@@ -95,19 +118,30 @@ export function PieMenu({
   }
 
   return (
-    <motion.div
+    <div
       ref={rootRef}
       data-testid={dataTestId}
       data-profiler-id="PieMenu"
       hidden={!visible}
       aria-hidden={!visible}
       className={clsx(
-        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
-        visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl',
+        visible ? 'pointer-events-auto' : 'pointer-events-none',
       )}
-      animate={controls}
-      initial={{ opacity: 0, scale: 0.95 }}
-      style={{ width: containerSize, height: containerSize }}
+      style={{ 
+        width: containerSize, 
+        height: containerSize,
+        // No transitions to prevent flickering - CRITICAL
+        transition: 'none !important',
+        // Optimize rendering - tell browser to optimize for this element
+        willChange: visible ? 'opacity, transform' : 'auto',
+        // Contain layout and paint to prevent reflows
+        contain: 'layout style paint',
+        // Force GPU acceleration for instant rendering
+        transform: 'scale(1) translateZ(0)',
+        // Direct opacity control - no CSS transitions, set via useLayoutEffect
+        opacity: visible ? 1 : 0,
+      }}
     >
       <div
         className="absolute rounded-full border border-border/40 bg-overlay/60 shadow-inner"
@@ -155,6 +189,6 @@ export function PieMenu({
           </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 }

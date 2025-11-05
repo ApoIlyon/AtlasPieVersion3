@@ -100,6 +100,7 @@ function usePlatform() {
 
 export function App() {
   const { t, currentLanguage } = useLocalization();
+  const pieMenuOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isTauriEnvironment()) {
       const tauriWindow = window as typeof window & {
@@ -465,11 +466,48 @@ export function App() {
     void systemInit();
   }, [initialize, systemInit]);
 
+  // Use layout effect to instantly update overlay DOM - prevents flickering from browser rendering
+  useLayoutEffect(() => {
+    if (!pieMenuOverlayRef.current) return;
+    
+    const el = pieMenuOverlayRef.current;
+    // CRITICAL: Always keep element in DOM, just change visibility
+    // Don't use display: none - it causes reflow and delay
+    el.style.transition = 'none';
+    
+    if (isPieMenuVisible) {
+      // Instantly show - synchronous DOM update before paint
+      el.style.opacity = '1';
+      el.style.pointerEvents = 'auto';
+      el.style.visibility = 'visible';
+      el.removeAttribute('hidden');
+      // Use display: flex but keep it in layout
+      el.style.display = 'flex';
+      // Force reflow to ensure styles are applied immediately
+      void el.offsetHeight;
+    } else {
+      // Instantly hide - but keep in DOM to prevent re-creation
+      el.style.opacity = '0';
+      el.style.pointerEvents = 'none';
+      el.style.visibility = 'hidden';
+      el.setAttribute('hidden', '');
+      // Keep display: flex to prevent layout recalculation
+      // Just make it invisible
+      el.style.display = 'flex';
+    }
+  }, [isPieMenuVisible]);
+
+  // Only set active slice when menu becomes visible, not on every render
+  const prevVisibleRef = useRef(false);
   useEffect(() => {
-    if (menuSlices.length > 0 && isPieMenuVisible && !activeSliceId) {
+    const wasVisible = prevVisibleRef.current;
+    prevVisibleRef.current = isPieMenuVisible;
+    
+    // Only set active slice when menu first becomes visible
+    if (menuSlices.length > 0 && isPieMenuVisible && !wasVisible && !activeSliceId) {
       setActiveSlice(menuSlices[0].id);
     }
-  }, [activeSliceId, isPieMenuVisible, menuSlices, setActiveSlice]);
+  }, [isPieMenuVisible, menuSlices, activeSliceId, setActiveSlice]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -853,15 +891,26 @@ export function App() {
       </main>
 
       <div
+        ref={pieMenuOverlayRef}
         className={clsx(
           'fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm',
           isPieMenuVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
-        style={{ 
-          transition: isPieMenuVisible ? 'none' : 'opacity 0.05s ease-out',
-        }}
         onClick={closePieMenu}
         hidden={!isPieMenuVisible}
+        style={{ 
+          // No transitions to prevent flickering - instant show/hide like kando
+          // CRITICAL: Use !important to override any CSS transitions
+          transition: 'none !important',
+          // Optimize rendering - tell browser to optimize for this element
+          willChange: isPieMenuVisible ? 'opacity' : 'auto',
+          // Contain layout and paint to prevent reflows
+          contain: 'layout style paint',
+          // Force GPU acceleration
+          transform: 'translateZ(0)',
+          // Direct opacity control - no CSS transitions
+          opacity: isPieMenuVisible ? 1 : 0,
+        }}
       >
             <div
               className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
@@ -871,7 +920,7 @@ export function App() {
                 <>
                   <PieMenu
                     slices={menuSlices}
-                    visible
+                    visible={isPieMenuVisible}
                     radius={200}
                     gapDeg={8}
                     activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
