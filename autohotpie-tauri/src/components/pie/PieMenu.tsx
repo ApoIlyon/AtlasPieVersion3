@@ -1,5 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { motion, useAnimationControls } from 'framer-motion';
+import { useEffect, useMemo, useRef } from 'react';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -47,31 +46,55 @@ export function PieMenu({
     [slices],
   );
 
-  const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     // Use layout effect for synchronous DOM updates - instant appearance
+    // Directly manipulate DOM to prevent any animation delays or flickering
+    if (!rootRef.current) return;
+    
+    const el = rootRef.current;
+    // CRITICAL: Disable all transitions first
+    el.style.transition = 'none';
+    // CRITICAL: Keep element in DOM always - don't remove it
+    // This prevents re-creation which causes flickering
+    
     if (visible) {
-      controls.set({
-        opacity: 1,
-        scale: 1,
-      });
+      // Instantly show - synchronous DOM update before paint
+      // Remove hidden attribute first
+      el.removeAttribute('hidden');
+      el.removeAttribute('aria-hidden');
+      // Then set styles
+      el.style.opacity = '1';
+      el.style.transform = 'scale(1) translateZ(0)';
+      el.style.pointerEvents = 'auto';
+      el.style.visibility = 'visible';
+      el.style.display = 'block';
+      // Force reflow to ensure styles are applied immediately
+      void el.offsetHeight;
     } else {
-      controls.set({
-        opacity: 0,
-        scale: 0.95,
-      });
+      // Instantly hide - but keep in DOM
+      el.style.opacity = '0';
+      el.style.transform = 'scale(1) translateZ(0)';
+      el.style.pointerEvents = 'none';
+      el.style.visibility = 'hidden';
+      // Keep display: block to prevent reflow
+      el.style.display = 'block';
+      el.setAttribute('hidden', '');
+      el.setAttribute('aria-hidden', 'true');
     }
-  }, [controls, visible]);
+  }, [visible]);
 
   useEffect(() => {
-    if (!visible && rootRef.current) {
-      const activeElement = document.activeElement;
-      if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
-        activeElement.blur();
-      }
-    }
+    // CRITICAL: Don't blur on hide - it can cause focus issues
+    // Only blur when menu is actually hidden and user interacted with it
+    // Removing this to prevent any focus-related menu closing
+    // if (!visible && rootRef.current) {
+    //   const activeElement = document.activeElement;
+    //   if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
+    //     activeElement.blur();
+    //   }
+    // }
   }, [visible]);
 
   if (sortedSlices.length === 0) {
@@ -83,7 +106,7 @@ export function PieMenu({
   }
 
   return (
-    <motion.div
+    <div
       ref={rootRef}
       data-testid={dataTestId}
       data-profiler-id="PieMenu"
@@ -93,9 +116,6 @@ export function PieMenu({
         'relative flex aspect-square w-full max-w-[460px] select-none items-center justify-center',
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
-      animate={controls}
-      initial={{ opacity: 0, scale: 0.92 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       style={{
         '--radial-item-size': `56px`,
       } as React.CSSProperties}
@@ -156,6 +176,6 @@ export function PieMenu({
           {centerContent || 'Menu'}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
