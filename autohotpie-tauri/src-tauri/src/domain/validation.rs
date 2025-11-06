@@ -345,6 +345,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: menu.id,
+            hold_to_open: false,
         };
 
         let result = validate_profile(&profile, &[menu.clone()], &[action.clone()]);

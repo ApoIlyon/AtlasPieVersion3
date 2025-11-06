@@ -273,7 +273,7 @@
           }
         ],
         "rootMenu": "browser-root",
-        "holdToOpen": true
+        "holdToOpen": false
       },
       "menus": [
         {

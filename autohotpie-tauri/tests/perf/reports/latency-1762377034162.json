@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2025-11-05T21:10:34.162Z",
+  "project": "firefox",
+  "iterations": 20,
+  "hotkey": "Control+Shift+P",
+  "actionLatency": {
+    "samples": [
+      155,
+      104,
+      104,
+      114,
+      74,
+      85,
+      94,
+      82,
+      95,
+      140,
+      87,
+      109,
+      65,
+      72,
+      77,
+      100,
+      79,
+      69,
+      128,
+      97
+    ],
+    "median": 94.5,
+    "p95": 155,
+    "mean": 96.5
+  },
+  "menuAnimation": {
+    "samples": [],
+    "median": 0,
+    "p95": 0
+  },
+  "heapUsageMb": {
+    "samples": [],
+    "max": null
+  }
+}

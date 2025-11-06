@@ -11,8 +11,9 @@ fn sample_store() -> ProfileStore {
         description: None,
         enabled: true,
         global_hotkey: None,
-        activation_rules: vec![],
+        activation_rules: Vec::new(),
         root_menu: PieMenuId::new(),
+        hold_to_open: false,
     };
     store.profiles.push(ProfileRecord {
         profile,

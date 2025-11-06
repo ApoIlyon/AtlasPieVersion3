@@ -9,6 +9,7 @@ import { useHotkeyStore } from '../state/hotkeyStore';
 import { useSystemStore } from '../state/systemStore';
 import { useAppStore } from '../state/appStore';
 import { useProfileStore } from '../state/profileStore';
+import type { StorageMode, WindowSnapshot } from '../state/types';
 
 type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<any>;
 
@@ -217,6 +218,7 @@ export interface UsePieMenuHotkeyOptions {
   fallbackHotkey?: string | string[];
   activationMode?: 'toggle' | 'hold';
   profileHoldToOpen?: boolean;
+  initialActiveProfile?: ActiveProfileSnapshot | null;
 }
 
 export interface PieMenuHotkeyState {
@@ -250,6 +252,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     fallbackHotkey = 'Control+Alt+Space',
     activationMode: activationModeOverride,
     profileHoldToOpen,
+    initialActiveProfile,
   } = options;
   const [isOpen, setIsOpen] = useState(false);
   
@@ -285,14 +288,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     // This prevents any other logic from closing the menu while key is held
     // Use ref to get current value (updated when activeProfile changes)
     const isHoldMode = resolvedActivationModeRef.current === 'hold';
-    if (!newValue && currentValue && isHoldMode) {
-      // Check if this close is from keyup handler (which sets allowCloseInHoldModeRef)
-      if (!allowCloseInHoldModeRef.current) {
-        // Block ALL other attempts to close in hold mode
-        console.log(`[PieMenu] Blocked close in HOLD mode - menu must stay open while key is held`);
-        return; // Block the close - menu must stay open
+    if (!newValue && currentValue && isHoldMode && !allowCloseInHoldModeRef.current) {
+      const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
+      if (timeSinceOpen < 150) {
+        return;
       }
-      // If allowCloseInHoldModeRef is true, allow the close (from keyup handler)
     }
     
     // If trying to close, check protection time (for toggle mode)
@@ -533,18 +533,9 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       
       // Only close menu on success, and only if it was recently opened (not just opened)
       if (payload.status === 'success') {
-        // CRITICAL: In hold mode, don't close menu from action success - let user release key first
-        const isHoldMode = resolvedActivationModeRef.current === 'hold';
-        if (isHoldMode) {
-          // Don't close in hold mode - menu will close when key is released
-          return;
-        }
-        
-        const timeSinceOpen = now - (lastToggleAtRef.current ?? 0);
-        // Don't close if menu was just opened to prevent accidental closure
-        // Use longer protection time to prevent menu from disappearing immediately
-        if (timeSinceOpen > 500) { // Increased to 500ms to prevent immediate closure
-          setIsOpenSafe(false);
+        if (resolvedActivationModeRef.current !== 'hold') {
+          isOpenRef.current = false;
+          setIsOpen(false);
           clearTimer();
         }
         return;
@@ -552,7 +543,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       
       // For other statuses, don't auto-close - let user control it
     },
-    [clearTimer, resolvedActivationMode],
+    [clearTimer],
   );
   
   // Auto-close menu if safe mode is enabled
@@ -764,8 +755,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       if (!stillPressed) {
         activeHoldHotkeyRef.current = null;
         lastToggleAtRef.current = Date.now();
-        clearTimer();
-        setIsOpenSafe(false);
+        closeMenuFromKeyUp();
       }
     };
 
@@ -863,6 +853,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     let failedUnlisten: (() => void) | undefined;
     let aggregatedUnlisten: (() => void) | undefined;
     let windowUnlisten: (() => void) | undefined;
+    let storageModeUnlisten: (() => void) | undefined;
     let profileUnlisten: (() => void) | undefined;
 
     const setup = async () => {
@@ -1047,14 +1038,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         });
       }
 
-      windowUnlisten = await listen<WindowEventPayload>('system://window-info', (event) => {
-        const { isFullscreen, storageMode } = event.payload;
+      windowUnlisten = await listen<WindowSnapshot>('system://window-info', (event) => {
+        const { isFullscreen } = event.payload;
         if (isFullscreen) {
           setLastSafeModeReason('Fullscreen application detected. Pie menu is paused to avoid interference.');
-        } else if (storageMode === 'readOnly') {
-          setLastSafeModeReason(
-            'Storage is read-only. Pie menu is paused until write access is restored.',
-          );
+        } else {
+          setLastSafeModeReason(null);
+        }
+      });
+
+      storageModeUnlisten = await listen<{ mode: StorageMode }>('system://storage-mode', (event) => {
+        if (event.payload.mode === 'read_only') {
+          setLastSafeModeReason('Storage is read-only. Pie menu is paused until write access is restored.');
         } else {
           setLastSafeModeReason(null);
         }
@@ -1070,6 +1065,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       executedUnlisten?.();
       aggregatedUnlisten?.();
       windowUnlisten?.();
+      storageModeUnlisten?.();
       profileUnlisten?.();
     };
   }, [autoCloseMs, clearTimer, hotkeyEvent, recordActionOutcome, scheduleAutoClose]);
@@ -1189,24 +1185,44 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [isOpen, resolvedActivationMode, hotkeyEvent, clearTimer]);
 
   useEffect(() => {
-    if (!isTauriEnvironment()) {
-      const index = profileStoreState.activeProfileId
-        ? profileStoreState.profiles.findIndex((entry) => entry.profile.id === profileStoreState.activeProfileId)
-        : profileStoreState.profiles.length ? 0 : -1;
+    if (isTauriEnvironment()) {
+      return;
+    }
 
-      if (index >= 0) {
-        const record = profileStoreState.profiles[index];
-        setActiveProfile({
-          index,
-          name: record.profile.name,
-          matchKind: 'fallback',
-          holdToOpen: record.profile.holdToOpen ?? false,
-        });
-      } else {
-        setActiveProfile(null);
+    const profiles = profileStoreState.profiles;
+
+    const selectFromRecord = (record: (typeof profiles)[number] | undefined, index: number, matchKind: ActiveProfileSnapshot['matchKind']) => {
+      if (!record) {
+        return null;
+      }
+      return {
+        index,
+        name: record.profile.name,
+        matchKind,
+        holdToOpen: record.profile.holdToOpen ?? false,
+      } satisfies ActiveProfileSnapshot;
+    };
+
+    let snapshot: ActiveProfileSnapshot | null = null;
+
+    if (initialActiveProfile) {
+      snapshot = selectFromRecord(profiles[initialActiveProfile.index], initialActiveProfile.index, initialActiveProfile.matchKind);
+      if (snapshot) {
+        snapshot = { ...snapshot, holdToOpen: initialActiveProfile.holdToOpen ?? snapshot.holdToOpen };
       }
     }
-  }, [profileStoreState.activeProfileId, profileStoreState.profiles]);
+
+    if (!snapshot && profileStoreState.activeProfileId) {
+      const index = profiles.findIndex((entry) => entry.profile.id === profileStoreState.activeProfileId);
+      snapshot = selectFromRecord(profiles[index], index, 'fallback');
+    }
+
+    if (!snapshot && profiles.length) {
+      snapshot = selectFromRecord(profiles[0], 0, 'fallback');
+    }
+
+    setActiveProfile(snapshot);
+  }, [initialActiveProfile, profileStoreState.activeProfileId, profileStoreState.profiles]);
 
   const toggle = useCallback(() => {
     const now = Date.now();
