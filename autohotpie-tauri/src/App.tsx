@@ -364,6 +364,7 @@ export function App() {
     hotkeyEvent: 'hotkeys://trigger',
     autoCloseMs: 0,
     profileHoldToOpen: systemActiveProfile?.holdToOpen,
+    initialActiveProfile: systemActiveProfile,
   });
   const {
     isOpen: isPieMenuVisible,
@@ -547,7 +548,7 @@ export function App() {
         { id: 'actions' as AppSection, label: t('nav.actions') },
         { id: 'settings' as AppSection, label: t('nav.settings') },
       ] satisfies { id: AppSection; label: string }[]),
-    [t],
+    [t, currentLanguage],
   );
 
   const renderNavIcon = (section: AppSection) => {
