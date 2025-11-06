@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -23,12 +23,7 @@ export interface PieMenuProps {
   dataTestId?: string;
 }
 
-const TAU = Math.PI * 2;
 const DEFAULT_RADIUS = 156;
-
-function toRadians(deg: number) {
-  return (deg * Math.PI) / 180;
-}
 
 export function PieMenu({
   slices,
@@ -46,10 +41,6 @@ export function PieMenu({
     [slices],
   );
 
-  const rootRef = useRef<HTMLDivElement | null>(null);
-
-
-
   if (sortedSlices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-overlay/70 p-12 text-center text-sm text-text-muted">
@@ -60,7 +51,6 @@ export function PieMenu({
 
   return (
     <div
-      ref={rootRef}
       data-testid={dataTestId}
       data-profiler-id="PieMenu"
       aria-hidden={!visible}
