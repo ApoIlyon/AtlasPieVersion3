@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { motion, useAnimationControls } from 'framer-motion';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -53,6 +54,7 @@ export function PieMenu({
   }, [sortedSlices.length]);
   const gapRadians = useMemo(() => toRadians(gapDeg), [gapDeg]);
 
+  const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
   const buttonDistance = useMemo(() => {
@@ -60,54 +62,39 @@ export function PieMenu({
     return Math.max(base, radius * 0.65);
   }, [radius, innerInset]);
 
-  useLayoutEffect(() => {
-    // Use layout effect for synchronous DOM updates - instant appearance
-    // Directly manipulate DOM to prevent any animation delays or flickering
-    if (!rootRef.current) return;
-    
-    const el = rootRef.current;
-    // CRITICAL: Disable all transitions first
-    el.style.transition = 'none';
-    // CRITICAL: Keep element in DOM always - don't remove it
-    // This prevents re-creation which causes flickering
-    
-    if (visible) {
-      // Instantly show - synchronous DOM update before paint
-      // Remove hidden attribute first
-      el.removeAttribute('hidden');
-      el.removeAttribute('aria-hidden');
-      // Then set styles
-      el.style.opacity = '1';
-      el.style.transform = 'scale(1) translateZ(0)';
-      el.style.pointerEvents = 'auto';
-      el.style.visibility = 'visible';
-      el.style.display = 'block';
-      // Force reflow to ensure styles are applied immediately
-      void el.offsetHeight;
-    } else {
-      // Instantly hide - but keep in DOM
-      el.style.opacity = '0';
-      el.style.transform = 'scale(1) translateZ(0)';
-      el.style.pointerEvents = 'none';
-      el.style.visibility = 'hidden';
-      // Keep display: block to prevent reflow
-      el.style.display = 'block';
-      el.setAttribute('hidden', '');
-      el.setAttribute('aria-hidden', 'true');
-    }
-  }, [visible]);
-
   useEffect(() => {
-    // CRITICAL: Don't blur on hide - it can cause focus issues
-    // Only blur when menu is actually hidden and user interacted with it
-    // Removing this to prevent any focus-related menu closing
-    // if (!visible && rootRef.current) {
-    //   const activeElement = document.activeElement;
-    //   if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
-    //     activeElement.blur();
-    //   }
-    // }
-  }, [visible]);
+    let cancelled = false;
+
+    const runAnimation = async () => {
+      if (typeof performance !== 'undefined') {
+        performance.mark('PieMenu:animation-start');
+      }
+
+      await controls.start({
+        opacity: visible ? 1 : 0,
+        scale: visible ? 1 : 0.92,
+        transition: { type: 'spring', stiffness: 260, damping: 22 },
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      if (typeof performance !== 'undefined') {
+        performance.mark('PieMenu:animation-end');
+        const hasStart = performance.getEntriesByName('PieMenu:animation-start').length > 0;
+        if (hasStart) {
+          performance.measure('PieMenu:animation', 'PieMenu:animation-start', 'PieMenu:animation-end');
+        }
+      }
+    };
+
+    void runAnimation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controls, visible]);
 
   if (sortedSlices.length === 0) {
     return (
@@ -118,29 +105,23 @@ export function PieMenu({
   }
 
   return (
-    <div
+    <motion.div
       ref={rootRef}
       data-testid={dataTestId}
       data-profiler-id="PieMenu"
-      hidden={!visible}
       aria-hidden={!visible}
       className={clsx(
-        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl',
-        visible ? 'pointer-events-auto' : 'pointer-events-none',
+        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
+        visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
-      style={{ 
-        width: containerSize, 
+      animate={controls}
+      initial={{ opacity: 0, scale: 0.92 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      style={{
+        width: containerSize,
         height: containerSize,
-        // No transitions to prevent flickering - CRITICAL
-        transition: 'none !important',
-        // Optimize rendering - tell browser to optimize for this element
-        willChange: visible ? 'opacity, transform' : 'auto',
-        // Contain layout and paint to prevent reflows
         contain: 'layout style paint',
-        // Force GPU acceleration for instant rendering
-        transform: 'scale(1) translateZ(0)',
-        // Direct opacity control - no CSS transitions, set via useLayoutEffect
-        opacity: visible ? 1 : 0,
+        transform: 'translateZ(0)',
       }}
     >
       <div
@@ -189,6 +170,6 @@ export function PieMenu({
           </button>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

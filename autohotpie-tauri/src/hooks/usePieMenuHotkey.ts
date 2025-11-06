@@ -760,11 +760,14 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     };
 
     const handleBlur = () => {
-      // CRITICAL: Don't close menu on blur - it causes menu to disappear immediately
-      // Only clear pressed keys, but don't close menu
-      // The menu should only close from user actions or hotkey release
-      pressedKeysRef.current.clear();
-      // Don't close menu on window blur - it's too aggressive
+      const isHoldMode = resolvedActivationModeRef.current === 'hold';
+      if (isHoldMode && activeHoldHotkeyRef.current) {
+        setTimeout(() => {
+          clearMenuState();
+        }, 150);
+      } else {
+        pressedKeysRef.current.clear();
+      }
     };
 
     const toggleEvent = () => {
