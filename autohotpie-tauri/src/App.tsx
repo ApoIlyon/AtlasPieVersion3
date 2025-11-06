@@ -898,7 +898,6 @@ export function App() {
           isPieMenuVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         onClick={closePieMenu}
-        hidden={!isPieMenuVisible}
         style={{ 
           // No transitions to prevent flickering - instant show/hide like kando
           // CRITICAL: Use !important to override any CSS transitions

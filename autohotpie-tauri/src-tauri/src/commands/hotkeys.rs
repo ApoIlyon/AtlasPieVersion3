@@ -345,9 +345,12 @@ fn register_shortcut<R: Runtime>(
     let payload_for_emit = payload.clone();
     app.global_shortcut()
         .on_shortcut(shortcut, move |handle, _shortcut, _event| {
-            if let Err(err) = profile_router::resolve_now(&handle) {
-                eprintln!("failed to resolve active profile on hotkey: {err}");
-            }
+            let handle_for_resolve = handle.clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                if let Err(err) = profile_router::resolve_now(&handle_for_resolve) {
+                    eprintln!("failed to resolve active profile on hotkey: {err}");
+                }
+            });
             let _ = handle.emit(&event_for_emit, payload_for_emit.clone());
         })
         .map_err(|err| AppError::Message(format!("failed to register global shortcut: {err}")))
