@@ -56,7 +56,6 @@ export function PieMenu({
 
   const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const hasAnimatedRef = useRef(false);
   const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
   const buttonDistance = useMemo(() => {
     const base = radius - innerInset - 24;
@@ -67,23 +66,15 @@ export function PieMenu({
     let cancelled = false;
 
     const runAnimation = async () => {
-      const transition = { type: 'spring', stiffness: 260, damping: 22 } as const;
-      const target = {
-        opacity: visible ? 1 : 0,
-        scale: visible ? 1 : 0.92,
-      };
-
-      if (!hasAnimatedRef.current) {
-        controls.set(target);
-        hasAnimatedRef.current = true;
-        return;
-      }
-
       if (typeof performance !== 'undefined') {
         performance.mark('PieMenu:animation-start');
       }
 
-      await controls.start({ ...target, transition });
+      await controls.start({
+        opacity: visible ? 1 : 0,
+        scale: visible ? 1 : 0.92,
+        transition: { type: 'spring', stiffness: 260, damping: 22 },
+      });
 
       if (cancelled) {
         return;

@@ -242,7 +242,6 @@ export interface PieMenuHotkeyState {
     timestamp?: string;
     durationMs?: number | null;
     invocationId?: string | null;
-    preventMenuClose?: boolean;
   }) => void;
 }
 
@@ -497,56 +496,44 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       timestamp?: string;
       durationMs?: number | null;
       invocationId?: string | null;
-      preventMenuClose?: boolean;
     }) => {
-      const {
-        preventMenuClose = false,
-        id,
-        name,
-        status,
-        message,
-        timestamp: providedTimestamp,
-        durationMs: providedDuration,
-        invocationId: providedInvocationId,
-      } = payload;
-
-      const timestamp = providedTimestamp ?? new Date().toISOString();
-      const durationMs = providedDuration ?? null;
-      const invocationId = providedInvocationId ?? null;
+      const timestamp = payload.timestamp ?? new Date().toISOString();
+      const durationMs = payload.durationMs ?? null;
+      const invocationId = payload.invocationId ?? null;
 
       const now = Date.now();
       const duplicateToast =
         lastToastRef.current &&
-        lastToastRef.current.id === id &&
+        lastToastRef.current.id === payload.id &&
         now - lastToastRef.current.timestamp < ACTION_TOAST_DEDUP_MS;
 
       if (!duplicateToast) {
         setLastAction({
-          status,
-          message: message ?? null,
-          actionId: id,
-          actionName: name,
+          status: payload.status,
+          message: payload.message ?? null,
+          actionId: payload.id,
+          actionName: payload.name,
           timestamp,
           durationMs,
           invocationId,
         });
-        lastToastRef.current = { id, timestamp: now };
+        lastToastRef.current = { id: payload.id, timestamp: now };
       }
 
       const recordAppMetric = useAppStore.getState().recordActionMetric;
       recordAppMetric({
-        actionId: id,
-        actionName: name,
-        status,
-        message: message ?? null,
+        actionId: payload.id,
+        actionName: payload.name,
+        status: payload.status,
+        message: payload.message ?? null,
         timestamp,
         durationMs,
         invocationId,
       });
       
       // Only close menu on success, and only if it was recently opened (not just opened)
-      if (status === 'success' && !preventMenuClose) {
-        if (resolvedActivationModeRef.current !== 'hold' && isOpenRef.current) {
+      if (payload.status === 'success') {
+        if (resolvedActivationModeRef.current !== 'hold') {
           isOpenRef.current = false;
           setIsOpen(false);
           clearTimer();
@@ -920,7 +907,6 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
               timestamp: last.timestamp,
               durationMs: last.durationMs,
               invocationId: last.invocationId ?? null,
-              preventMenuClose: true,
             });
           }
           aggregatedUnlisten = await listen<ActionEventPayload>('actions://event', (event) => {
