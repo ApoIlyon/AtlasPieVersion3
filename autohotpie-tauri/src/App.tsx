@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
@@ -11,14 +10,6 @@ import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistration
 import { useHotkeyStore } from './state/hotkeyStore';
 import { useProfileStore, selectProfileHotkeyStatus } from './state/profileStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
-import { PieMenu, type PieSliceDefinition } from './components/pie/PieMenu';
-import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
-import { ActionToast } from './components/feedback/ActionToast';
-import { FullscreenNotice } from './components/pie/FullscreenNotice';
-import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
-import { MenuBarToggle } from './components/tray/MenuBarToggle';
-import type { HotkeyRegistrationStatus } from './types/hotkeys';
-import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
@@ -31,17 +22,6 @@ import { useUpdateStore } from './state/updateStore';
 import type { UpdateStatus } from './state/types';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
-
-const FALLBACK_PLACEHOLDER_SLICES = [
-  { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },
-  { id: 'fallback-open-downloads', label: 'Open Downloads', order: 1 },
-  { id: 'fallback-mute-audio', label: 'Mute Audio', order: 2 },
-  { id: 'fallback-start-record', label: 'Start Screen Record', order: 3 },
-  { id: 'fallback-snap-layout', label: 'Snap Layout', order: 4 },
-  { id: 'fallback-clipboard-history', label: 'Clipboard History', order: 5 },
-  { id: 'fallback-window-layout', label: 'Window Layout', order: 6 },
-  { id: 'fallback-task-switcher', label: 'Task Switcher', order: 7 },
-];
 
 function useVersion() {
   const [version, setVersion] = useState<string | null>(null);
@@ -56,46 +36,6 @@ function useVersion() {
   }, []);
 
   return version;
-}
-
-function usePlatform() {
-  const [isLinux, setIsLinux] = useState(false);
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    const detect = () => {
-      let linux = false;
-      let mac = false;
-      if (typeof navigator !== 'undefined' && navigator.userAgent) {
-        linux = /linux/i.test(navigator.userAgent);
-        mac = /macintosh|mac os x/i.test(navigator.userAgent);
-      }
-      if (typeof window !== 'undefined') {
-        const platformHint = (window as unknown as { process?: { platform?: string } }).process?.platform;
-        if (platformHint) {
-          const normalized = platformHint.toLowerCase();
-          linux = linux || normalized === 'linux';
-          mac = mac || normalized === 'darwin';
-        }
-        const params = new URLSearchParams(window.location.search);
-        const mockPlatform = params.get('mockPlatform');
-        if (mockPlatform === 'linux') {
-          linux = true;
-          mac = false;
-        } else if (mockPlatform === 'mac') {
-          mac = true;
-          linux = false;
-        }
-      }
-      return { linux, mac };
-    };
-
-    const result = detect();
-    setIsLinux(result.linux);
-    setIsMac(result.mac);
-  }, []);
-
-  return { isLinux, isMac };
 }
 
 export function App() {
@@ -117,7 +57,6 @@ export function App() {
   }, []);
 
   const version = useVersion();
-  const { isLinux, isMac } = usePlatform();
   const { settings, isLoading, error } = useAppStore((state) => ({
     settings: state.settings,
     isLoading: state.isLoading,
@@ -229,12 +168,6 @@ export function App() {
   } else if (profilesInitialized) {
     statusMessages.push(loadedProfilesText);
   }
-
-  const previewHotkeyLabel = 'Ctrl + Shift + P';
-  const previewBodyTemplate = t('dashboard.previewBody');
-  const previewBodyParts = previewBodyTemplate.split('{hotkey}');
-  const previewBodyBefore = previewBodyParts[0] ?? previewBodyTemplate;
-  const previewBodyAfter = previewBodyParts[1] ?? '';
 
   useEffect(() => {
     if (isTauriEnvironment()) {
@@ -359,73 +292,6 @@ export function App() {
     return profiles.find((record) => record.profile.id === selectedProfileId) ?? null;
   }, [profiles, selectedProfileId]);
 
-  const pieMenuState = usePieMenuHotkey({
-    hotkeyEvent: 'hotkeys://trigger',
-    autoCloseMs: 0,
-  });
-  const {
-    isOpen: isPieMenuVisible,
-    activeSliceId,
-    setActiveSlice,
-    handleSelect,
-    lastAction,
-    clearLastAction,
-    lastSafeModeReason,
-    activeProfile: pieMenuActiveProfile,
-    toggle: togglePieMenu,
-    open: openPieMenu,
-    close: closePieMenu,
-  } = pieMenuState;
-
-  const menuSlices = useMemo<PieSliceDefinition[]>(() => {
-    const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
-    const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
-
-    if (!isTauriEnvironment()) {
-      if (activeSnapshot) {
-        const mockSlices = slicesForProfile(activeSnapshot.index);
-        if (mockSlices.length) {
-          return mockSlices;
-        }
-      }
-      const fallbackMock = slicesForProfile(0);
-      return fallbackMock.length ? fallbackMock : fallbackSlices;
-    }
-
-    if (!profiles.length) {
-      return fallbackSlices;
-    }
-
-    let activeRecord =
-      (activeSnapshot?.index != null ? profiles[activeSnapshot.index] : undefined) ??
-      (activeProfileId ? profiles.find((record) => record.profile.id === activeProfileId) : undefined) ??
-      profiles[0];
-
-    if (!activeRecord) {
-      return fallbackSlices;
-    }
-
-    const rootMenu =
-      activeRecord.menus.find((menu) => menu.id === activeRecord.profile.rootMenu) ??
-      activeRecord.menus[0];
-
-    if (!rootMenu) {
-      return fallbackSlices;
-    }
-
-    const derivedSlices = [...rootMenu.slices]
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map<PieSliceDefinition>((slice, order) => ({
-        id: slice.id,
-        label: slice.label || `Slice ${order + 1}`,
-        order: slice.order ?? order,
-      }));
-
-    return derivedSlices.length ? derivedSlices : fallbackSlices;
-  }, [activeProfileId, pieMenuActiveProfile, profiles, systemActiveProfile]);
-
-  const previousMatchKindRef = useRef<string | null>(null);
-
   const isProfileConflictOnly = useMemo(
     () => Boolean(!dialogStatus && profileHotkeyStatus && !profileHotkeyStatus.registered),
     [dialogStatus, profileHotkeyStatus],
@@ -449,52 +315,9 @@ export function App() {
   }, [clearProfileHotkeyStatus, closeDialog]);
 
   useEffect(() => {
-    const currentKind = pieMenuActiveProfile?.matchKind ?? null;
-    const previousKind = previousMatchKindRef.current;
-    if (previousKind && currentKind === 'fallback' && previousKind !== 'fallback') {
-      setActiveSlice(null);
-      clearLastAction();
-      closePieMenu();
-    }
-    previousMatchKindRef.current = currentKind;
-  }, [pieMenuActiveProfile, clearLastAction, closePieMenu, setActiveSlice]);
-
-  useEffect(() => {
     void initialize();
     void systemInit();
   }, [initialize, systemInit]);
-
-  useEffect(() => {
-    if (menuSlices.length > 0 && isPieMenuVisible && !activeSliceId) {
-      setActiveSlice(menuSlices[0].id);
-    }
-  }, [activeSliceId, isPieMenuVisible, menuSlices, setActiveSlice]);
-
-  useEffect(() => {
-    if (!isTauriEnvironment()) {
-      return;
-    }
-    const registerPromise = invoke<HotkeyRegistrationStatus>('register_hotkey', {
-      request: {
-        id: 'preview-pie-menu-toggle',
-        accelerator: 'Control+Shift+P',
-        event: 'hotkeys://trigger',
-        allowConflicts: true,
-      },
-    })
-      .then((status) => {
-        if (!status.registered) {
-          console.warn('Preview hotkey registration blocked', status.conflicts);
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to register preview hotkey', error);
-      });
-
-    return () => {
-      void registerPromise;
-    };
-  }, []);
 
   const openLogPanel = useCallback(() => {
     setIsLogPanelOpen(true);
@@ -513,16 +336,6 @@ export function App() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090a13] text-text-primary">
-      {isMac && (
-        <MenuBarToggle
-          isPieMenuOpen={isPieMenuVisible}
-          onTogglePieMenu={togglePieMenu}
-          onOpenPieMenu={openPieMenu}
-          onClosePieMenu={closePieMenu}
-          lastAction={lastAction}
-          lastSafeModeReason={lastSafeModeReason}
-        />
-      )}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.12),transparent_65%)]" />
         <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
@@ -647,61 +460,13 @@ export function App() {
                   <HotkeyRegistrationPanel />
                 </div>
 
-                <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
-                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">{t('dashboard.previewTitle')}</h3>
-                    <p className="mt-2 text-sm text-white/70">
-                      {previewBodyBefore}
-                      <span className="font-semibold text-text-primary">{previewHotkeyLabel}</span>
-                      {previewBodyAfter}
-                    </p>
-
-                    <div className="mt-6 flex flex-col items-center gap-4">
-                      <PieMenu
-                        slices={menuSlices}
-                        visible={menuSlices.length > 0}
-                        radius={200}
-                        gapDeg={8}
-                        activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
-                        onHover={(sliceId) => setActiveSlice(sliceId)}
-                        onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                        dataTestId="pie-menu-preview"
-                        centerContent={
-                          lastSafeModeReason ? (
-                            <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
-                              {t('dashboard.safeModeBadge')}
-                            </span>
-                          ) : null
-                        }
-                      />
-                      {menuSlices.length === 0 && (
-                        <p className="text-sm text-white/60">{t('dashboard.previewEmpty')}</p>
-                      )}
-                      {lastAction && (
-                        <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                          <p className="font-semibold text-white">{t('dashboard.lastAction')}</p>
-                          <p className="mt-1 text-sm">{lastAction.actionName}</p>
-                          <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                            {t('dashboard.lastActionStatus')}: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
-                          </p>
-                          {lastAction.message && (
-                            <p className="mt-1 text-white/60">{lastAction.message}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
-                    <p className="mt-2 text-sm text-white/70">
-                      {t('dashboard.contextualBody')}
-                    </p>
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                      <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
-                      <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
-                      <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
-                    </div>
+                <div className="mt-10 rounded-3xl border border-white/5 bg-white/5 p-6">
+                  <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
+                  <p className="mt-2 text-sm text-white/70">{t('dashboard.contextualBody')}</p>
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    <p>{t('dashboard.contextualActiveProfile')}: {systemActiveProfile?.name ?? '—'}</p>
+                    <p>{t('dashboard.contextualMatchMode')}: {systemActiveProfile?.matchKind ?? '—'}</p>
+                    <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
                   </div>
                 </div>
               </div>
@@ -755,69 +520,7 @@ export function App() {
         </section>
       </main>
 
-      <AnimatePresence>
-        {isPieMenuVisible && (
-          <motion.div
-            key="pie-menu-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm"
-            onClick={closePieMenu}
-          >
-            <div
-              className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
-              onClick={(event) => event.stopPropagation()}
-            >
-              {menuSlices.length > 0 ? (
-                <>
-                  <PieMenu
-                    slices={menuSlices}
-                    visible
-                    radius={200}
-                    gapDeg={8}
-                    activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
-                    onHover={(sliceId) => setActiveSlice(sliceId)}
-                    onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                    dataTestId="pie-menu"
-                  />
-                  <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
-                    {menuSlices.find((slice) => slice.id === (activeSliceId ?? menuSlices[0]?.id ?? null))?.label ?? ''}
-                  </div>
-                  <p className="text-sm text-white/70">
-                    Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть.
-                  </p>
-                </>
-              ) : (
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-10 text-white">
-                  <h2 className="text-2xl font-semibold">No slices available</h2>
-                  <p className="mt-3 text-sm text-white/80">
-                    Добавь функции в текущий профиль, чтобы увидеть pie-меню.
-                  </p>
-                  <p className="mt-5 text-xs uppercase tracking-[0.35em] text-white/60">
-                    Alt + Q — закрыть
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <ActionToast action={lastAction} onDismiss={clearLastAction} />
-      <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
       <LogPanel isOpen={isLogPanelOpen} onClose={() => setIsLogPanelOpen(false)} />
-      {isLinux && (
-        <LinuxFallbackPanel
-          isPieMenuOpen={isPieMenuVisible}
-          onTogglePieMenu={togglePieMenu}
-          onOpenPieMenu={openPieMenu}
-          onClosePieMenu={closePieMenu}
-          lastAction={lastAction}
-          lastSafeModeReason={lastSafeModeReason}
-        />
-      )}
       <ProfileRecoveryDialog />
     </div>
   );

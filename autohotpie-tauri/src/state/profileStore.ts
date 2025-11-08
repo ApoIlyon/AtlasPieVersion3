@@ -40,6 +40,7 @@ export interface Profile {
   globalHotkey?: string | null;
   activationRules: ActivationRule[];
   rootMenu: string;
+  radialOverlayActivationMode?: RadialOverlayActivationMode | null;
 }
 
 export interface PieSlice {
@@ -50,6 +51,7 @@ export interface PieSlice {
   action?: string | null;
   childMenu?: string | null;
   order: number;
+  color?: string | null;
 }
 
 export interface PieAppearance {
@@ -72,6 +74,8 @@ export interface ProfileRecord {
   createdAt?: string | null;
   updatedAt?: string | null;
 }
+
+export type RadialOverlayActivationMode = 'toggle' | 'hold';
 
 type ProfileRecordLike = Omit<ProfileRecord, 'actions'> & {
   actions?: ActionDefinition[] | null;
@@ -134,8 +138,10 @@ interface MockContextProfilesFile {
 }
 
 function normalizeProfileRecord(record: ProfileRecordLike): ProfileRecord {
+  const mode = (record.profile?.radialOverlayActivationMode ?? 'toggle') as RadialOverlayActivationMode;
+
   return {
-    profile: { ...record.profile },
+    profile: { ...record.profile, radialOverlayActivationMode: mode },
     menus: (record.menus ?? []).map((menu) => ({
       ...menu,
       appearance: { ...menu.appearance },
@@ -145,6 +151,32 @@ function normalizeProfileRecord(record: ProfileRecordLike): ProfileRecord {
     createdAt: record.createdAt ?? null,
     updatedAt: record.updatedAt ?? null,
   };
+}
+
+async function updateRadialOverlayActivationMode(mode: RadialOverlayActivationMode | null | undefined) {
+  if (!isTauriEnvironment()) {
+    return;
+  }
+
+  const normalized = (mode ?? 'toggle') as RadialOverlayActivationMode;
+  try {
+    await invoke('radial_overlay_update_config', {
+      update: {
+        activationMode: normalized,
+      },
+    });
+  } catch (error) {
+    console.warn('Failed to update radial overlay activation mode', error);
+  }
+}
+
+async function syncRadialOverlayModeWithProfile(profile: Profile | null | undefined) {
+  if (!profile || profile.radialOverlayActivationMode === null) {
+    await updateRadialOverlayActivationMode('toggle');
+    return;
+  }
+
+  await updateRadialOverlayActivationMode(profile.radialOverlayActivationMode);
 }
 
 function cloneMockProfiles(records: ProfileRecordLike[]): ProfileRecord[] {
@@ -241,6 +273,8 @@ async function registerActiveHotkey(
   } catch (error) {
     console.warn('Failed to unregister previous profile hotkey', error);
   }
+
+  await syncRadialOverlayModeWithProfile(profile ?? null);
 
   if (!profile || !profile.enabled) {
     set({ lastHotkeyAttempt: null, registeringHotkeyFor: null });
@@ -529,6 +563,10 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     try {
       const payload = await invoke<ProfileStorePayload>('list_profiles');
       get().setProfiles(payload);
+      const activeRecord = get().getProfileById(payload.activeProfileId ?? '');
+      if (activeRecord) {
+        await syncRadialOverlayModeWithProfile(activeRecord.profile);
+      }
     } catch (error) {
       const message = toErrorMessage(error);
       const recovery = parseRecoveryPayload(message);
@@ -562,6 +600,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
         globalHotkey: input?.globalHotkey ?? null,
       };
       const record = await invoke<ProfileRecord>('create_profile', { payload });
+      await syncRadialOverlayModeWithProfile(record.profile);
       await get().refreshProfiles();
       return record;
     } catch (error) {
@@ -593,6 +632,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     try {
       const saved = await invoke<ProfileRecord>('save_profile', { record });
       set({ suppressHotkeyConflicts: false, validationErrors: [] });
+      await syncRadialOverlayModeWithProfile(saved.profile);
       await get().refreshProfiles();
       return saved;
     } catch (error) {
@@ -640,6 +680,7 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
     try {
       await invoke('activate_profile', { profileId });
       const record = get().getProfileById(profileId);
+      await syncRadialOverlayModeWithProfile(record?.profile ?? null);
       const status = await registerActiveHotkey(record?.profile, profileId, set, get);
       if (status) {
         set({ lastHotkeyStatus: status });

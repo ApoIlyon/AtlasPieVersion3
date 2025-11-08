@@ -1,7 +1,9 @@
 use crate::domain::action::MacroStepDefinition;
 use crate::domain::context_rules::ScreenArea;
 use crate::domain::pie_menu::{PieMenu, PieMenuId, PieSlice, PieSliceId};
-use crate::domain::profile::{ActivationMatchMode, ActivationRule, Profile, ProfileId};
+use crate::domain::profile::{
+    ActivationMatchMode, ActivationRule, Profile, ProfileId, RadialOverlayActivationMode,
+};
 use crate::domain::{ActionDefinition, ActionId, MacroStepKind};
 use crate::models::AppProfile;
 use crate::storage::SETTINGS_FILE_NAME;
@@ -119,6 +121,7 @@ pub(crate) fn build_default_profile_record(
             }),
             activation_rules: Vec::new(),
             root_menu: root_menu_id,
+            radial_overlay_activation_mode: Some(RadialOverlayActivationMode::Toggle),
         },
         menus: vec![menu],
         actions,
@@ -213,6 +216,11 @@ fn normalize_profile_store(store: &mut ProfileStore) {
             });
             menu.slices.sort_by_key(|slice| slice.order);
         });
+
+        if record.profile.radial_overlay_activation_mode.is_none() {
+            record.profile.radial_overlay_activation_mode =
+                Some(RadialOverlayActivationMode::Toggle);
+        }
 
         record.actions = record
             .actions
@@ -611,6 +619,7 @@ fn convert_legacy_profile(source: &AppProfile) -> ProfileRecord {
         global_hotkey: extract_global_hotkey(source),
         activation_rules: convert_activation_rules(&source.ahk_handles),
         root_menu: PieMenuId::new(),
+        radial_overlay_activation_mode: Some(RadialOverlayActivationMode::Toggle),
     };
 
     let mut menus = Vec::new();

@@ -1,0 +1,28 @@
+{
+  "package": {
+    "productName": "Radial Menu Configurator",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Радиальное меню",
+        "width": 1080,
+        "height": 720,
+        "resizable": true
+      }
+    ],
+    "bundle": {
+      "active": true,
+      "identifier": "com.cascade.radialmenu",
+      "targets": "all"
+    }
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devPath": "http://localhost:1420",
+    "distDir": "dist"
+  }
+}

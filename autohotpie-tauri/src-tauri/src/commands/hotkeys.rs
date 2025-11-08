@@ -1,6 +1,6 @@
 //! Hotkey management commands and conflict detection.
 
-use super::{AppError, Result};
+use super::{radial_overlay, AppError, Result};
 use crate::services::profile_router;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -343,12 +343,17 @@ fn register_shortcut<R: Runtime>(
 ) -> Result<()> {
     let event_for_emit = event.clone();
     let payload_for_emit = payload.clone();
+    let should_toggle_overlay = event_for_emit == HOTKEY_TRIGGER_EVENT
+        && payload_for_emit.id.starts_with("profile:");
     app.global_shortcut()
-        .on_shortcut(shortcut, move |handle, _shortcut, _event| {
+        .on_shortcut(shortcut, move |handle, _shortcut, shortcut_event| {
             if let Err(err) = profile_router::resolve_now(&handle) {
                 eprintln!("failed to resolve active profile on hotkey: {err}");
             }
             let _ = handle.emit(&event_for_emit, payload_for_emit.clone());
+            if should_toggle_overlay {
+                radial_overlay::handle_shortcut_event(&handle, &shortcut_event);
+            }
         })
         .map_err(|err| AppError::Message(format!("failed to register global shortcut: {err}")))
 }

@@ -9,6 +9,7 @@ export interface PieSliceDefinition {
   icon?: React.ReactNode;
   accentToken?: string;
   disabled?: boolean;
+  color?: string | null;
 }
 
 export interface PieMenuProps {
@@ -45,22 +46,9 @@ export function PieMenu({
     () => [...slices].sort((a, b) => a.order - b.order),
     [slices],
   );
-  const containerSize = useMemo(() => Math.round(radius * 2 + 40), [radius]);
-  const sliceAngle = useMemo(() => {
-    if (!sortedSlices.length) {
-      return 0;
-    }
-    return TAU / sortedSlices.length;
-  }, [sortedSlices.length]);
-  const gapRadians = useMemo(() => toRadians(gapDeg), [gapDeg]);
 
   const controls = useAnimationControls();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const innerInset = useMemo(() => Math.max(Math.round(radius * 0.18), 18), [radius]);
-  const buttonDistance = useMemo(() => {
-    const base = radius - innerInset - 24;
-    return Math.max(base, radius * 0.65);
-  }, [radius, innerInset]);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,60 +105,72 @@ export function PieMenu({
       hidden={!visible}
       aria-hidden={!visible}
       className={clsx(
-        'relative rounded-full border border-border/60 bg-surface/80 shadow-glow-xl backdrop-blur-xl transition',
+        'relative flex aspect-square w-full max-w-[460px] select-none items-center justify-center',
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
       animate={controls}
       initial={{ opacity: 0, scale: 0.92 }}
       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-      style={{ width: containerSize, height: containerSize }}
+      style={{
+        '--radial-item-size': `56px`,
+      } as React.CSSProperties}
     >
       <div
-        className="absolute rounded-full border border-border/40 bg-overlay/60 shadow-inner"
-        style={{ inset: innerInset }}
-      />
-      {centerContent && (
-        <div
-          className="absolute flex items-center justify-center text-center text-xs uppercase tracking-[0.35em] text-text-secondary"
-          style={{ inset: innerInset * 1.8 }}
-        >
-          {centerContent}
-        </div>
-      )}
-      {sortedSlices.map((slice, index) => {
-        const angleOffset = -Math.PI / 2;
-        const gapOffset = sortedSlices.length > 1 ? gapRadians / 2 : 0;
-        const effectiveAngle = angleOffset + index * sliceAngle;
-        const isActive = slice.id === activeSliceId;
-        const x = Math.cos(effectiveAngle) * buttonDistance;
-        const y = Math.sin(effectiveAngle) * buttonDistance;
+        className="radial-menu__core relative flex aspect-square w-full items-center justify-center"
+        style={{
+          maxWidth: `${radius * 2 + 56}px`,
+          maxHeight: `${radius * 2 + 56}px`,
+        }}
+      >
+        {sortedSlices.map((slice, index) => {
+          const angleStep = sortedSlices.length ? (Math.PI * 2) / sortedSlices.length : 0;
+          const baseRadius = radius + 4;
+          const angle = -Math.PI / 2 + angleStep * index;
+          const x = Math.cos(angle) * baseRadius;
+          const y = Math.sin(angle) * baseRadius;
+          const isActive = slice.id === activeSliceId;
+          const background = slice.color ?? 'rgba(96,165,250,0.35)';
 
-        return (
-          <button
-            key={slice.id}
-            type="button"
-            className={clsx(
-              'group absolute flex h-14 w-14 items-center justify-center rounded-2xl border border-transparent bg-overlay/70 text-sm font-medium text-text-secondary transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/80',
-              slice.disabled && 'cursor-not-allowed opacity-40',
-              isActive && 'z-10 border-accent/60 bg-accent/10 text-text-primary shadow-glow-focus',
-            )}
-            style={{ 
-              left: '50%',
-              top: '50%',
-              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
-            }}
-            aria-label={slice.label}
-            onMouseEnter={() => onHover?.(slice.id, slice)}
-            onFocus={() => onHover?.(slice.id, slice)}
-            onClick={() => !slice.disabled && onSelect?.(slice.id, slice)}
-            disabled={slice.disabled}
-          >
-            <span className="truncate text-xs uppercase tracking-[0.25em] text-text-secondary group-hover:text-text-primary">
-              {slice.label}
-            </span>
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={slice.id}
+              type="button"
+              className={clsx(
+                'radial-menu__item absolute flex h-[var(--radial-item-size)] w-[var(--radial-item-size)] -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 shadow-[0_20px_45px_rgba(15,23,42,0.45)] transition-transform hover:scale-105 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70',
+                slice.disabled && 'cursor-not-allowed opacity-40 hover:scale-100',
+                isActive && 'z-10 border-accent/60 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]',
+              )}
+              style={{
+                left: '50%',
+                top: '50%',
+                transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+                width: '56px',
+                height: '56px',
+                background,
+              }}
+              aria-label={slice.label}
+              onMouseEnter={() => onHover?.(slice.id, slice)}
+              onFocus={() => onHover?.(slice.id, slice)}
+              onClick={() => !slice.disabled && onSelect?.(slice.id, slice)}
+              disabled={slice.disabled}
+            >
+              <span className="px-3 text-[0.7rem] uppercase tracking-[0.25em]" title={slice.label}>
+                {slice.label}
+              </span>
+            </button>
+          );
+        })}
+
+        <div
+          className="radial-menu__center pointer-events-none absolute flex items-center justify-center rounded-full border border-white/10 bg-white/10 text-[0.65rem] uppercase tracking-[0.35em] text-white/70 shadow-inner"
+          style={{
+            width: `${Math.max(48, 56 * 0.6)}px`,
+            height: `${Math.max(48, 56 * 0.6)}px`,
+          }}
+        >
+          {centerContent || 'Menu'}
+        </div>
+      </div>
     </motion.div>
   );
 }
