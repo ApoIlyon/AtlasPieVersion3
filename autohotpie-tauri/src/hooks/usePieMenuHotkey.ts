@@ -296,14 +296,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       }
     }
     
-    // If trying to close, check protection time (for toggle mode)
-    if (!newValue && currentValue && !isHoldMode) {
-      const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
-      if (timeSinceOpen < 2000) { // 2000ms protection - menu must stay open for at least 2 seconds
-        console.log(`[PieMenu] Blocked close - only ${timeSinceOpen}ms since open (need 2000ms)`);
-        return; // Block the close
-      }
-    }
+    // Toggle mode: allow immediate close on second hotkey press.
+    // Protection against too-early close is handled where necessary (e.g., safe mode/conflict timers).
     
     // If opening, update timestamp and immediately update ref
     if (newValue && !currentValue) {
