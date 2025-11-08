@@ -104,7 +104,7 @@ fn select_profile(
         .or_else(|| fallback.map(|candidate| candidate.snapshot))
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActiveProfileSnapshot {
     pub index: usize,
@@ -120,6 +120,22 @@ pub struct ActiveProfileSnapshot {
     #[serde(default)]
     pub fallback_applied: bool,
 }
+
+// Custom equality: ignore `selected_at` updates so mere timestamp changes
+// don't trigger spurious active profile change notifications.
+impl PartialEq for ActiveProfileSnapshot {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index
+            && self.name == other.name
+            && self.match_kind == other.match_kind
+            && self.hold_to_open == other.hold_to_open
+            && self.selector_score == other.selector_score
+            && self.matched_rule == other.matched_rule
+            && self.fallback_applied == other.fallback_applied
+    }
+}
+
+impl Eq for ActiveProfileSnapshot {}
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
