@@ -34,6 +34,7 @@ const HOTKEY_DEBOUNCE_MS = 50;
 const HOTKEY_REPRESS_GRACE_MS = 150; // Increased to prevent accidental rapid toggles
 const MENU_OPEN_PROTECTION_MS = 200; // Protection window after opening
 const ACTION_TOAST_DEDUP_MS = 2000;
+const REOPEN_COOLDOWN_MS = 250; // Prevent immediate reopen after close
 
 declare global {
   interface Window {
@@ -329,6 +330,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   // Function for keyup handler to close menu in hold mode (bypasses protection)
   const closeMenuFromKeyUp = useCallback(() => {
     allowCloseInHoldModeRef.current = true;
+    lastClosedAtRef.current = Date.now();
     setIsOpen(false);
     clearTimer();
     allowCloseInHoldModeRef.current = false;
@@ -349,6 +351,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHotkeyEventAtRef = useRef<number>(0);
   const lastToggleAtRef = useRef<number>(0);
+  const lastClosedAtRef = useRef<number>(0);
   const conflictCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressedKeysRef = useRef<Set<string>>(new Set());
   const activeHoldHotkeyRef = useRef<ParsedHotkey | null>(null);
@@ -533,6 +536,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       
       // Only close menu on success, and only if it was recently opened (not just opened)
       if (payload.status === 'success') {
+        lastClosedAtRef.current = Date.now();
         if (resolvedActivationModeRef.current !== 'hold') {
           isOpenRef.current = false;
           setIsOpen(false);
@@ -560,6 +564,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       // Use longer protection time to prevent menu from disappearing immediately
       const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
       if (timeSinceOpen > 800) { // Increased to 800ms to prevent immediate closure
+        lastClosedAtRef.current = Date.now();
         setIsOpenSafe(false);
         clearTimer();
         // Show notification about forced closure
@@ -651,6 +656,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
     const clearMenuState = () => {
       clearTimer();
+      lastClosedAtRef.current = Date.now();
       setIsOpenSafe(false);
       clearHoldState();
     };
@@ -910,6 +916,14 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
             handleActionEvent(event.payload);
           });
           aggregatorReady = true;
+          // Cache active trigger accelerator upfront for hold-mode keyup detection
+          try {
+            const hotkeys = (await invokeFn('list_hotkeys')) as Array<{ id: string; accelerator: string; event: string }>;
+            const triggerHotkey = hotkeys.find((h) => h.event === hotkeyEvent);
+            activeHotkeyAcceleratorRef.current = triggerHotkey?.accelerator ?? null;
+          } catch (error) {
+            console.error('Failed to cache trigger accelerator', error);
+          }
         } catch (error) {
           console.error('Failed to initialize action events channel', error);
         }
@@ -960,31 +974,33 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         
-        // Get current state - use ref to avoid stale closure
+        // Current state
         const currentIsOpen = isOpenRef.current;
-        
-        // CRITICAL: If menu is open, completely ignore ALL hotkey events
-        // Global shortcuts fire repeatedly when key is held - this causes flickering
-        // We must completely block all processing when menu is open
-        // DO NOT update any refs or state when menu is open to prevent any re-renders
+        const isHoldMode = resolvedActivationModeRef.current === 'hold';
+
+        // Toggle mode: if already open, close and start cooldown
         if (currentIsOpen) {
-          // Get current hold mode state
-          const isHoldMode = resolvedActivationModeRef.current === 'hold';
-          
-          // In hold mode, if menu is already open, NEVER process hotkey events
-          // Menu will close only from keyup events in hold mode listener
           if (isHoldMode) {
-            return; // Exit immediately, don't update any refs
+            return;
           }
-          
-          // In toggle mode: completely ignore ALL events if menu is open
-          // The menu should only close when user presses the hotkey again AFTER releasing it
-          // This prevents any flickering from rapid-fire events
-          return; // Exit immediately, don't update any refs
+          lastClosedAtRef.current = now;
+          clearTimer();
+          setIsOpenSafe(false);
+          isProcessingHotkeyRef.current = true;
+          setTimeout(() => {
+            isProcessingHotkeyRef.current = false;
+          }, HOTKEY_DEBOUNCE_MS);
+          return;
         }
-        
+
+        // If just closed, ignore immediate re-trigger to avoid reopen flicker
+        const sinceClosed = now - (lastClosedAtRef.current ?? 0);
+        if (sinceClosed < REOPEN_COOLDOWN_MS) {
+          return;
+        }
+
         // Menu is closed - open it
-        // CRITICAL: Mark as processing BEFORE any async operations
+        // Mark as processing BEFORE any async operations
         isProcessingHotkeyRef.current = true;
         
         const timeSinceLastProcessed = now - (lastHotkeyProcessedRef.current ?? 0);
@@ -996,7 +1012,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         lastHotkeyProcessedRef.current = now;
         lastHotkeyEventAtRef.current = now;
         
-        const isHoldMode = resolvedActivationModeRef.current === 'hold';
+        // isHoldMode is already determined above
         
         // CRITICAL: Update ref immediately BEFORE opening menu
         // This ensures that if another hotkey event comes immediately, it will see menu as open
@@ -1096,6 +1112,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
     const normalizeKey = (key: string): string => {
       const lower = key.toLowerCase();
+      if (lower === ' ' || lower === 'space' || lower === 'spacebar') return 'space';
       if (lower === 'ctrl' || lower === 'control') return 'control';
       if (lower === 'shift') return 'shift';
       if (lower === 'alt') return 'alt';
@@ -1252,6 +1269,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         scheduleAutoClose();
       } else {
         lastToggleAtRef.current = now;
+        lastClosedAtRef.current = now;
         clearTimer();
       }
       return next;
@@ -1282,6 +1300,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [currentSafeModeReason, hasConflictDialogOpen, hasHotkeyConflicts, recordActionOutcome, scheduleAutoClose, setIsOpenSafe]);
 
   const close = useCallback(() => {
+    lastClosedAtRef.current = Date.now();
     setIsOpenSafe(false);
     clearTimer();
   }, [clearTimer, setIsOpenSafe]);
