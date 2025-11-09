@@ -43,7 +43,6 @@ function useVersion() {
 
 export function App() {
   const { t, currentLanguage } = useLocalization();
-  const pieMenuOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isTauriEnvironment()) {
       const tauriWindow = window as typeof window & {
@@ -311,6 +310,8 @@ export function App() {
     clearLastAction,
     lastSafeModeReason,
     activeProfile: pieMenuActiveProfile,
+    activationMode: pieMenuActivationMode,
+    triggerAccelerator: pieMenuTriggerAccelerator,
     toggle: togglePieMenu,
     open: openPieMenu,
     close: closePieMenu,
