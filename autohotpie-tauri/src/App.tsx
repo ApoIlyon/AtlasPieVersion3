@@ -383,6 +383,8 @@ export function App() {
     [dialogOpen, profileHotkeyStatus],
   );
 
+  const showHotkeyConflictDialog = false;
+
   const handleHotkeyDialogClose = useCallback(() => {
     closeDialog();
     clearProfileHotkeyStatus();
@@ -518,26 +520,28 @@ export function App() {
         <div className="absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(244,63,94,0.18),transparent_70%)] blur-3xl" />
         <div className="absolute bottom-[-30%] left-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(16,185,129,0.16),transparent_70%)] blur-3xl" />
       </div>
-      <HotkeyConflictDialog
-        isOpen={isConflictDialogOpen}
-        status={combinedHotkeyStatus}
-        isSubmitting={isHotkeySubmitting}
-        onClose={handleHotkeyDialogClose}
-        onRetry={
-          isProfileConflictOnly
-            ? () => {
-                void retryProfileHotkeyWithOverride();
-              }
-            : retryWithOverride
+      {showHotkeyConflictDialog ? (
+        <HotkeyConflictDialog
+          isOpen={isConflictDialogOpen}
+          status={combinedHotkeyStatus}
+          isSubmitting={isHotkeySubmitting}
+          onClose={handleHotkeyDialogClose}
+          onRetry={
+            isProfileConflictOnly
               ? () => {
-                  void retryWithOverride();
-                }
-              : () => {
                   void retryProfileHotkeyWithOverride();
                 }
-        }
-        onDisable={isProfileConflictOnly ? undefined : disableConflictingHotkey}
-      />
+              : retryWithOverride
+                ? () => {
+                    void retryWithOverride();
+                  }
+                : () => {
+                    void retryProfileHotkeyWithOverride();
+                  }
+          }
+          onDisable={isProfileConflictOnly ? undefined : disableConflictingHotkey}
+        />
+      ) : null}
       <nav className="fixed left-0 right-0 top-4 z-30 flex justify-center px-8">
         <div className="flex items-center gap-4 rounded-[2.25rem] border border-white/10 bg-white/5 px-6 py-4 shadow-[0_0_45px_rgba(59,130,246,0.2)] backdrop-blur-xl">
           {navItems.map((item) => {
