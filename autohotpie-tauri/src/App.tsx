@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
@@ -100,7 +100,6 @@ function usePlatform() {
 
 export function App() {
   const { t, currentLanguage } = useLocalization();
-  const pieMenuOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isTauriEnvironment()) {
       const tauriWindow = window as typeof window & {
@@ -375,6 +374,8 @@ export function App() {
     clearLastAction,
     lastSafeModeReason,
     activeProfile: pieMenuActiveProfile,
+    activationMode: pieMenuActivationMode,
+    triggerAccelerator: pieMenuTriggerAccelerator,
     toggle: togglePieMenu,
     open: openPieMenu,
     close: closePieMenu,
@@ -467,37 +468,6 @@ export function App() {
     void systemInit();
   }, [initialize, systemInit]);
 
-  // Use layout effect to instantly update overlay DOM - prevents flickering from browser rendering
-  useLayoutEffect(() => {
-    if (!pieMenuOverlayRef.current) return;
-    
-    const el = pieMenuOverlayRef.current;
-    // CRITICAL: Always keep element in DOM, just change visibility
-    // Don't use display: none - it causes reflow and delay
-    el.style.transition = 'none';
-    
-    if (isPieMenuVisible) {
-      // Instantly show - synchronous DOM update before paint
-      el.style.opacity = '1';
-      el.style.pointerEvents = 'auto';
-      el.style.visibility = 'visible';
-      el.removeAttribute('hidden');
-      // Use display: flex but keep it in layout
-      el.style.display = 'flex';
-      // Force reflow to ensure styles are applied immediately
-      void el.offsetHeight;
-    } else {
-      // Instantly hide - but keep in DOM to prevent re-creation
-      el.style.opacity = '0';
-      el.style.pointerEvents = 'none';
-      el.style.visibility = 'hidden';
-      el.setAttribute('hidden', '');
-      // Keep display: flex to prevent layout recalculation
-      // Just make it invisible
-      el.style.display = 'flex';
-    }
-  }, [isPieMenuVisible]);
-
   // Only set active slice when menu becomes visible, not on every render
   const prevVisibleRef = useRef(false);
   useEffect(() => {
@@ -509,6 +479,59 @@ export function App() {
       setActiveSlice(menuSlices[0].id);
     }
   }, [isPieMenuVisible, menuSlices, activeSliceId, setActiveSlice]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    const syncOverlay = async () => {
+      try {
+        if (isPieMenuVisible) {
+          await invoke('pie_overlay_show', {
+            state: {
+              visible: true,
+              slices: menuSlices,
+              activeSliceId: activeSliceId ?? null,
+              centerLabel: lastSafeModeReason,
+              triggerAccelerator: pieMenuTriggerAccelerator ?? null,
+              activationMode: pieMenuActivationMode,
+            },
+          });
+        } else {
+          await invoke('pie_overlay_hide');
+        }
+      } catch (error) {
+        console.error('Failed to sync pie overlay window', error);
+      }
+    };
+
+    void syncOverlay();
+  }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    const updateOverlay = async () => {
+      try {
+        await invoke('pie_overlay_sync_state', {
+          update: {
+            slices: menuSlices,
+            activeSliceId: activeSliceId ?? null,
+            centerLabel: lastSafeModeReason ?? null,
+            triggerAccelerator: pieMenuTriggerAccelerator ?? null,
+            activationMode: pieMenuActivationMode ?? null,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to update pie overlay state', error);
+      }
+    };
+
+    void updateOverlay();
+  }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -890,64 +913,6 @@ export function App() {
           )}
         </section>
       </main>
-
-      <div
-        ref={pieMenuOverlayRef}
-        className={clsx(
-          'fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-sm',
-          isPieMenuVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )}
-        onClick={closePieMenu}
-        style={{ 
-          // No transitions to prevent flickering - instant show/hide like kando
-          // CRITICAL: Use !important to override any CSS transitions
-          transition: 'none !important',
-          // Optimize rendering - tell browser to optimize for this element
-          willChange: isPieMenuVisible ? 'opacity' : 'auto',
-          // Contain layout and paint to prevent reflows
-          contain: 'layout style paint',
-          // Force GPU acceleration
-          transform: 'translateZ(0)',
-          // Direct opacity control - no CSS transitions
-          opacity: isPieMenuVisible ? 1 : 0,
-        }}
-      >
-            <div
-              className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
-              onClick={(event) => event.stopPropagation()}
-            >
-              {menuSlices.length > 0 ? (
-                <>
-                  <PieMenu
-                    slices={menuSlices}
-                    visible={isPieMenuVisible}
-                    radius={200}
-                    gapDeg={8}
-                    activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
-                    onHover={(sliceId) => setActiveSlice(sliceId)}
-                    onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                    dataTestId="pie-menu"
-                  />
-                  <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
-                    {menuSlices.find((slice) => slice.id === (activeSliceId ?? menuSlices[0]?.id ?? null))?.label ?? ''}
-                  </div>
-                  <p className="text-sm text-white/70">
-                    Нажми `Alt + Q` ещё раз или кликни вне меню, чтобы закрыть.
-                  </p>
-                </>
-              ) : (
-                <div className="rounded-3xl border border-white/10 bg-white/10 p-10 text-white">
-                  <h2 className="text-2xl font-semibold">No slices available</h2>
-                  <p className="mt-3 text-sm text-white/80">
-                    Добавь функции в текущий профиль, чтобы увидеть pie-меню.
-                  </p>
-                  <p className="mt-5 text-xs uppercase tracking-[0.35em] text-white/60">
-                    Alt + Q — закрыть
-                  </p>
-                </div>
-              )}
-            </div>
-      </div>
 
       <ActionToast action={lastAction} onDismiss={clearLastAction} />
       <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />

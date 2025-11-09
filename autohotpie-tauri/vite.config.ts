@@ -6,6 +6,14 @@ import autoprefixer from 'autoprefixer';
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        'pie-overlay': fileURLToPath(new URL('./pie-overlay.html', import.meta.url)),
+      },
+    },
+  },
   css: {
     postcss: {
       plugins: [

@@ -67,7 +67,13 @@ pub fn run() {
             commands::updates::check_updates,
             commands::localization::list_localization_languages,
             commands::localization::get_localization_pack,
-            commands::localization::refresh_localization_packs
+            commands::localization::refresh_localization_packs,
+            commands::pie_overlay::pie_overlay_ready,
+            commands::pie_overlay::pie_overlay_show,
+            commands::pie_overlay::pie_overlay_hide,
+            commands::pie_overlay::pie_overlay_sync_state,
+            commands::pie_overlay::pie_overlay_select_slice,
+            commands::pie_overlay::pie_overlay_focus_slice,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application");

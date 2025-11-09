@@ -229,6 +229,8 @@ export interface PieMenuHotkeyState {
   lastSafeModeReason: string | null;
   currentSafeModeReason: string | null;
   activeProfile: ActiveProfileSnapshot | null;
+  activationMode: 'toggle' | 'hold';
+  triggerAccelerator: string | null;
   toggle: () => void;
   open: () => void;
   close: () => void;
@@ -341,7 +343,10 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<LastActionState | null>(null);
   const [lastSafeModeReason, setLastSafeModeReason] = useState<string | null>(null);
-  const [activeProfile, setActiveProfile] = useState<ActiveProfileSnapshot | null>(null);
+  const [activeProfile, setActiveProfile] = useState<ActiveProfileSnapshot | null>(initialActiveProfile ?? null);
+  const [activationMode, setActivationMode] = useState<'toggle' | 'hold'>(resolvedActivationModeRef.current);
+  const [triggerAccelerator, setTriggerAccelerator] = useState<string | null>(null);
+  const activeProfileRef = useRef<ActiveProfileSnapshot | null>(initialActiveProfile ?? null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHotkeyEventAtRef = useRef<number>(0);
   const lastToggleAtRef = useRef<number>(0);
@@ -613,18 +618,23 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   useEffect(() => {
     if (activationModeOverride) {
       resolvedActivationModeRef.current = activationModeOverride;
+      setActivationMode(activationModeOverride);
       return;
     }
     if (profileHoldToOpen != null) {
-      resolvedActivationModeRef.current = profileHoldToOpen ? 'hold' : 'toggle';
+      const mode = profileHoldToOpen ? 'hold' : 'toggle';
+      resolvedActivationModeRef.current = mode;
+      setActivationMode(mode);
       return;
     }
     if (activeProfile?.holdToOpen) {
       resolvedActivationModeRef.current = 'hold';
+      setActivationMode('hold');
       return;
     }
     resolvedActivationModeRef.current = 'toggle';
-  }, [activationModeOverride, profileHoldToOpen, activeProfile?.holdToOpen]);
+    setActivationMode('toggle');
+  }, [activationModeOverride, profileHoldToOpen, activeProfile?.holdToOpen, activeProfile]);
 
   useEffect(() => {
     if (!isTauriEnvironment() && typeof window !== 'undefined') {
@@ -633,6 +643,10 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       );
     }
   }, [parsedFallbackHotkeys]);
+
+  useEffect(() => {
+    activeProfileRef.current = activeProfile;
+  }, [activeProfile]);
 
   useEffect(() => {
     if (isTauriEnvironment()) {
@@ -919,6 +933,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
             const hotkeys = (await invokeFn('list_hotkeys')) as Array<{ id: string; accelerator: string; event: string }>;
             const triggerHotkey = hotkeys.find((h) => h.event === hotkeyEvent);
             activeHotkeyAcceleratorRef.current = triggerHotkey?.accelerator ?? null;
+            setTriggerAccelerator(triggerHotkey?.accelerator ?? null);
           } catch (error) {
             console.error('Failed to cache trigger accelerator', error);
           }
@@ -1192,6 +1207,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       getActiveHotkey().then(accelerator => {
         if (isMounted && accelerator) {
           activeHotkeyAcceleratorRef.current = accelerator;
+          setTriggerAccelerator(accelerator);
           // Initialize with current pressed keys
           document.addEventListener('keydown', handleKeyDown);
           document.addEventListener('keyup', handleKeyUp);
@@ -1203,6 +1219,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       document.removeEventListener('keyup', handleKeyUp);
       pressedKeysInHoldModeRef.current.clear();
       activeHotkeyAcceleratorRef.current = null;
+      setTriggerAccelerator(null);
     }
 
     return () => {
@@ -1211,6 +1228,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       document.removeEventListener('keyup', handleKeyUp);
       pressedKeysInHoldModeRef.current.clear();
       activeHotkeyAcceleratorRef.current = null;
+      setTriggerAccelerator(null);
     };
   }, [isOpen, resolvedActivationMode, hotkeyEvent, clearTimer]);
 
@@ -1353,6 +1371,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       lastSafeModeReason,
       currentSafeModeReason,
       activeProfile,
+      activationMode,
+      triggerAccelerator,
       toggle,
       open,
       close,
@@ -1362,6 +1382,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       recordActionOutcome,
     }),
     [
+      activationMode,
       activeProfile,
       activeSliceId,
       clearLastAction,
@@ -1375,6 +1396,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       recordActionOutcome,
       setActiveSlice,
       toggle,
+      triggerAccelerator,
     ],
   );
 }
