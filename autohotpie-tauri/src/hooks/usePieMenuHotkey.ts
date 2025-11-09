@@ -718,6 +718,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         
+        // Toggle только на ту же комбинацию, что открыла меню
         setIsOpen((prev) => {
           const next = !prev;
           if (next) {

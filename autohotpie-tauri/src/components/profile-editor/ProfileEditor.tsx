@@ -578,6 +578,20 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
     [clearError, hotkeyValue, profile, profileStore, registerHotkey],
   );
 
+  const canAddSlice = !sliceCountExceeded;
+  const canRemoveSlice = currentSlices.length > SLICE_MIN;
+
+  const handleAddSlice = useCallback(async (afterSliceId?: string) => {
+    if (!canAddSlice || !currentMenu) return;
+    // Пока backend принимает только добавление в меню, игнорируем позицию и даём ему решить order
+    await profileStore.addSliceToMenu(profile.profile.id, currentMenu.id);
+  }, [canAddSlice, currentMenu, profile.profile.id, profileStore]);
+
+  const handleRemoveSlice = useCallback(async (sliceId: string) => {
+    if (!currentMenu || !canRemoveSlice) return;
+    await profileStore.removeSliceFromMenu(profile.profile.id, currentMenu.id, sliceId);
+  }, [canRemoveSlice, currentMenu, profile.profile.id, profileStore]);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -883,6 +897,13 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 visible
                 dataTestId="pie-menu-editor"
                 centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
+                onSelect={(sliceId) => handleSliceSelect(sliceId)}
+                onAddSliceAfter={(sliceId) => {
+                  if (canAddSlice) void handleAddSlice(sliceId);
+                }}
+                onDeleteSlice={(sliceId) => {
+                  if (canRemoveSlice) void handleRemoveSlice(sliceId);
+                }}
               />
             ) : (
               <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
@@ -918,7 +939,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 <div
                   key={slice.id}
                   className={clsx(
-                    'rounded-2xl border px-4 py-3 transition',
+                    'rounded-2xl border px-4 py-3 transition flex flex-col gap-2',
                     slice.id === activeSliceId
                       ? 'border-accent/60 bg-accent/15 shadow-[0_0_25px_rgba(59,130,246,0.35)]'
                       : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10',
@@ -932,7 +953,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                     >
                       {slice.label || t('profileEditor.sliceUntitled')}
                     </button>
-                    <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
+                    <div className="flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
                       <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
                         {t('profileEditor.sliceOrder').replace('{order}', String(slice.order ?? 0))}
                       </span>
@@ -950,16 +971,57 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                           {t('profileEditor.sliceNestedButton')}
                         </button>
                       )}
+                      {canRemoveSlice && (
+                        <button
+                          type="button"
+                          className="ml-1 rounded-full border border-red-400/40 bg-red-500/10 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.25em] text-red-300 transition hover:border-red-400/70 hover:bg-red-500/20"
+                          onClick={() => handleRemoveSlice(slice.id)}
+                        >
+                          {t('profileEditor.sliceRemoveButton' as any) || 'Удалить'}
+                        </button>
+                      )}
                     </div>
                   </div>
                   {slice.action && (
-                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceAction').replace('{action}', String(slice.action))}</p>
+                    <p className="mt-1 text-xs text-white/60">
+                      {t('profileEditor.sliceAction').replace('{action}', String(slice.action))}
+                    </p>
                   )}
                   {!slice.action && !slice.childMenu && (
-                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
+                    <p className="mt-1 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
                   )}
                 </div>
               ))}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => void handleAddSlice()}
+                disabled={!canAddSlice || !currentMenu}
+                className={clsx(
+                  'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition',
+                  canAddSlice && currentMenu
+                    ? 'bg-accent/80 text-black hover:bg-accent'
+                    : 'bg-white/5 text-white/40 cursor-not-allowed',
+                )}
+              >
+                {t('profileEditor.sliceAddButton' as any) || 'Добавить срез'}
+              </button>
+              {sliceCountExceeded && (
+                <p className="text-[0.65rem] uppercase tracking-[0.25em] text-red-300/80">
+                  {t('profileEditor.validationSliceMax')
+                    .replace('{count}', String(currentSlices.length))
+                    .replace('{max}', String(SLICE_MAX))}
+                </p>
+              )}
+              {sliceCountTooLow && (
+                <p className="text-[0.65rem] uppercase tracking-[0.25em] text-yellow-300/80">
+                  {t('profileEditor.validationSliceMin')
+                    .replace('{count}', String(currentSlices.length))
+                    .replace('{missing}', String(slicesMissing))
+                    .replace('{min}', String(SLICE_MIN))}
+                </p>
+              )}
             </div>
           </div>
 

@@ -122,6 +122,8 @@ interface ProfileStoreState {
   openRecoveryBackups: () => Promise<void>;
   retryRecoveryLoad: () => Promise<void>;
   acknowledgeRecovery: () => Promise<void>;
+  addSliceToMenu: (profileId: string, menuId: string) => Promise<void>;
+  removeSliceFromMenu: (profileId: string, menuId: string, sliceId: string) => Promise<void>;
 }
 
 const eventBindings: {
@@ -429,7 +431,7 @@ async function attachListeners(set: (partial: Partial<ProfileStoreState>) => voi
   }
 }
 
-export const useProfileStore = create<ProfileStoreState>((set, get) => ({
+export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
   profiles: [],
   activeProfileId: null,
   isLoading: false,
@@ -771,6 +773,45 @@ export const useProfileStore = create<ProfileStoreState>((set, get) => ({
   },
   async acknowledgeRecovery() {
     set({ recovery: null });
+  },
+  async addSliceToMenu(profileId, menuId) {
+    set((state) => {
+      const profiles = state.profiles.map((record) => {
+        if (record.profile.id !== profileId) return record;
+        const menus = record.menus.map((menu) => {
+          if (menu.id !== menuId) return menu;
+          const existing = menu.slices ?? [];
+          const nextOrder = existing.length;
+          const newSlice: PieSlice = {
+            id: `slice-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            label: `Slice ${nextOrder + 1}`,
+            order: nextOrder,
+          };
+          return {
+            ...menu,
+            slices: [...existing, newSlice],
+          };
+        });
+        return { ...record, menus };
+      });
+      return { profiles };
+    });
+  },
+
+  async removeSliceFromMenu(profileId, menuId, sliceId) {
+    set((state) => {
+      const profiles = state.profiles.map((record) => {
+        if (record.profile.id !== profileId) return record;
+        const menus = record.menus.map((menu) => {
+          if (menu.id !== menuId) return menu;
+          const remaining = (menu.slices ?? []).filter((s) => s.id !== sliceId);
+          const normalized = remaining.map((s, index) => ({ ...s, order: index }));
+          return { ...menu, slices: normalized };
+        });
+        return { ...record, menus };
+      });
+      return { profiles };
+    });
   },
 }));
 

@@ -21,6 +21,8 @@ export interface PieMenuProps {
   gapDeg?: number;
   centerContent?: React.ReactNode;
   dataTestId?: string;
+  onAddSliceAfter?: (sliceId: string) => void;
+  onDeleteSlice?: (sliceId: string) => void;
 }
 
 const TAU = Math.PI * 2;
@@ -40,6 +42,8 @@ export function PieMenu({
   gapDeg = 4,
   centerContent,
   dataTestId = 'pie-menu',
+  onAddSliceAfter,
+  onDeleteSlice,
 }: PieMenuProps) {
   const sortedSlices = useMemo(
     () => [...slices].sort((a, b) => a.order - b.order),
@@ -95,6 +99,70 @@ export function PieMenu({
       cancelled = true;
     };
   }, [controls, visible]);
+
+  const activeIndex = useMemo(
+    () => sortedSlices.findIndex((s) => s.id === activeSliceId),
+    [sortedSlices, activeSliceId],
+  );
+
+  const renderSliceButtons = () => {
+    if (activeIndex < 0 || (!onAddSliceAfter && !onDeleteSlice)) {
+      return null;
+    }
+    const angleOffset = -Math.PI / 2;
+    const effectiveAngle = angleOffset + activeIndex * sliceAngle;
+    const baseX = Math.cos(effectiveAngle) * buttonDistance;
+    const baseY = Math.sin(effectiveAngle) * buttonDistance;
+    const targetSlice = sortedSlices[activeIndex];
+    if (!targetSlice) return null;
+
+    const controlsOffset = 24;
+    const addX = baseX * 0.9 + controlsOffset;
+    const addY = baseY * 0.9;
+    const delX = baseX * 0.9 - controlsOffset;
+    const delY = baseY * 0.9;
+
+    return (
+      <>
+        {onAddSliceAfter && (
+          <button
+            type="button"
+            aria-label="Add slice"
+            className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-accent/90 text-[16px] font-bold text-black shadow-lg transition hover:bg-accent"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% + ${addX}px), calc(-50% + ${addY}px))`,
+            }}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAddSliceAfter(targetSlice.id);
+            }}
+          >
+            +
+          </button>
+        )}
+        {onDeleteSlice && (
+          <button
+            type="button"
+            aria-label="Delete slice"
+            className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-red-500/90 text-[16px] font-bold text-white shadow-lg transition hover:bg-red-500"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% + ${delX}px), calc(-50% + ${delY}px))`,
+            }}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDeleteSlice(targetSlice.id);
+            }}
+          >
+            ×
+          </button>
+        )}
+      </>
+    );
+  };
 
   if (sortedSlices.length === 0) {
     return (
@@ -170,6 +238,7 @@ export function PieMenu({
           </button>
         );
       })}
+      {renderSliceButtons()}
     </motion.div>
   );
 }
