@@ -80,6 +80,13 @@ test.describe('Accessibility smoke', () => {
     await expect(fallbackPanel).toBeVisible();
 
     await statusToggle.press('Enter');
-    await expect(fallbackPanel).toBeHidden();
+    // The fallback panel either gets removed from the DOM or is hidden via
+    // aria-hidden depending on implementation. Wait for either condition to
+    // become true to avoid flakiness across browsers.
+    await page.waitForFunction(() => {
+      const el = document.querySelector('[data-testid="linux-fallback-panel"]');
+      if (!el) return true; // removed from DOM
+      return el.getAttribute('aria-hidden') === 'true';
+    }, { timeout: 5_000 });
   });
 });

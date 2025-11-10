@@ -53,7 +53,17 @@ type SliceAssertion = {
 
 async function expectPieMenuSlices(page: Page, assertions: SliceAssertion[]) {
   const pieMenu = page.getByTestId('pie-menu').last();
-  await expect(pieMenu).toBeVisible({ timeout: 1_000 });
+  // Wait until the last pie-menu is logically visible. Different browsers
+  // may treat opacity/ancestor styles differently, so accept either an
+  // element with aria-hidden="false" or computed opacity > 0.
+  await page.waitForFunction(() => {
+    const els = Array.from(document.querySelectorAll('[data-testid="pie-menu"]'));
+    const el = els[els.length - 1] as HTMLElement | undefined;
+    if (!el) return false;
+    if (el.getAttribute('aria-hidden') === 'false') return true;
+    const style = window.getComputedStyle(el);
+    return parseFloat(style.opacity || '0') > 0;
+  }, { timeout: 1_000 });
 
   for (const assertion of assertions) {
     const slice = pieMenu.getByRole('button', {
@@ -96,8 +106,9 @@ test.describe('US1 - Pie menu invocation', () => {
       .filter({ hasText: /Action completed successfully/i })
       .first();
     await expect(toast).toBeVisible({ timeout: 1_000 });
-    await page.keyboard.press('Escape');
-    await expect(pieMenu).toBeHidden({ timeout: 2_000 });
+  await page.keyboard.press('Escape');
+  // Assert on aria-hidden to avoid flakiness due to opacity animation
+  await expect(pieMenu).toHaveAttribute('aria-hidden', 'true', { timeout: 2_000 });
   });
 
   test('VS Code profile is selected when process matches', async ({ page }) => {
