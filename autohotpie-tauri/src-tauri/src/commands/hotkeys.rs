@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Runtime, State};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
 const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
 
@@ -189,47 +189,52 @@ fn register_hotkey_impl<R: Runtime>(
     }
 
     if allow_conflicts {
-        for conflict in &conflicts {
-            if conflict.code == "duplicateInternal" {
-                if let Some(existing) = state.find_by_accelerator(&accelerator)? {
-                    if existing.id != id {
-                        let _ = state.remove_by_id(&existing.id)?;
-                    }
-                }
+        loop {
+            let duplicate = match state.find_by_accelerator(&accelerator)? {
+                Some(existing) if existing.id != id => existing,
+                _ => break,
+            };
+
+            if let Ok(prev_shortcut) = Shortcut::from_str(&duplicate.accelerator) {
+                let _ = app.global_shortcut().unregister(prev_shortcut);
             }
+            let _ = state.remove_by_id(&duplicate.id)?;
         }
         conflicts.retain(|conflict| conflict.code != "duplicateInternal");
     }
 
     if let Some(existing) = existing_for_id {
-        if !existing.accelerator.eq_ignore_ascii_case(&accelerator) {
-            // Best-effort unregister of previous accelerator for this id.
-            if let Ok(prev_shortcut) = Shortcut::from_str(&existing.accelerator) {
-                let _ = app.global_shortcut().unregister(prev_shortcut);
-            }
-            let _ = state.remove_by_id(&existing.id)?;
+        if existing.accelerator.eq_ignore_ascii_case(&accelerator) {
+            state.upsert(RegisteredHotkey {
+                id: id.clone(),
+                accelerator: existing.accelerator,
+                event: event.clone(),
+            })?;
+            return Ok(finalize(true, Vec::new()));
         }
+
+        if let Ok(prev_shortcut) = Shortcut::from_str(&existing.accelerator) {
+            let _ = app.global_shortcut().unregister(prev_shortcut);
+        }
+        let _ = state.remove_by_id(&existing.id)?;
     }
 
-    // Register the new global shortcut: when triggered, emit the configured event
-    let app_handle = app.clone();
-    let id_clone = id.clone();
-    let accelerator_clone = accelerator.clone();
-    let event_clone = event.clone();
+    let event_name = event.clone();
+    let shortcut_id = id.clone();
+    let accelerator_for_event = accelerator.clone();
 
     app
         .global_shortcut()
-        .register(shortcut.clone())
+        .on_shortcut(shortcut, move |app_handle, _shortcut, evt: ShortcutEvent| {
+            if matches!(evt.state, ShortcutState::Pressed) {
+                let payload = HotkeyEventPayload {
+                    id: shortcut_id.clone(),
+                    accelerator: accelerator_for_event.clone(),
+                };
+                let _ = app_handle.emit(&event_name, payload);
+            }
+        })
         .map_err(|err| AppError::Message(format!("Failed to register global hotkey: {err}")))?;
-
-    // Note: tauri-plugin-global-shortcut 2.x does not take a callback directly on register().
-    // The frontend listens for accelerators; we also emit the logical event from here for consumers
-    // that rely on HOTKEY_TRIGGER_EVENT semantics.
-    let payload = HotkeyEventPayload {
-        id: id_clone,
-        accelerator: accelerator_clone,
-    };
-    let _ = app_handle.emit(&event_clone, payload);
 
     state.upsert(RegisteredHotkey {
         id: id.clone(),
