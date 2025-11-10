@@ -121,6 +121,7 @@ pub(crate) fn build_default_profile_record(
             }),
             activation_rules: Vec::new(),
             root_menu: root_menu_id,
+            hold_to_open: false,
             radial_overlay_activation_mode: Some(RadialOverlayActivationMode::Toggle),
         },
         menus: vec![menu],
@@ -626,6 +627,7 @@ fn convert_legacy_profile(source: &AppProfile) -> ProfileRecord {
         global_hotkey: legacy_hotkey,
         activation_rules: Vec::new(),
         root_menu: PieMenuId::new(),
+        hold_to_open,
         radial_overlay_activation_mode: Some(RadialOverlayActivationMode::Toggle),
     };
 

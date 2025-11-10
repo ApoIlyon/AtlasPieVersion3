@@ -10,6 +10,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        overlay: fileURLToPath(new URL('./overlay.html', import.meta.url)),
         'pie-overlay': fileURLToPath(new URL('./pie-overlay.html', import.meta.url)),
       },
     },
@@ -25,14 +26,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
-  build: {
-    rollupOptions: {
-      input: {
-        main: fileURLToPath(new URL('./index.html', import.meta.url)),
-        overlay: fileURLToPath(new URL('./overlay.html', import.meta.url)),
-      },
     },
   },
   server: {

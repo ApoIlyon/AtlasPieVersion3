@@ -54,6 +54,8 @@ pub struct Profile {
     #[serde(default)]
     pub activation_rules: Vec<ActivationRule>,
     pub root_menu: PieMenuId,
+    #[serde(default)]
+    pub hold_to_open: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub radial_overlay_activation_mode: Option<RadialOverlayActivationMode>,
 }
@@ -68,6 +70,7 @@ impl Profile {
             global_hotkey: None,
             activation_rules: Vec::new(),
             root_menu,
+            hold_to_open: false,
             radial_overlay_activation_mode: Some(RadialOverlayActivationMode::default()),
         }
     }
