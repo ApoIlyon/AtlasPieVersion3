@@ -241,6 +241,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: menu.id,
+            hold_to_open: false,
         };
 
         let result = validate_profile(&profile, &[menu.clone()], &[action.clone()]);
@@ -259,6 +260,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: menu.id,
+            hold_to_open: false,
         };
 
         let broken_slice = PieSlice {
@@ -309,6 +311,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: menu.id,
+            hold_to_open: false,
         };
 
         let result = validate_profile(&profile, &[menu.clone()], &[action.clone()]);
@@ -342,6 +345,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: menu.id,
+            hold_to_open: false,
         };
 
         let result = validate_profile(&profile, &[menu.clone()], &[action.clone()]);
@@ -420,6 +424,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: vec![],
             root_menu: root.id,
+            hold_to_open: false,
         };
 
         let result = validate_profile(&profile, &menus, &[action]);

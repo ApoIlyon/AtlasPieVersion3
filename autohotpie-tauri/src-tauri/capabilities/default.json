@@ -11,7 +11,10 @@
     "global-shortcut:default"
   ],
   "remote": {
-    "urls": ["http://127.0.0.1:5173"],
+    "urls": [
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5173"
+    ],
     "permissions": [
       "core:default",
       "core:window:default",

@@ -28,12 +28,89 @@ pub enum MatchKind {
     Fallback,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+fn select_profile(
+    store: &ProfileStore,
+    window: &WindowSnapshot,
+    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
+) -> Option<ActiveProfileSnapshot> {
+    let mut best: Option<ProfileCandidate> = None;
+    let mut fallback: Option<ProfileCandidate> = None;
+    let mut manual: Option<ActiveProfileSnapshot> = None;
+
+    for (index, record) in store.profiles.iter().enumerate() {
+        if !record.profile.enabled {
+            continue;
+        }
+
+        if let Some(active_id) = store.active_profile_id {
+            if active_id == record.profile.id {
+                manual = Some(ActiveProfileSnapshot {
+                    index,
+                    name: record.profile.name.clone(),
+                    match_kind: MatchKind::Custom,
+                    hold_to_open: record.profile.hold_to_open,
+                    selector_score: Some(u8::MAX),
+                    matched_rule: Some("manual override".into()),
+                    selected_at: None,
+                    fallback_applied: false,
+                });
+                continue;
+            }
+        }
+
+        let rules = parse_rules(&record.profile.activation_rules);
+        let match_info = match_rules(
+            &rules,
+            window.process_name.as_deref(),
+            window.window_title.as_deref(),
+            window.window_class.as_deref(),
+            window.screen_area.as_ref(),
+        );
+
+        let last_selected = history
+            .lock()
+            .ok()
+            .and_then(|record| record.get(&index).copied());
+
+        let candidate = match match_info {
+            Some(info) => ProfileCandidate::from_match(
+                index,
+                record.profile.name.clone(),
+                info,
+                last_selected,
+                record.profile.hold_to_open,
+            ),
+            None => ProfileCandidate::fallback(
+                index,
+                record.profile.name.clone(),
+                last_selected,
+                record.profile.hold_to_open,
+            ),
+        };
+
+        if candidate.snapshot.match_kind == MatchKind::Fallback {
+            fallback = Some(candidate);
+            continue;
+        }
+
+        if is_better_candidate(&candidate, best.as_ref()) {
+            best = Some(candidate);
+        }
+    }
+
+    best
+        .map(|candidate| candidate.snapshot)
+        .or(manual)
+        .or_else(|| fallback.map(|candidate| candidate.snapshot))
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActiveProfileSnapshot {
     pub index: usize,
     pub name: String,
     pub match_kind: MatchKind,
+    pub hold_to_open: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selector_score: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -43,6 +120,22 @@ pub struct ActiveProfileSnapshot {
     #[serde(default)]
     pub fallback_applied: bool,
 }
+
+// Custom equality: ignore `selected_at` updates so mere timestamp changes
+// don't trigger spurious active profile change notifications.
+impl PartialEq for ActiveProfileSnapshot {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index
+            && self.name == other.name
+            && self.match_kind == other.match_kind
+            && self.hold_to_open == other.hold_to_open
+            && self.selector_score == other.selector_score
+            && self.matched_rule == other.matched_rule
+            && self.fallback_applied == other.fallback_applied
+    }
+}
+
+impl Eq for ActiveProfileSnapshot {}
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -163,98 +256,6 @@ where
     Ok(())
 }
 
-fn select_profile(
-    store: &ProfileStore,
-    window: &WindowSnapshot,
-    history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
-) -> Option<ActiveProfileSnapshot> {
-    let process_name = window
-        .process_name
-        .as_ref()
-        .map(|name| name.trim())
-        .filter(|name| !name.is_empty());
-    let window_title = window
-        .window_title
-        .as_ref()
-        .map(|title| title.trim())
-        .filter(|title| !title.is_empty());
-    let window_class = window
-        .window_class
-        .as_ref()
-        .map(|class| class.trim())
-        .filter(|class| !class.is_empty());
-    let screen_area = window.screen_area.as_ref();
-
-    let history_snapshot = history
-        .lock()
-        .map(|guard| guard.clone())
-        .unwrap_or_default();
-
-    let mut best: Option<ProfileCandidate> = None;
-    let mut fallback: Option<ProfileCandidate> = None;
-
-    for (index, record) in store.profiles.iter().enumerate() {
-        if !record.profile.enabled {
-            continue;
-        }
-
-        let rules = parse_rules(&record.profile.activation_rules);
-        if let Some(match_info) = match_rules(
-            &rules,
-            process_name,
-            window_title,
-            window_class,
-            screen_area,
-        ) {
-            let candidate = ProfileCandidate::from_match(
-                index,
-                record.profile.name.clone(),
-                match_info,
-                history_snapshot.get(&index).copied(),
-            );
-
-            if is_better_candidate(&candidate, best.as_ref()) {
-                best = Some(candidate);
-            }
-            continue;
-        }
-
-        if rules.is_empty() && fallback.is_none() {
-            let candidate = ProfileCandidate::fallback(
-                index,
-                record.profile.name.clone(),
-                history_snapshot.get(&index).copied(),
-            );
-            fallback = Some(candidate);
-        }
-    }
-
-    let mut result = best.or(fallback).map(|candidate| candidate.snapshot);
-
-    if result.is_none() {
-        if let Some(active) = store.active_profile_id {
-            if let Some((index, record)) = store
-                .profiles
-                .iter()
-                .enumerate()
-                .find(|(_, entry)| entry.profile.id == active && entry.profile.enabled)
-            {
-                result = Some(ActiveProfileSnapshot {
-                    index,
-                    name: record.profile.name.clone(),
-                    match_kind: MatchKind::Fallback,
-                    selector_score: Some(0),
-                    matched_rule: Some("manual".into()),
-                    selected_at: None,
-                    fallback_applied: true,
-                });
-            }
-        }
-    }
-
-    result
-}
-
 fn update_active_profile(
     shared_state: &Arc<Mutex<Option<ActiveProfileSnapshot>>>,
     history: &Arc<Mutex<HashMap<usize, OffsetDateTime>>>,
@@ -327,11 +328,13 @@ impl ProfileCandidate {
         name: String,
         info: MatchInfo,
         last_selected: Option<OffsetDateTime>,
+        hold_to_open: bool,
     ) -> Self {
         let snapshot = ActiveProfileSnapshot {
             index,
             name,
             match_kind: info.kind,
+            hold_to_open,
             selector_score: Some(info.score),
             matched_rule: Some(info.rule),
             selected_at: None,
@@ -346,11 +349,17 @@ impl ProfileCandidate {
         }
     }
 
-    fn fallback(index: usize, name: String, last_selected: Option<OffsetDateTime>) -> Self {
+    fn fallback(
+        index: usize,
+        name: String,
+        last_selected: Option<OffsetDateTime>,
+        hold_to_open: bool,
+    ) -> Self {
         let snapshot = ActiveProfileSnapshot {
             index,
             name,
             match_kind: MatchKind::Fallback,
+            hold_to_open,
             selector_score: Some(0),
             matched_rule: Some("fallback".into()),
             selected_at: None,
@@ -746,6 +755,7 @@ mod tests {
                 global_hotkey: None,
                 activation_rules: rules,
                 root_menu,
+                hold_to_open: false,
             },
             menus: vec![menu],
             actions: vec![action],
@@ -862,6 +872,7 @@ mod tests {
             index: 0,
             name: "Default".into(),
             match_kind: MatchKind::Fallback,
+            hold_to_open: false,
             selector_score: Some(0),
             matched_rule: Some("fallback".into()),
             selected_at: None,

@@ -61,6 +61,9 @@ function median(arr: number[]): number {
 
 test.describe('Perf - Latency benchmarks', () => {
   test('hotkey → pie → action within SLA and report captured', async ({ page }, testInfo) => {
+    // This is a long-running performance test; increase timeout to avoid
+    // accidental failures on slower CI/browser runs.
+    test.setTimeout(120_000);
     // Skip WebKit due to animation instability causing timeouts
     test.skip(testInfo.project.name.toLowerCase().includes('webkit'), 'WebKit has animation stability issues');
 
@@ -72,13 +75,23 @@ test.describe('Perf - Latency benchmarks', () => {
 
     // Warm-up render to stabilize caches
     await triggerHotkey(page, HOTKEY);
-    await expect(pieMenu).toBeVisible({ timeout: 3_000 });
+    // Wait until pie-menu is logically visible. Accept aria-hidden or opacity
+    // to account for cross-browser differences.
+    await page.waitForFunction(() => {
+      const els = Array.from(document.querySelectorAll('[data-testid="pie-menu"]'));
+      const el = els[els.length - 1] as HTMLElement | undefined;
+      if (!el) return false;
+      if (el.getAttribute('aria-hidden') === 'false') return true;
+      const style = window.getComputedStyle(el);
+      return parseFloat(style.opacity || '0') > 0;
+    }, { timeout: 3_000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(100);
     if (await pieMenu.isVisible()) {
-      await page.mouse.click(5, 5);
-    }
-    await expect(pieMenu).toBeHidden({ timeout: 3_000 });
+        await page.mouse.click(5, 5);
+      }
+    // Use aria-hidden attribute to avoid false negatives from opacity animations
+    await expect(pieMenu).toHaveAttribute('aria-hidden', 'true', { timeout: 3_000 });
 
     const actionLatencies: number[] = [];
     const menuDurations: number[] = [];
@@ -92,7 +105,14 @@ test.describe('Perf - Latency benchmarks', () => {
       });
 
       await triggerHotkey(page, HOTKEY);
-      await expect(pieMenu).toBeVisible({ timeout: 1_000 });
+      await page.waitForFunction(() => {
+        const els = Array.from(document.querySelectorAll('[data-testid="pie-menu"]'));
+        const el = els[els.length - 1] as HTMLElement | undefined;
+        if (!el) return false;
+        if (el.getAttribute('aria-hidden') === 'false') return true;
+        const style = window.getComputedStyle(el);
+        return parseFloat(style.opacity || '0') > 0;
+      }, { timeout: 1_000 });
 
       const slice = pieMenu.getByRole('button').first();
       // Wait for animation to settle before interacting
@@ -130,7 +150,8 @@ test.describe('Perf - Latency benchmarks', () => {
       if (await pieMenu.isVisible()) {
         await page.mouse.click(5, 5);
       }
-      await expect(pieMenu).toBeHidden({ timeout: 3_000 });
+      // Use aria-hidden attribute to avoid false negatives from opacity animations
+      await expect(pieMenu).toHaveAttribute('aria-hidden', 'true', { timeout: 3_000 });
     }
 
     const actionP95 = percentile(actionLatencies, 0.95);

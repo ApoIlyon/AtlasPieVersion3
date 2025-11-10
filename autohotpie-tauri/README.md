@@ -17,3 +17,9 @@ AutoHotPie Tauri is the desktop shell for the AutoHotPie profile editor and pie-
 ## License
 
 Distributed under the [GNU GPL v3](../LICENSE).
+
+
+
+
+
+вввввввввввввв

@@ -389,6 +389,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const [hotkeyValue, setHotkeyValue] = useState(profile.profile.globalHotkey ?? '');
   const [hotkeyMessage, setHotkeyMessage] = useState<string | null>(null);
+
   const [hotkeySubmitting, setHotkeySubmitting] = useState(false);
   const [activationMode, setActivationMode] = useState<RadialOverlayActivationMode>(
     profile.profile.radialOverlayActivationMode ?? 'toggle',
@@ -492,6 +493,7 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
 
   useEffect(() => {
     setHotkeyValue(profile.profile.globalHotkey ?? '');
+    setHotkeyMessage(null);
   }, [profile.profile.globalHotkey]);
 
   useEffect(() => {
@@ -639,6 +641,20 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
     },
     [clearError, hotkeyValue, profile, profileStore, registerHotkey],
   );
+
+  const canAddSlice = !sliceCountExceeded;
+  const canRemoveSlice = currentSlices.length > SLICE_MIN;
+
+  const handleAddSlice = useCallback(async (afterSliceId?: string) => {
+    if (!canAddSlice || !currentMenu) return;
+    // Пока backend принимает только добавление в меню, игнорируем позицию и даём ему решить order
+    await profileStore.addSliceToMenu(profile.profile.id, currentMenu.id);
+  }, [canAddSlice, currentMenu, profile.profile.id, profileStore]);
+
+  const handleRemoveSlice = useCallback(async (sliceId: string) => {
+    if (!currentMenu || !canRemoveSlice) return;
+    await profileStore.removeSliceFromMenu(profile.profile.id, currentMenu.id, sliceId);
+  }, [canRemoveSlice, currentMenu, profile.profile.id, profileStore]);
 
   return (
     <div className="space-y-8">
@@ -822,29 +838,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               <li>{t('profileEditor.hotkeyTip3')}</li>
             </ul>
           </div>
-          {shouldShowHotkeyConflicts && (
-            <div className="space-y-2 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-xs text-white/70">
-              <div className="flex items-center justify-between">
-                <p className="uppercase tracking-[0.25em] text-white/50">{t('profileEditor.conflictsTitle')}</p>
-                <button
-                  type="button"
-                  className="text-[11px] uppercase tracking-[0.25em] text-white/50 transition hover:text-white/80"
-                  onClick={clearProfileHotkeyStatus}
-                >
-                  {t('profileEditor.conflictsDismiss')}
-                </button>
-              </div>
-              <p>{t('profileEditor.conflictsDescription')}</p>
-              <ul className="space-y-1">
-                {profileHotkeyConflicts.map((conflict, index) => (
-                  <li key={`${conflict.code}-${index}`} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2">
-                    <span className="font-semibold text-white/80">{conflict.code}</span>
-                    {conflict.message ? ` — ${conflict.message}` : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
         <div className="space-y-4 text-sm">
@@ -1033,14 +1026,46 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                     </div>
                   </div>
                   {slice.action && (
-                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceAction').replace('{action}', String(slice.action))}</p>
+                    <p className="mt-1 text-xs text-white/60">
+                      {t('profileEditor.sliceAction').replace('{action}', String(slice.action))}
+                    </p>
                   )}
                   {!slice.action && !slice.childMenu && (
-                    <p className="mt-2 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
+                    <p className="mt-1 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
                   )}
                 </div>
               );
               })}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => void handleAddSlice()}
+                disabled={!canAddSlice || !currentMenu}
+                className={clsx(
+                  'rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition',
+                  canAddSlice && currentMenu
+                    ? 'bg-accent/80 text-black hover:bg-accent'
+                    : 'bg-white/5 text-white/40 cursor-not-allowed',
+                )}
+              >
+                {t('profileEditor.sliceAddButton' as any) || 'Добавить срез'}
+              </button>
+              {sliceCountExceeded && (
+                <p className="text-[0.65rem] uppercase tracking-[0.25em] text-red-300/80">
+                  {t('profileEditor.validationSliceMax')
+                    .replace('{count}', String(currentSlices.length))
+                    .replace('{max}', String(SLICE_MAX))}
+                </p>
+              )}
+              {sliceCountTooLow && (
+                <p className="text-[0.65rem] uppercase tracking-[0.25em] text-yellow-300/80">
+                  {t('profileEditor.validationSliceMin')
+                    .replace('{count}', String(currentSlices.length))
+                    .replace('{missing}', String(slicesMissing))
+                    .replace('{min}', String(SLICE_MIN))}
+                </p>
+              )}
             </div>
           </div>
 

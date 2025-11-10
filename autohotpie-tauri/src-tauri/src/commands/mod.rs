@@ -6,6 +6,7 @@ pub mod hotkeys;
 pub mod import_export;
 pub mod localization;
 pub mod logs;
+pub mod pie_overlay;
 pub mod profiles;
 pub mod radial_overlay;
 pub mod settings;
@@ -24,6 +25,7 @@ use crate::services::{
     action_events::ActionEventsChannel,
     audit_log::AuditLogger,
     connectivity, localization as localization_service,
+    pie_overlay as pie_overlay_service,
     profile_router::{self, ProfileRouterState},
     storage_guard,
     system_status::SystemStatus,
@@ -199,6 +201,7 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     );
 
     localization_service::init(&handle)?;
+    pie_overlay_service::init(&handle)?;
 
     let checker = Arc::new(UpdateChecker::new(version.clone())?);
 

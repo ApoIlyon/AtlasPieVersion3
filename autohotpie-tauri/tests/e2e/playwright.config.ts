@@ -4,6 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const moduleDir = fileURLToPath(new URL('.', import.meta.url));
+const WEB_APP_URL = process.env.WEB_APP_URL ?? 'http://127.0.0.1:5173';
+const mockFlags = new URLSearchParams({
+  mockSafeModeIgnore: '1',
+  mockHotkeyDialog: 'off',
+});
+const BASE_TEST_PATH = `${WEB_APP_URL}?${mockFlags.toString()}`;
 const contextProfiles = JSON.parse(
   readFileSync(new URL('./fixtures/context-profiles.json', import.meta.url), 'utf-8')
 );
@@ -33,7 +39,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: BASE_TEST_PATH,
     trace: 'retain-on-failure',
     video: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
   },

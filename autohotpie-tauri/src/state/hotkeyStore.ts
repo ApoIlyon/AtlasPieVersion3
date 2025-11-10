@@ -57,11 +57,7 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
       }
 
       if (!status.registered) {
-        set({
-          dialogOpen: true,
-          dialogStatus: status,
-          pendingRequest: input,
-        });
+        set({ dialogOpen: false, dialogStatus: status, pendingRequest: null });
         return false;
       }
 
@@ -91,7 +87,7 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
       }
 
       if (!status.registered) {
-        set({ dialogOpen: true, dialogStatus: status, pendingRequest: pending });
+        set({ dialogOpen: false, dialogStatus: status, pendingRequest: null });
         return false;
       }
 
@@ -125,7 +121,7 @@ export const useHotkeyStore = create<HotkeyStoreState>((set, get) => ({
       }
 
       if (!status.registered) {
-        set({ dialogOpen: true, dialogStatus: status, pendingRequest: pending });
+        set({ dialogOpen: false, dialogStatus: status, pendingRequest: null });
         return false;
       }
 

@@ -21,6 +21,8 @@ pub struct CreateProfilePayload {
     pub name: Option<String>,
     #[serde(default)]
     pub global_hotkey: Option<String>,
+    #[serde(default)]
+    pub hold_to_open: Option<bool>,
 }
 
 fn recovery_error(info: &ProfileRecoveryInfo) -> AppError {
@@ -51,6 +53,7 @@ pub fn create_profile<R: Runtime>(
         .unwrap_or("New Profile");
 
     let mut record = build_default_profile_record(requested_name, payload.global_hotkey.as_deref());
+    record.profile.hold_to_open = payload.hold_to_open.unwrap_or(false);
 
     let created = state.with_profiles_mut(|store| {
         let mut final_name = record.profile.name.clone();
@@ -282,6 +285,7 @@ mod tests {
             global_hotkey: None,
             activation_rules: Vec::new(),
             root_menu: PieMenuId::new(),
+            hold_to_open: false,
         };
 
         let mut menu = PieMenu {

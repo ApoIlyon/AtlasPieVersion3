@@ -1,13 +1,12 @@
 //! Hotkey management commands and conflict detection.
 
-use super::{radial_overlay, AppError, Result};
-use crate::services::profile_router;
+use super::{AppError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Runtime, State};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
 const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
 
@@ -16,6 +15,7 @@ const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
 pub struct HotkeyEventPayload {
     pub id: String,
     pub accelerator: String,
+    pub state: String,
 }
 
 #[derive(Clone, Default, Serialize)]
@@ -127,32 +127,14 @@ pub fn register_hotkey<R: Runtime>(
     state: State<'_, HotkeyState>,
     request: RegisterHotkeyRequest,
 ) -> Result<HotkeyRegistrationStatus> {
-    register_hotkey_impl(
-        &app,
-        state.inner(),
-        request,
-        |shortcut, payload, event| register_shortcut(&app, shortcut, event, payload.clone()),
-        |accelerator| unregister_shortcut(&app, accelerator),
-        |shortcut| Ok(app.global_shortcut().is_registered(shortcut.clone())),
-        |shortcut, accelerator| probe_platform_conflicts(&app, shortcut, accelerator),
-    )
+    register_hotkey_impl(&app, state.inner(), request)
 }
 
-fn register_hotkey_impl<R: Runtime, FRegister, FUnregister, FIsRegistered, FPlatformProbe>(
+fn register_hotkey_impl<R: Runtime>(
     app: &AppHandle<R>,
     state: &HotkeyState,
     request: RegisterHotkeyRequest,
-    mut register_fn: FRegister,
-    mut unregister_fn: FUnregister,
-    mut is_registered_fn: FIsRegistered,
-    mut platform_probe: FPlatformProbe,
-) -> Result<HotkeyRegistrationStatus>
-where
-    FRegister: FnMut(Shortcut, HotkeyEventPayload, String) -> Result<()>,
-    FUnregister: FnMut(&str) -> Result<()>,
-    FIsRegistered: FnMut(&Shortcut) -> Result<bool>,
-    FPlatformProbe: FnMut(Shortcut, &str) -> Result<Vec<HotkeyConflict>>,
-{
+) -> Result<HotkeyRegistrationStatus> {
     let RegisterHotkeyRequest {
         id,
         accelerator,
@@ -160,9 +142,7 @@ where
         allow_conflicts,
     } = request;
 
-    let mut conflicts = evaluate_conflicts_internal(state, &accelerator, Some(&id), |shortcut| {
-        is_registered_fn(shortcut)
-    })?;
+    let mut conflicts = evaluate_conflicts_internal(state, &accelerator, Some(&id))?;
 
     let publish_status = |status: &HotkeyRegistrationStatus| {
         broadcast_conflicts(
@@ -193,30 +173,12 @@ where
     }
 
     let existing_for_id = state.find_by_id(&id)?;
-    let should_probe_platform = existing_for_id
-        .as_ref()
-        .map(|existing| !existing.accelerator.eq_ignore_ascii_case(&accelerator))
-        .unwrap_or(true)
-        && !conflicts.iter().any(|conflict| {
-            matches!(
-                conflict.code.as_str(),
-                "duplicateInternal" | "alreadyRegistered" | "reservedByPlatform"
-            )
-        });
 
     let shortcut = Shortcut::from_str(&accelerator)
         .map_err(|err| AppError::Message(format!("Invalid accelerator: {err}")))?;
 
-    if should_probe_platform {
-        let mut platform_conflicts = platform_probe(shortcut.clone(), &accelerator)?;
-        conflicts.append(&mut platform_conflicts);
-    }
-
     let has_blocking = conflicts.iter().any(|conflict| {
-        matches!(
-            conflict.code.as_str(),
-            "invalidAccelerator" | "reservedByPlatform" | "platformDenied"
-        )
+        conflict.code == "invalidAccelerator"
     });
 
     if has_blocking {
@@ -228,36 +190,58 @@ where
     }
 
     if allow_conflicts {
-        for conflict in &conflicts {
-            match conflict.code.as_str() {
-                "duplicateInternal" => {
-                    if let Some(existing) = state.find_by_accelerator(&accelerator)? {
-                        if existing.id != id {
-                            let _ = state.remove_by_id(&existing.id)?;
-                            let _ = unregister_fn(&existing.accelerator);
-                        }
-                    }
-                }
-                "alreadyRegistered" => {
-                    unregister_fn(&accelerator)?;
-                }
-                _ => {}
+        loop {
+            let duplicate = match state.find_by_accelerator(&accelerator)? {
+                Some(existing) if existing.id != id => existing,
+                _ => break,
+            };
+
+            if let Ok(prev_shortcut) = Shortcut::from_str(&duplicate.accelerator) {
+                let _ = app.global_shortcut().unregister(prev_shortcut);
             }
+            let _ = state.remove_by_id(&duplicate.id)?;
         }
+        conflicts.retain(|conflict| conflict.code != "duplicateInternal");
     }
 
     if let Some(existing) = existing_for_id {
-        if !existing.accelerator.eq_ignore_ascii_case(&accelerator) {
-            unregister_fn(&existing.accelerator)?;
+        if existing.accelerator.eq_ignore_ascii_case(&accelerator) {
+            state.upsert(RegisteredHotkey {
+                id: id.clone(),
+                accelerator: existing.accelerator,
+                event: event.clone(),
+            })?;
+            return Ok(finalize(true, Vec::new()));
         }
+
+        if let Ok(prev_shortcut) = Shortcut::from_str(&existing.accelerator) {
+            let _ = app.global_shortcut().unregister(prev_shortcut);
+        }
+        let _ = state.remove_by_id(&existing.id)?;
     }
 
-    let payload = HotkeyEventPayload {
-        id: id.clone(),
-        accelerator: accelerator.clone(),
-    };
+    let event_name = event.clone();
+    let shortcut_id = id.clone();
+    let accelerator_for_event = accelerator.clone();
 
-    register_fn(shortcut, payload, event.clone())?;
+    app
+        .global_shortcut()
+        .on_shortcut(shortcut, move |app_handle, _shortcut, evt: ShortcutEvent| {
+            let state_str = match evt.state {
+                ShortcutState::Pressed => "pressed",
+                ShortcutState::Released => "released",
+                _ => return,
+            };
+
+            let payload = HotkeyEventPayload {
+                id: shortcut_id.clone(),
+                accelerator: accelerator_for_event.clone(),
+                state: state_str.to_string(),
+            };
+
+            let _ = app_handle.emit(&event_name, payload);
+        })
+        .map_err(|err| AppError::Message(format!("Failed to register global hotkey: {err}")))?;
 
     state.upsert(RegisteredHotkey {
         id: id.clone(),
@@ -275,7 +259,10 @@ pub fn unregister_hotkey<R: Runtime>(
     request: UnregisterHotkeyRequest,
 ) -> Result<()> {
     if let Some(previous) = state.remove_by_id(&request.id)? {
-        unregister_shortcut(&app, &previous.accelerator)?;
+        // Best-effort unregister of the native global shortcut for this accelerator.
+        if let Ok(shortcut) = Shortcut::from_str(&previous.accelerator) {
+            let _ = app.global_shortcut().unregister(shortcut);
+        }
     }
     Ok(())
 }
@@ -291,7 +278,7 @@ pub fn check_hotkey<R: Runtime>(
     state: State<'_, HotkeyState>,
     request: HotkeyCheckRequest,
 ) -> Result<HotkeyRegistrationStatus> {
-    let mut conflicts = evaluate_conflicts(&app, &state, &request.accelerator, None)?;
+    let conflicts = evaluate_conflicts(&app, &state, &request.accelerator, None)?;
 
     if conflicts
         .iter()
@@ -301,19 +288,6 @@ pub fn check_hotkey<R: Runtime>(
             registered: false,
             conflicts,
         });
-    }
-
-    if !conflicts.iter().any(|conflict| {
-        matches!(
-            conflict.code.as_str(),
-            "duplicateInternal" | "alreadyRegistered" | "reservedByPlatform"
-        )
-    }) {
-        if let Ok(shortcut) = Shortcut::from_str(&request.accelerator) {
-            let mut platform_conflicts =
-                probe_platform_conflicts(&app, shortcut, &request.accelerator)?;
-            conflicts.append(&mut platform_conflicts);
-        }
     }
 
     let accelerator = request.accelerator;
@@ -335,92 +309,25 @@ pub fn check_hotkey<R: Runtime>(
     Ok(status)
 }
 
-fn register_shortcut<R: Runtime>(
-    app: &AppHandle<R>,
-    shortcut: Shortcut,
-    event: String,
-    payload: HotkeyEventPayload,
-) -> Result<()> {
-    let event_for_emit = event.clone();
-    let payload_for_emit = payload.clone();
-    let should_toggle_overlay = event_for_emit == HOTKEY_TRIGGER_EVENT
-        && payload_for_emit.id.starts_with("profile:");
-    app.global_shortcut()
-        .on_shortcut(shortcut, move |handle, _shortcut, shortcut_event| {
-            if let Err(err) = profile_router::resolve_now(&handle) {
-                eprintln!("failed to resolve active profile on hotkey: {err}");
-            }
-            let _ = handle.emit(&event_for_emit, payload_for_emit.clone());
-            if should_toggle_overlay {
-                radial_overlay::handle_shortcut_event(&handle, &shortcut_event);
-            }
-        })
-        .map_err(|err| AppError::Message(format!("failed to register global shortcut: {err}")))
-}
-
-fn unregister_shortcut<R: Runtime>(app: &AppHandle<R>, accelerator: &str) -> Result<()> {
-    if let Ok(shortcut) = Shortcut::from_str(accelerator) {
-        if app.global_shortcut().is_registered(shortcut.clone()) {
-            app.global_shortcut().unregister(shortcut).map_err(|err| {
-                AppError::Message(format!("failed to unregister global shortcut: {err}"))
-            })?;
-        }
-    }
-
-    Ok(())
-}
-
-fn probe_platform_conflicts<R: Runtime>(
-    app: &AppHandle<R>,
-    shortcut: Shortcut,
-    accelerator: &str,
-) -> Result<Vec<HotkeyConflict>> {
-    let mut conflicts = Vec::new();
-    match app
-        .global_shortcut()
-        .on_shortcut(shortcut.clone(), |_handle, _shortcut, _event| {})
-    {
-        Ok(_) => {
-            let _ = app.global_shortcut().unregister(shortcut);
-        }
-        Err(err) => {
-            conflicts.push(HotkeyConflict {
-                code: "platformDenied".into(),
-                message: format!(
-                    "Operating system rejected accelerator '{}': {}",
-                    accelerator, err
-                ),
-                meta: None,
-            });
-        }
-    }
-
-    Ok(conflicts)
-}
 
 fn broadcast_conflicts<R: Runtime>(app: &AppHandle<R>, snapshot: &HotkeyConflictSnapshot) {
     let _ = app.emit("hotkeys://conflicts", snapshot);
 }
 
 fn evaluate_conflicts<R: Runtime>(
-    app: &AppHandle<R>,
+    _app: &AppHandle<R>,
     state: &State<'_, HotkeyState>,
     accelerator: &str,
     ignore_id: Option<&str>,
 ) -> Result<Vec<HotkeyConflict>> {
-    evaluate_conflicts_internal(state.inner(), accelerator, ignore_id, |shortcut| {
-        Ok(app.global_shortcut().is_registered(shortcut.clone()))
-    })
+    evaluate_conflicts_internal(state.inner(), accelerator, ignore_id)
 }
 
-fn evaluate_conflicts_internal<F>(
+fn evaluate_conflicts_internal(
     state: &HotkeyState,
     accelerator: &str,
     ignore_id: Option<&str>,
-    mut is_registered: F,
-) -> Result<Vec<HotkeyConflict>>
-where
-    F: FnMut(&Shortcut) -> Result<bool>,
+    ) -> Result<Vec<HotkeyConflict>>
 {
     let mut conflicts = Vec::new();
 
@@ -437,17 +344,6 @@ where
         }
     }
 
-    if is_reserved_platform_shortcut(accelerator) {
-        conflicts.push(HotkeyConflict {
-            code: "reservedByPlatform".into(),
-            message: format!(
-                "Accelerator '{}' is reserved by the operating system",
-                accelerator
-            ),
-            meta: None,
-        });
-    }
-
     let shortcut = match Shortcut::from_str(accelerator) {
         Ok(value) => value,
         Err(err) => {
@@ -459,29 +355,7 @@ where
             return Ok(conflicts);
         }
     };
-
-    if is_registered(&shortcut)? {
-        conflicts.push(HotkeyConflict {
-            code: "alreadyRegistered".into(),
-            message: format!("Accelerator '{}' is already registered", accelerator),
-            meta: None,
-        });
-    }
+    let _ = shortcut;
 
     Ok(conflicts)
-}
-
-fn is_reserved_platform_shortcut(accelerator: &str) -> bool {
-    let normalized = accelerator.to_ascii_uppercase();
-
-    #[cfg(target_os = "windows")]
-    const RESERVED: &[&str] = &["ALT+TAB", "CTRL+ALT+DEL", "ALT+F4", "WIN+L", "WIN+D"];
-    #[cfg(target_os = "macos")]
-    const RESERVED: &[&str] = &["CMD+TAB", "CMD+OPTION+ESC", "CTRL+CMD+Q"];
-    #[cfg(target_os = "linux")]
-    const RESERVED: &[&str] = &["CTRL+ALT+F1", "CTRL+ALT+F2", "CTRL+ALT+F3", "CTRL+ALT+F4"];
-    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
-    const RESERVED: &[&str] = &[];
-
-    RESERVED.iter().any(|shortcut| normalized == *shortcut)
 }

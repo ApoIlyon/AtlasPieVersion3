@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { motion, useAnimationControls } from 'framer-motion';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -24,12 +23,7 @@ export interface PieMenuProps {
   dataTestId?: string;
 }
 
-const TAU = Math.PI * 2;
 const DEFAULT_RADIUS = 156;
-
-function toRadians(deg: number) {
-  return (deg * Math.PI) / 180;
-}
 
 export function PieMenu({
   slices,
@@ -47,48 +41,6 @@ export function PieMenu({
     [slices],
   );
 
-  const controls = useAnimationControls();
-  const rootRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const runAnimation = async () => {
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-start');
-      }
-      await controls.start({
-        opacity: visible ? 1 : 0,
-        scale: visible ? 1 : 0.92,
-        transition: { type: 'spring', stiffness: 260, damping: 22 },
-      });
-      if (cancelled) {
-        return;
-      }
-      if (typeof performance !== 'undefined') {
-        performance.mark('PieMenu:animation-end');
-        const hasStart = performance.getEntriesByName('PieMenu:animation-start').length > 0;
-        if (hasStart) {
-          performance.measure('PieMenu:animation', 'PieMenu:animation-start', 'PieMenu:animation-end');
-        }
-      }
-    };
-
-    runAnimation();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [controls, visible]);
-
-  useEffect(() => {
-    if (!visible && rootRef.current) {
-      const activeElement = document.activeElement;
-      if (activeElement instanceof HTMLElement && rootRef.current.contains(activeElement)) {
-        activeElement.blur();
-      }
-    }
-  }, [visible]);
-
   if (sortedSlices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-overlay/70 p-12 text-center text-sm text-text-muted">
@@ -98,19 +50,14 @@ export function PieMenu({
   }
 
   return (
-    <motion.div
-      ref={rootRef}
+    <div
       data-testid={dataTestId}
       data-profiler-id="PieMenu"
-      hidden={!visible}
       aria-hidden={!visible}
       className={clsx(
         'relative flex aspect-square w-full max-w-[460px] select-none items-center justify-center',
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
-      animate={controls}
-      initial={{ opacity: 0, scale: 0.92 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       style={{
         '--radial-item-size': `56px`,
       } as React.CSSProperties}
@@ -171,6 +118,6 @@ export function PieMenu({
           {centerContent || 'Menu'}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

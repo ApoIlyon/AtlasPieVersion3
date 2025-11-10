@@ -8,7 +8,8 @@
         "enabled": true,
         "globalHotkey": "Control+Shift+P",
         "activationRules": [],
-        "rootMenu": "default-root"
+        "rootMenu": "default-root",
+        "holdToOpen": false
       },
       "menus": [
         {
@@ -157,7 +158,8 @@
             "value": "code.exe"
           }
         ],
-        "rootMenu": "vscode-root"
+        "rootMenu": "vscode-root",
+        "holdToOpen": false
       },
       "menus": [
         {
@@ -270,7 +272,8 @@
             "value": "Mozilla Firefox"
           }
         ],
-        "rootMenu": "browser-root"
+        "rootMenu": "browser-root",
+        "holdToOpen": false
       },
       "menus": [
         {
