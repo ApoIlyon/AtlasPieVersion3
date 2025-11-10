@@ -16,6 +16,7 @@ type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<
 interface HotkeyEventPayload {
   id: string;
   accelerator: string;
+  state: 'pressed' | 'released';
 }
 
 function getTauriInvoke(): TauriInvoke | null {
@@ -270,7 +271,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   
   // Get activation mode - need to compute this early to use in setIsOpenSafe
   // Note: activeProfile is not available yet at this point, so we'll use a ref to update it later
-  const resolvedActivationModeRef = useRef<'toggle' | 'hold'>('toggle');
+  const resolvedActivationModeRef = useRef<'toggle' | 'hold'>(profileHoldToOpen ? 'hold' : 'toggle');
   const resolvedActivationMode = useMemo<'toggle' | 'hold'>(() => {
     if (activationModeOverride) {
       const mode = activationModeOverride;
@@ -282,44 +283,41 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       resolvedActivationModeRef.current = mode;
       return mode;
     }
-    // Will be updated when activeProfile is available
+    if (initialActiveProfile) {
+      const mode = initialActiveProfile.holdToOpen ? 'hold' : 'toggle';
+      resolvedActivationModeRef.current = mode;
+      return mode;
+    }
     return resolvedActivationModeRef.current;
-  }, [activationModeOverride, profileHoldToOpen]);
+  }, [activationModeOverride, profileHoldToOpen, initialActiveProfile]);
   
   // Protected wrapper for setIsOpen - prevents closing menu too soon after opening
   // CRITICAL: In hold mode, this function BLOCKS ALL closes except from keyup handler
-  const setIsOpenSafe = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
-    const currentValue = isOpenRef.current;
-    const newValue = typeof value === 'function' ? value(currentValue) : value;
-    
-    // CRITICAL: In hold mode, if menu is open, NEVER close it except from keyup events
-    // This prevents any other logic from closing the menu while key is held
-    // Use ref to get current value (updated when activeProfile changes)
-    const isHoldMode = resolvedActivationModeRef.current === 'hold';
-    if (!newValue && currentValue && isHoldMode && !allowCloseInHoldModeRef.current) {
-      const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
-      if (timeSinceOpen < 150) {
+  const setIsOpenSafe = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      const currentValue = isOpenRef.current;
+      const newValue = typeof value === 'function' ? value(currentValue) : value;
+
+      const activationModeForGuard = resolvedActivationModeRef.current;
+      const isHoldMode = activationModeForGuard === 'hold';
+
+      if (!newValue && currentValue && isHoldMode && !allowCloseInHoldModeRef.current) {
         return;
       }
-    }
-    
-    // Toggle mode: allow immediate close on second hotkey press.
-    // Protection against too-early close is handled where necessary (e.g., safe mode/conflict timers).
-    
-    // If opening, update timestamp and immediately update ref
-    if (newValue && !currentValue) {
-      lastToggleAtRef.current = Date.now();
-      // CRITICAL: Update ref immediately before state update
-      isOpenRef.current = true;
-    }
-    
-    // If closing, update ref immediately
-    if (!newValue && currentValue) {
-      isOpenRef.current = false;
-    }
-    
-    setIsOpen(newValue);
-  }, []); // No dependencies - use ref for current value
+
+      if (newValue && !currentValue) {
+        lastToggleAtRef.current = Date.now();
+        isOpenRef.current = true;
+      }
+
+      if (!newValue && currentValue) {
+        isOpenRef.current = false;
+      }
+
+      setIsOpen(newValue);
+    },
+    [],
+  );
   
   const clearTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -385,12 +383,25 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
 
   const parsedFallbackHotkeys = useMemo<ParsedHotkey[]>(() => {
     const candidates = Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
-    return candidates
+    const list = triggerAccelerator ? [triggerAccelerator, ...candidates] : candidates;
+    const seen = new Set<string>();
+
+    return list
       .map((candidate) => (typeof candidate === 'string' ? candidate.trim() : ''))
-      .filter((candidate): candidate is string => candidate.length > 0)
+      .filter((candidate): candidate is string => {
+        if (!candidate.length) {
+          return false;
+        }
+        const lowered = candidate.toLowerCase();
+        if (seen.has(lowered)) {
+          return false;
+        }
+        seen.add(lowered);
+        return true;
+      })
       .map((candidate) => parseHotkey(candidate))
       .filter((parsed): parsed is ParsedHotkey => parsed != null);
-  }, [fallbackHotkey]);
+  }, [fallbackHotkey, triggerAccelerator]);
 
   const recordActionOutcome = useCallback(
     (payload: {
@@ -888,6 +899,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         const payload = event.payload;
         const shortcutId = payload?.id ?? null;
         const acceleratorFromPayload = payload?.accelerator?.trim() || null;
+        const eventState = payload?.state ?? 'pressed';
 
         if (acceleratorFromPayload) {
           activeHotkeyAcceleratorRef.current = acceleratorFromPayload;
@@ -955,15 +967,51 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
         
-        // Current state
         const currentIsOpen = isOpenRef.current;
         const isHoldMode = resolvedActivationModeRef.current === 'hold';
 
-        // Toggle mode: if already open, close and start cooldown
-        if (currentIsOpen) {
-          if (isHoldMode) {
+        if (isHoldMode) {
+          if (eventState === 'pressed') {
+            if (currentIsOpen) {
+              return;
+            }
+
+            if (now - (lastHotkeyProcessedRef.current ?? 0) < 50) {
+              return;
+            }
+
+            lastHotkeyProcessedRef.current = now;
+            lastHotkeyEventAtRef.current = now;
+            isOpenRef.current = true;
+            lastToggleAtRef.current = now;
+            setIsOpenSafe(true);
             return;
           }
+
+          if (eventState === 'released') {
+            if (!currentIsOpen) {
+              return;
+            }
+
+            lastHotkeyProcessedRef.current = now;
+            lastHotkeyEventAtRef.current = now;
+            allowCloseInHoldModeRef.current = true;
+            lastClosedAtRef.current = now;
+            setIsOpenSafe(false);
+            clearTimer();
+            allowCloseInHoldModeRef.current = false;
+            return;
+          }
+
+          return;
+        }
+
+        const isPressedEvent = eventState === 'pressed';
+        if (!isPressedEvent) {
+          return;
+        }
+
+        if (currentIsOpen) {
           lastClosedAtRef.current = now;
           clearTimer();
           setIsOpenSafe(false);
@@ -974,55 +1022,34 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
 
-        // If just closed, ignore immediate re-trigger to avoid reopen flicker
         const sinceClosed = now - (lastClosedAtRef.current ?? 0);
         if (sinceClosed < REOPEN_COOLDOWN_MS) {
           return;
         }
 
-        // Menu is closed - open it
-        // Mark as processing BEFORE any async operations
         isProcessingHotkeyRef.current = true;
-        
+
         const timeSinceLastProcessed = now - (lastHotkeyProcessedRef.current ?? 0);
         if (timeSinceLastProcessed < 200) {
           isProcessingHotkeyRef.current = false;
           return;
         }
-        
+
         lastHotkeyProcessedRef.current = now;
         lastHotkeyEventAtRef.current = now;
-        
-        // isHoldMode is already determined above
-        
-        // CRITICAL: Update ref immediately BEFORE opening menu
-        // This ensures that if another hotkey event comes immediately, it will see menu as open
         isOpenRef.current = true;
         lastToggleAtRef.current = now;
-        
-        // CRITICAL: Open menu immediately without any async operations
-        // Don't call resolve_active_profile here - it's heavy and causes delays
         setIsOpenSafe(true);
-        
-        // CRITICAL: Don't schedule auto-close immediately - wait a bit to prevent menu from disappearing
-        if (isHoldMode) {
-          // Don't schedule auto-close in hold mode - keyup events will close it
-          // CRITICAL: In hold mode, menu must stay open until key is released
-          // No timers, no auto-close, nothing
-        } else {
-          // Delay auto-close scheduling to prevent immediate closure
-          setTimeout(() => {
-            if (isOpenRef.current && autoCloseMs > 0) {
-              scheduleAutoClose();
-            }
-          }, 100);
-        }
-        
-        // Allow next processing after a short delay
-        // But in hold mode, keep processing blocked longer to prevent rapid-fire events
+
+        setTimeout(() => {
+          if (isOpenRef.current && autoCloseMs > 0) {
+            scheduleAutoClose();
+          }
+        }, 100);
+
         setTimeout(() => {
           isProcessingHotkeyRef.current = false;
-        }, isHoldMode ? 200 : 50); // Longer delay in hold mode
+        }, 50);
       });
 
       if (!aggregatorReady) {
