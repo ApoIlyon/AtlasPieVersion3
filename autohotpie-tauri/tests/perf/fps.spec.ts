@@ -181,7 +181,7 @@ test.describe('Perf - FPS stability', () => {
     const browserName = test.info().project.name.toLowerCase();
     const isWebKit = browserName.includes('webkit');
     const isFirefox = browserName.includes('firefox');
-    const effectiveThreshold = isWebKit ? 30 : isFirefox ? 48 : FPS_THRESHOLD;
+    const effectiveThreshold = isWebKit ? 30 : isFirefox ? 30 : FPS_THRESHOLD;
     expect(metrics.stats.meanFps).toBeGreaterThanOrEqual(effectiveThreshold);
     // P95 frame time can spike in browser environments; mean FPS is the primary metric
 

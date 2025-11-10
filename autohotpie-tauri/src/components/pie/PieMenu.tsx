@@ -70,6 +70,10 @@ export function PieMenu({
     let cancelled = false;
 
     const runAnimation = async () => {
+      if (visible) {
+        controls.set({ visibility: 'visible' });
+      }
+
       if (typeof performance !== 'undefined') {
         performance.mark('PieMenu:animation-start');
       }
@@ -78,6 +82,7 @@ export function PieMenu({
         opacity: visible ? 1 : 0,
         scale: visible ? 1 : 0.92,
         transition: { type: 'spring', stiffness: 260, damping: 22 },
+        transitionEnd: { visibility: visible ? 'visible' : 'hidden' },
       });
 
       if (cancelled) {
@@ -183,7 +188,7 @@ export function PieMenu({
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
       )}
       animate={controls}
-      initial={{ opacity: 0, scale: 0.92 }}
+      initial={{ opacity: 0, scale: 0.92, visibility: 'hidden' }}
       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       style={{
         width: containerSize,

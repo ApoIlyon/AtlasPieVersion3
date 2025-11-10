@@ -447,7 +447,7 @@ export function App() {
     [dialogOpen, profileHotkeyStatus],
   );
 
-  const showHotkeyConflictDialog = false;
+  const showHotkeyConflictDialog = isConflictDialogOpen || !!combinedHotkeyStatus;
 
   const handleHotkeyDialogClose = useCallback(() => {
     closeDialog();
@@ -822,13 +822,13 @@ export function App() {
                     <div className="mt-6 flex flex-col items-center gap-4">
                       <PieMenu
                         slices={menuSlices}
-                        visible={menuSlices.length > 0}
+                        visible={isPieMenuVisible && menuSlices.length > 0}
                         radius={200}
                         gapDeg={8}
                         activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
                         onHover={(sliceId) => setActiveSlice(sliceId)}
                         onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                        dataTestId="pie-menu-preview"
+                        dataTestId="pie-menu"
                         centerContent={
                           lastSafeModeReason ? (
                             <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
