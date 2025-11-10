@@ -13,6 +13,11 @@ import type { StorageMode, WindowSnapshot } from '../state/types';
 
 type TauriInvoke = (command: string, args?: Record<string, unknown>) => Promise<any>;
 
+interface HotkeyEventPayload {
+  id: string;
+  accelerator: string;
+}
+
 function getTauriInvoke(): TauriInvoke | null {
   if (!isTauriEnvironment()) {
     return null;
@@ -376,6 +381,51 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     activeProfileId: state.activeProfileId,
   }));
 
+  const recordActionMetric = useAppStore((state) => state.recordActionMetric);
+
+  const parsedFallbackHotkeys = useMemo<ParsedHotkey[]>(() => {
+    const candidates = Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
+    return candidates
+      .map((candidate) => (typeof candidate === 'string' ? candidate.trim() : ''))
+      .filter((candidate): candidate is string => candidate.length > 0)
+      .map((candidate) => parseHotkey(candidate))
+      .filter((parsed): parsed is ParsedHotkey => parsed != null);
+  }, [fallbackHotkey]);
+
+  const recordActionOutcome = useCallback(
+    (payload: {
+      id: string;
+      name: string;
+      status: ActionEventStatus;
+      message?: string | null;
+      timestamp?: string;
+      durationMs?: number | null;
+      invocationId?: string | null;
+    }) => {
+      const timestamp = payload.timestamp ?? new Date().toISOString();
+      setLastAction({
+        actionId: payload.id,
+        actionName: payload.name,
+        status: payload.status,
+        message: payload.message ?? null,
+        timestamp,
+        durationMs: payload.durationMs ?? null,
+        invocationId: payload.invocationId ?? null,
+      });
+
+      recordActionMetric({
+        actionId: payload.id,
+        actionName: payload.name,
+        status: payload.status,
+        message: payload.message ?? null,
+        timestamp,
+        durationMs: payload.durationMs ?? null,
+        invocationId: payload.invocationId ?? null,
+      });
+    },
+    [recordActionMetric],
+  );
+
   const mockHotkeyDialogMode = useMemo(() => {
     if (isTauriEnvironment() || typeof window === 'undefined') {
       return 'normal';
@@ -526,188 +576,6 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       conflictCloseTimerRef.current = null;
     }
   }, [clearTimer, resolvedConflictDialogOpen, resolvedHotkeyConflicts, isOpen]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    window.__PIE_DEBUG__ = {
-      state: {
-        isOpen,
-        hasConflictDialogOpen: resolvedConflictDialogOpen,
-        hasHotkeyConflicts: resolvedHotkeyConflicts,
-        currentSafeModeReason,
-        activeSliceId,
-        closeTimerPending: closeTimerRef.current != null,
-        lastToggleAt: lastToggleAtRef.current,
-      },
-    };
-  }, [
-    activeSliceId,
-    hasConflictDialogOpen,
-    hasHotkeyConflicts,
-    isOpen,
-    currentSafeModeReason,
-  ]);
-
-  const recordActionOutcome = useCallback(
-    (payload: {
-      id: string;
-      name: string;
-      status: ActionEventStatus;
-      message?: string | null;
-      timestamp?: string;
-      durationMs?: number | null;
-      invocationId?: string | null;
-    }) => {
-      const timestamp = payload.timestamp ?? new Date().toISOString();
-      const durationMs = payload.durationMs ?? null;
-      const invocationId = payload.invocationId ?? null;
-
-      const now = Date.now();
-      const duplicateToast =
-        lastToastRef.current &&
-        lastToastRef.current.id === payload.id &&
-        now - lastToastRef.current.timestamp < ACTION_TOAST_DEDUP_MS;
-
-      if (!duplicateToast) {
-        setLastAction({
-          status: payload.status,
-          message: payload.message ?? null,
-          actionId: payload.id,
-          actionName: payload.name,
-          timestamp,
-          durationMs,
-          invocationId,
-        });
-        lastToastRef.current = { id: payload.id, timestamp: now };
-      }
-
-      const recordAppMetric = useAppStore.getState().recordActionMetric;
-      recordAppMetric({
-        actionId: payload.id,
-        actionName: payload.name,
-        status: payload.status,
-        message: payload.message ?? null,
-        timestamp,
-        durationMs,
-        invocationId,
-      });
-      
-      // Only close menu on success, and only if it was recently opened (not just opened)
-      if (payload.status === 'success') {
-        lastClosedAtRef.current = Date.now();
-        if (resolvedActivationModeRef.current !== 'hold') {
-          isOpenRef.current = false;
-          setIsOpen(false);
-          clearTimer();
-        }
-        return;
-      }
-      
-      // For other statuses, don't auto-close - let user control it
-    },
-    [clearTimer],
-  );
-  
-  // Auto-close menu if safe mode is enabled
-  useEffect(() => {
-    if (currentSafeModeReason && isOpen) {
-      // CRITICAL: In hold mode, don't close menu from safe mode - let user release key first
-      const isHoldMode = resolvedActivationModeRef.current === 'hold';
-      if (isHoldMode) {
-        // Don't close in hold mode - menu will close when key is released
-        return;
-      }
-      
-      // Don't close if menu was just opened to prevent race conditions
-      // Use longer protection time to prevent menu from disappearing immediately
-      const timeSinceOpen = Date.now() - (lastToggleAtRef.current ?? 0);
-      if (timeSinceOpen > 800) { // Increased to 800ms to prevent immediate closure
-        lastClosedAtRef.current = Date.now();
-        setIsOpenSafe(false);
-        clearTimer();
-        // Show notification about forced closure
-        recordActionOutcome({
-          id: 'safe-mode-forced-close',
-          name: 'Pie Menu Closed',
-          status: 'skipped',
-          message: currentSafeModeReason,
-        });
-      }
-    }
-  }, [clearTimer, currentSafeModeReason, isOpen, recordActionOutcome, resolvedActivationMode]);
-
-  const fallbackHotkeys = useMemo(() => {
-    const base: string[] = (() => {
-      if (!fallbackHotkey) {
-        return [];
-      }
-      return Array.isArray(fallbackHotkey) ? fallbackHotkey : [fallbackHotkey];
-    })();
-
-    if (!isTauriEnvironment()) {
-      const hotkeys = new Set<string>(base);
-      const activeProfileId = profileStoreState.activeProfileId;
-      const fallbackRecord = profileStoreState.profiles[0];
-      const activeRecord = activeProfileId
-        ? profileStoreState.profiles.find((record) => record.profile.id === activeProfileId)
-        : fallbackRecord;
-
-      if (fallbackRecord?.profile.globalHotkey) {
-        hotkeys.add(fallbackRecord.profile.globalHotkey.trim());
-      }
-      if (activeRecord?.profile.globalHotkey) {
-        hotkeys.add(activeRecord.profile.globalHotkey.trim());
-      }
-      return Array.from(hotkeys);
-    }
-
-    return base;
-  }, [fallbackHotkey, profileStoreState.activeProfileId, profileStoreState.profiles]);
-  
-  const parsedFallbackHotkeys = useMemo(
-    () =>
-      fallbackHotkeys
-        .map((hotkey) => parseHotkey(hotkey))
-        .filter((parsed): parsed is ParsedHotkey => Boolean(parsed)),
-    [fallbackHotkeys],
-  );
-  // Update resolvedActivationMode when activeProfile becomes available
-  // This is the full resolution that includes activeProfile.holdToOpen
-  // Update the ref and useMemo result to include activeProfile
-  useEffect(() => {
-    if (activationModeOverride) {
-      resolvedActivationModeRef.current = activationModeOverride;
-      setActivationMode(activationModeOverride);
-      return;
-    }
-    if (profileHoldToOpen != null) {
-      const mode = profileHoldToOpen ? 'hold' : 'toggle';
-      resolvedActivationModeRef.current = mode;
-      setActivationMode(mode);
-      return;
-    }
-    if (activeProfile?.holdToOpen) {
-      resolvedActivationModeRef.current = 'hold';
-      setActivationMode('hold');
-      return;
-    }
-    resolvedActivationModeRef.current = 'toggle';
-    setActivationMode('toggle');
-  }, [activationModeOverride, profileHoldToOpen, activeProfile?.holdToOpen, activeProfile]);
-
-  useEffect(() => {
-    if (!isTauriEnvironment() && typeof window !== 'undefined') {
-      (window as unknown as { __PIE_HOTKEY_MATCHERS__?: string[] }).__PIE_HOTKEY_MATCHERS__ = parsedFallbackHotkeys.map(
-        (parsed) => parsed.original.toLowerCase(),
-      );
-    }
-  }, [parsedFallbackHotkeys]);
-
-  useEffect(() => {
-    activeProfileRef.current = activeProfile;
-  }, [activeProfile]);
 
   useEffect(() => {
     if (isTauriEnvironment()) {
@@ -1016,9 +884,46 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         },
       );
 
-      hotkeyUnlisten = await listen(hotkeyEvent, () => {
+      hotkeyUnlisten = await listen<HotkeyEventPayload>(hotkeyEvent, (event) => {
+        const payload = event.payload;
+        const shortcutId = payload?.id ?? null;
+        const acceleratorFromPayload = payload?.accelerator?.trim() || null;
+
+        if (acceleratorFromPayload) {
+          activeHotkeyAcceleratorRef.current = acceleratorFromPayload;
+          setTriggerAccelerator(acceleratorFromPayload);
+        }
+
+        const profileIdFromPayload =
+          shortcutId && shortcutId.startsWith('profile:') ? shortcutId.slice('profile:'.length) : null;
+        if (profileIdFromPayload) {
+          const profileState = useProfileStore.getState();
+          const { profiles, activeProfileId } = profileState;
+          const profileIndex = profiles.findIndex((record) => record.profile.id === profileIdFromPayload);
+          if (profileIndex !== -1) {
+            const record = profiles[profileIndex];
+            const snapshot: ActiveProfileSnapshot = {
+              index: profileIndex,
+              name: record.profile.name,
+              matchKind: 'custom',
+              holdToOpen: record.profile.holdToOpen ?? false,
+            };
+            activeProfileRef.current = snapshot;
+            setActiveProfile(snapshot);
+          }
+
+          if (activeProfileId !== profileIdFromPayload) {
+            const invokeFn = getTauriInvoke();
+            if (invokeFn) {
+              invokeFn('activate_profile', { profileId: profileIdFromPayload }).catch((error) => {
+                console.error('Failed to activate profile for hotkey trigger', error);
+              });
+            }
+          }
+        }
+
         const now = Date.now();
-        
+
         // Prevent concurrent processing - if already processing, ignore
         if (isProcessingHotkeyRef.current) {
           return;
