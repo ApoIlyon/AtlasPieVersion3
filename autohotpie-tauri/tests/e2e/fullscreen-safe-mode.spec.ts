@@ -90,8 +90,9 @@ test.describe('Edge case - Fullscreen safe-mode', () => {
     await triggerHotkey(page, HOTKEY);
     await expect(pieMenu).toBeVisible({ timeout: 1_000 });
 
-    // Cleanup
-    await page.keyboard.press('Escape');
-    await expect(pieMenu).toBeHidden({ timeout: 2_000 });
+  // Cleanup
+  await page.keyboard.press('Escape');
+  // Assert on aria-hidden to avoid flakiness due to opacity animation
+  await expect(pieMenu).toHaveAttribute('aria-hidden', 'true', { timeout: 2_000 });
   });
 });

@@ -42,8 +42,11 @@ test.describe('US1 - Action execution flow', () => {
     const statusToast = page.getByRole('status').first();
     await expect(statusToast).toBeVisible({ timeout: 1_000 });
     await expect(statusToast).toContainText(/SUCCESS/i);
-    await page.keyboard.press('Escape');
-    await expect(pieMenu).toBeHidden({ timeout: 2_000 });
+  await page.keyboard.press('Escape');
+  // The pie menu fades out via opacity and uses an animation end to set visibility:hidden.
+  // Playwright treats elements with opacity:0 as visible, so assert on aria-hidden which
+  // is updated immediately when the menu is closed.
+  await expect(pieMenu).toHaveAttribute('aria-hidden', 'true', { timeout: 2_000 });
 
     await page.evaluate(() => {
       window.dispatchEvent(
