@@ -15,6 +15,7 @@ const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
 pub struct HotkeyEventPayload {
     pub id: String,
     pub accelerator: String,
+    pub state: String,
 }
 
 #[derive(Clone, Default, Serialize)]
@@ -226,13 +227,19 @@ fn register_hotkey_impl<R: Runtime>(
     app
         .global_shortcut()
         .on_shortcut(shortcut, move |app_handle, _shortcut, evt: ShortcutEvent| {
-            if matches!(evt.state, ShortcutState::Pressed) {
-                let payload = HotkeyEventPayload {
-                    id: shortcut_id.clone(),
-                    accelerator: accelerator_for_event.clone(),
-                };
-                let _ = app_handle.emit(&event_name, payload);
-            }
+            let state_str = match evt.state {
+                ShortcutState::Pressed => "pressed",
+                ShortcutState::Released => "released",
+                _ => return,
+            };
+
+            let payload = HotkeyEventPayload {
+                id: shortcut_id.clone(),
+                accelerator: accelerator_for_event.clone(),
+                state: state_str.to_string(),
+            };
+
+            let _ = app_handle.emit(&event_name, payload);
         })
         .map_err(|err| AppError::Message(format!("Failed to register global hotkey: {err}")))?;
 
