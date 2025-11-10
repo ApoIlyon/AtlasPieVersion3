@@ -383,7 +383,7 @@ export function App() {
     [dialogOpen, profileHotkeyStatus],
   );
 
-  const showHotkeyConflictDialog = false;
+  const showHotkeyConflictDialog = isConflictDialogOpen || !!combinedHotkeyStatus;
 
   const handleHotkeyDialogClose = useCallback(() => {
     closeDialog();

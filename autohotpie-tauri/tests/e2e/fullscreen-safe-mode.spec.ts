@@ -24,7 +24,7 @@ async function triggerHotkey(page: Page, hotkey: string) {
 
 test.describe('Edge case - Fullscreen safe-mode', () => {
   test('blocks pie menu when fullscreen game detected and shows notification', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?mockSafeMode=strict');
     await page.waitForLoadState('networkidle');
 
     // Mock fullscreen game detection via system store
