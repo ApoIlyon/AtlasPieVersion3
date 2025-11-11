@@ -495,9 +495,9 @@ export function App() {
               visible: true,
               slices: menuSlices,
               activeSliceId: activeSliceId ?? null,
-              centerLabel: lastSafeModeReason,
+              centerLabel: lastSafeModeReason ?? null,
               triggerAccelerator: pieMenuTriggerAccelerator ?? null,
-              activationMode: pieMenuActivationMode,
+              activationMode: pieMenuActivationMode ?? null,
             },
           });
         } else {
@@ -511,29 +511,7 @@ export function App() {
     void syncOverlay();
   }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
 
-  useEffect(() => {
-    if (!isTauriEnvironment()) {
-      return;
-    }
 
-    const updateOverlay = async () => {
-      try {
-        await invoke('pie_overlay_sync_state', {
-          update: {
-            slices: menuSlices,
-            activeSliceId: activeSliceId ?? null,
-            centerLabel: lastSafeModeReason ?? null,
-            triggerAccelerator: pieMenuTriggerAccelerator ?? null,
-            activationMode: pieMenuActivationMode ?? null,
-          },
-        });
-      } catch (error) {
-        console.error('Failed to update pie overlay state', error);
-      }
-    };
-
-    void updateOverlay();
-  }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
