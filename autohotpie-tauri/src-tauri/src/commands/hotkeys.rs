@@ -239,7 +239,12 @@ fn register_hotkey_impl<R: Runtime>(
                 state: state_str.to_string(),
             };
 
-            let _ = app_handle.emit(&event_name, payload);
+            let _ = app_handle.emit(&event_name, &payload);
+
+            // If this is the main profile hotkey event, also drive the radial overlay state on the backend.
+            if event_name == HOTKEY_TRIGGER_EVENT {
+                crate::commands::radial_overlay::handle_shortcut_event(&app_handle, &evt);
+            }
         })
         .map_err(|err| AppError::Message(format!("Failed to register global hotkey: {err}")))?;
 

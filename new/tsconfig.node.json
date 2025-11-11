@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "noEmit": false
+  },
+  "include": ["vite.config.*", "vitest.config.*", "src-tauri"]
+}

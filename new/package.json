@@ -1,0 +1,53 @@
+{
+  "name": "autohotpie-tauri",
+  "version": "0.1.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "playwright": "playwright test --config=tests/e2e/playwright.config.ts",
+    "test:e2e": "playwright test --config=tests/e2e/playwright.config.ts",
+    "e2e": "npm run test:e2e",
+    "cargo:test": "cd src-tauri && cargo test",
+    "check:all": "npm run test:unit && npm run cargo:test && npm run test:e2e",
+    "version:bump": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/bump-version.ps1",
+    "test:pie": "npm run test -- --run usePieMenuHotkey.test.ts && npx playwright test --config=tests/e2e/playwright.config.ts perf/latency.spec.ts perf/menu-latency.spec.ts perf/fps.spec.ts --reporter=line --workers=1 && npx playwright test --config=tests/e2e/playwright.config.ts pie-menu.spec.ts action-execution.spec.ts hotkey-conflict.spec.ts --reporter=line --workers=1",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-opener": "^2.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.3.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.14",
+    "@tauri-apps/cli": "^2.0.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.7.4",
+    "@types/react": "^18.3.7",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^3.2.4",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^27.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.5.4",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4"
+  }
+}
