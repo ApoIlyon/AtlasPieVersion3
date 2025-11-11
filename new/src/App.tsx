@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from './state/appStore';
@@ -11,13 +10,11 @@ import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistration
 import { useHotkeyStore } from './state/hotkeyStore';
 import { useProfileStore, selectProfileHotkeyStatus } from './state/profileStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
-import { PieMenu, type PieSliceDefinition } from './components/pie/PieMenu';
 import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
-import { MenuBarToggle } from './components/tray/MenuBarToggle';
-import type { HotkeyRegistrationStatus } from './types/hotkeys';
+import type { PieSliceDefinition } from './components/pie/PieMenu';
 import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
@@ -230,11 +227,7 @@ export function App() {
     statusMessages.push(loadedProfilesText);
   }
 
-  const previewHotkeyLabel = 'Ctrl + Shift + P';
-  const previewBodyTemplate = t('dashboard.previewBody');
-  const previewBodyParts = previewBodyTemplate.split('{hotkey}');
-  const previewBodyBefore = previewBodyParts[0] ?? previewBodyTemplate;
-  const previewBodyAfter = previewBodyParts[1] ?? '';
+  
 
   useEffect(() => {
     if (isTauriEnvironment()) {
@@ -535,31 +528,7 @@ export function App() {
     void updateOverlay();
   }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
 
-  useEffect(() => {
-    if (!isTauriEnvironment()) {
-      return;
-    }
-    const registerPromise = invoke<HotkeyRegistrationStatus>('register_hotkey', {
-      request: {
-        id: 'preview-pie-menu-toggle',
-        accelerator: 'Control+Shift+P',
-        event: 'hotkeys://trigger',
-        allowConflicts: true,
-      },
-    })
-      .then((status) => {
-        if (!status.registered) {
-          console.warn('Preview hotkey registration blocked', status.conflicts);
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to register preview hotkey', error);
-      });
-
-    return () => {
-      void registerPromise;
-    };
-  }, []);
+  
 
   const openLogPanel = useCallback(() => {
     setIsLogPanelOpen(true);
@@ -810,61 +779,13 @@ export function App() {
                   <HotkeyRegistrationPanel />
                 </div>
 
-                <div className="mt-10 grid gap-6 lg:grid-cols-[360px,1fr]">
-                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">{t('dashboard.previewTitle')}</h3>
-                    <p className="mt-2 text-sm text-white/70">
-                      {previewBodyBefore}
-                      <span className="font-semibold text-text-primary">{previewHotkeyLabel}</span>
-                      {previewBodyAfter}
-                    </p>
-
-                    <div className="mt-6 flex flex-col items-center gap-4">
-                      <PieMenu
-                        slices={menuSlices}
-                        visible={isPieMenuVisible && menuSlices.length > 0}
-                        radius={200}
-                        gapDeg={8}
-                        activeSliceId={activeSliceId ?? menuSlices[0]?.id ?? null}
-                        onHover={(sliceId) => setActiveSlice(sliceId)}
-                        onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
-                        dataTestId="pie-menu"
-                        centerContent={
-                          lastSafeModeReason ? (
-                            <span className="text-[10px] uppercase tracking-[0.4em] text-rose-100/80">
-                              {t('dashboard.safeModeBadge')}
-                            </span>
-                          ) : null
-                        }
-                      />
-                      {menuSlices.length === 0 && (
-                        <p className="text-sm text-white/60">{t('dashboard.previewEmpty')}</p>
-                      )}
-                      {lastAction && (
-                        <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                          <p className="font-semibold text-white">{t('dashboard.lastAction')}</p>
-                          <p className="mt-1 text-sm">{lastAction.actionName}</p>
-                          <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-white/40">
-                            {t('dashboard.lastActionStatus')}: {lastAction.status} · {new Date(lastAction.timestamp).toLocaleTimeString()}
-                          </p>
-                          {lastAction.message && (
-                            <p className="mt-1 text-white/60">{lastAction.message}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
-                    <p className="mt-2 text-sm text-white/70">
-                      {t('dashboard.contextualBody')}
-                    </p>
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                      <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
-                      <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
-                      <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
-                    </div>
+                <div className="mt-10 rounded-3xl border border-white/5 bg-white/5 p-6">
+                  <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
+                  <p className="mt-2 text-sm text-white/70">{t('dashboard.contextualBody')}</p>
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
+                    <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
+                    <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
                   </div>
                 </div>
               </div>
