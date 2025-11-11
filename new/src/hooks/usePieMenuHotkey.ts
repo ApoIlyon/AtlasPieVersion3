@@ -716,13 +716,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     };
 
     const handleBlur = () => {
-      const isHoldMode = resolvedActivationModeRef.current === 'hold';
-      if (isHoldMode && activeHoldHotkeyRef.current) {
-        setTimeout(() => {
-          clearMenuState();
-        }, 150);
-      }
+      // CRITICAL: Don't close menu on blur - it causes menu to disappear immediately
+      // Only clear pressed keys, but don't close menu
+      // The menu should only close from user actions or hotkey release
       pressedKeysRef.current.clear();
+      // Don't close menu on window blur - it's too aggressive
     };
 
     const toggleEvent = () => {
@@ -816,7 +814,6 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     let windowUnlisten: (() => void) | undefined;
     let storageModeUnlisten: (() => void) | undefined;
     let profileUnlisten: (() => void) | undefined;
-    let initialProfileResolved = false;
 
     const setup = async () => {
       // Wait for Tauri API to be available
@@ -890,21 +887,6 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       // This was causing the menu to disappear immediately after opening
       // The profile will be resolved by the profile router and sent via events
       // Just wait for the profile event instead
-
-      if (!initialProfileResolved) {
-        const invokeFn = getTauriInvoke();
-        if (invokeFn) {
-          try {
-            const snapshot = (await invokeFn('resolve_active_profile')) as ActiveProfileSnapshot | null;
-            if (isMounted) {
-              setActiveProfile(snapshot ?? null);
-            }
-          } catch (error) {
-            console.error('Failed to resolve active profile', error);
-          }
-        }
-        initialProfileResolved = true;
-      }
 
       profileUnlisten = await listen<{ profile: ActiveProfileSnapshot | null }>(
         'profiles://active-changed',

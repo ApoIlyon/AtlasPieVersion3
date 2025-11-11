@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import clsx from 'clsx';
 import { useHotkeyStore } from '../../state/hotkeyStore';
 import { selectProfileHotkeyStatus, useProfileStore } from '../../state/profileStore';
-import type { ProfileRecord } from '../../state/profileStore';
-import { PieMenu, type PieSliceDefinition } from '../pie/PieMenu';
+import type { ProfileRecord, RadialOverlayActivationMode } from '../../state/profileStore';
 import { ContextConditionsPanel } from './ContextConditionsPanel';
 import { useLocalization } from '../../hooks/useLocalization';
+import { RadialMenu } from '../radial/RadialMenu';
+import type { RadialConfig } from '../radial/types';
 
 export interface ProfileEditorProps {
   profile: ProfileRecord | null;
@@ -387,10 +389,13 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
   const [hotkeyValue, setHotkeyValue] = useState(profile.profile.globalHotkey ?? '');
   const [hotkeyMessage, setHotkeyMessage] = useState<string | null>(null);
-  const [holdToOpen, setHoldToOpen] = useState(profile.profile.holdToOpen ?? false);
-  const [holdToggleMessage, setHoldToggleMessage] = useState<string | null>(null);
-  const [holdToOpenSaving, setHoldToOpenSaving] = useState(false);
+
   const [hotkeySubmitting, setHotkeySubmitting] = useState(false);
+  const [activationMode, setActivationMode] = useState<RadialOverlayActivationMode>(
+    profile.profile.radialOverlayActivationMode ?? 'toggle',
+  );
+  const [activationSaving, setActivationSaving] = useState(false);
+  const [activationModeMessage, setActivationModeMessage] = useState<string | null>(null);
   const validationErrors = profileStore.validationErrors ?? [];
   const profileHotkeyConflicts = profileHotkeyStatus?.conflicts ?? [];
   const shouldShowHotkeyConflicts = Boolean(
@@ -426,14 +431,17 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
   const currentMenu = currentMenuId ? menus.find((menu) => menu.id === currentMenuId) ?? null : null;
   const currentSlices = currentMenu?.slices ?? [];
 
-  const pieSlices = useMemo<PieSliceDefinition[]>(() => {
-    return currentSlices.map((slice, index) => ({
-      id: slice.id,
-      label: slice.label || t('profileEditor.sliceLabelFallback').replace('{index}', String(index + 1)),
-      order: slice.order ?? index,
-      disabled: !slice.action && !slice.childMenu,
-    }));
-  }, [currentSlices, t]);
+  // Default colors for slices (matching the overlay defaults)
+  const defaultColors = [
+    '#60a5fa', // blue
+    '#f472b6', // pink
+    '#facc15', // yellow
+    '#34d399', // green
+    '#a855f7', // purple
+    '#fb7185', // rose
+    '#38bdf8', // sky
+    '#fb923c', // orange
+  ];
 
   const breadcrumbItems: BreadcrumbItem[] = [{
     id: 'profile-root',
@@ -485,9 +493,66 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
 
   useEffect(() => {
     setHotkeyValue(profile.profile.globalHotkey ?? '');
-    setHoldToOpen(profile.profile.holdToOpen ?? false);
-    setHoldToggleMessage(null);
-  }, [profile.profile.globalHotkey, profile.profile.holdToOpen]);
+    setHotkeyMessage(null);
+  }, [profile.profile.globalHotkey]);
+
+  useEffect(() => {
+    setActivationMode(profile.profile.radialOverlayActivationMode ?? 'toggle');
+    setActivationModeMessage(null);
+  }, [profile.profile.id, profile.profile.radialOverlayActivationMode]);
+
+  useEffect(() => {
+    if (!activationModeMessage || activationSaving) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => setActivationModeMessage(null), 2400);
+    return () => window.clearTimeout(timeoutId);
+  }, [activationModeMessage, activationSaving]);
+
+  const handleActivationModeChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const nextMode = event.target.value as RadialOverlayActivationMode;
+      if (
+        nextMode === activationMode &&
+        profile.profile.radialOverlayActivationMode === nextMode
+      ) {
+        return;
+      }
+
+      const previousMode = activationMode;
+      setActivationMode(nextMode);
+      setActivationSaving(true);
+      setActivationModeMessage('Сохранение…');
+
+      try {
+        const saved = await profileStore.saveProfile({
+          ...profile,
+          profile: {
+            ...profile.profile,
+            radialOverlayActivationMode: nextMode,
+          },
+        });
+
+        if (!saved) {
+          setActivationMode(previousMode);
+          setActivationModeMessage('Не удалось сохранить режим активации');
+        } else {
+          setActivationModeMessage(
+            nextMode === 'hold'
+              ? 'Режим «удержание» активирован'
+              : 'Режим «переключение» активирован',
+          );
+        }
+      } catch (error) {
+        console.error('Failed to update radial overlay activation mode', error);
+        setActivationMode(previousMode);
+        setActivationModeMessage('Не удалось сохранить режим активации');
+      } finally {
+        setActivationSaving(false);
+      }
+    },
+    [activationMode, profile, profileStore],
+  );
 
   const handleBreadcrumbClick = useCallback(
     (index: number) => {
@@ -546,7 +611,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
           profile: {
             ...profile.profile,
             globalHotkey: accelerator.length ? accelerator : null,
-            holdToOpen,
           },
         });
 
@@ -694,7 +758,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                           profile: {
                             ...profile.profile,
                             globalHotkey: null,
-                            holdToOpen,
                           },
                         });
                         if (saved) {
@@ -735,64 +798,37 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               )}
             </form>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-sm text-white/80">
-            <div className="flex items-start justify-between gap-3">
-              <label htmlFor="profile-hold-to-open" className="flex-1 text-xs uppercase tracking-[0.3em] text-white/50">
-                {t('profileEditor.holdToggleLabel')}
-              </label>
-              <button
-                type="button"
-                id="profile-hold-to-open"
-                className={clsx(
-                  'relative inline-flex h-6 w-11 items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-                  holdToOpen ? 'bg-accent' : 'bg-white/20',
-                  holdToOpenSaving && 'opacity-60',
-                )}
-                aria-pressed={holdToOpen}
-                disabled={holdToOpenSaving}
-                onClick={async () => {
-                  if (holdToOpenSaving) {
-                    return;
-                  }
-                  const previous = holdToOpen;
-                  const next = !previous;
-                  setHoldToOpen(next);
-                  setHoldToOpenSaving(true);
-                  setHoldToggleMessage(null);
-                  try {
-                    const saved = await profileStore.saveProfile({
-                      ...profile,
-                      profile: {
-                        ...profile.profile,
-                        holdToOpen: next,
-                      },
-                    });
-                    if (!saved) {
-                      setHoldToOpen(previous);
-                      setHoldToggleMessage(t('profileEditor.holdToggleError'));
-                      return;
-                    }
-                    setHoldToggleMessage(
-                      next ? t('profileEditor.holdToggleEnabled') : t('profileEditor.holdToggleDisabled'),
-                    );
-                  } catch {
-                    setHoldToOpen(previous);
-                    setHoldToggleMessage(t('profileEditor.holdToggleError'));
-                  } finally {
-                    setHoldToOpenSaving(false);
-                  }
-                }}
-              >
-                <span
-                  className={clsx(
-                    'inline-block h-5 w-5 transform rounded-full bg-black/80 transition',
-                    holdToOpen ? 'translate-x-5' : 'translate-x-1',
-                  )}
+          <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">Режим активации</p>
+            <div className="mt-3 flex flex-col gap-2 text-sm text-white/70">
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name={`radial-activation-${profile.profile.id}`}
+                  value="toggle"
+                  checked={activationMode === 'toggle'}
+                  onChange={handleActivationModeChange}
+                  disabled={activationSaving}
+                  className="h-4 w-4 accent-accent"
                 />
-              </button>
+                <span>Переключение — меню остаётся открытым после нажатия</span>
+              </label>
+              <label className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name={`radial-activation-${profile.profile.id}`}
+                  value="hold"
+                  checked={activationMode === 'hold'}
+                  onChange={handleActivationModeChange}
+                  disabled={activationSaving}
+                  className="h-4 w-4 accent-accent"
+                />
+                <span>Удержание — меню видно пока зажата горячая клавиша</span>
+              </label>
             </div>
-            <p className="mt-2 text-xs text-white/60">{t('profileEditor.holdToggleDescription')}</p>
-            {holdToggleMessage && <p className="mt-2 text-xs text-white/60">{holdToggleMessage}</p>}
+            {activationModeMessage && (
+              <p className="mt-3 text-xs text-white/60">{activationModeMessage}</p>
+            )}
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
             <p className="text-xs uppercase tracking-[0.3em] text-white/40">{t('profileEditor.hotkeyTipsTitle')}</p>
@@ -802,29 +838,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
               <li>{t('profileEditor.hotkeyTip3')}</li>
             </ul>
           </div>
-          {shouldShowHotkeyConflicts && (
-            <div className="space-y-2 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-xs text-white/70">
-              <div className="flex items-center justify-between">
-                <p className="uppercase tracking-[0.25em] text-white/50">{t('profileEditor.conflictsTitle')}</p>
-                <button
-                  type="button"
-                  className="text-[11px] uppercase tracking-[0.25em] text-white/50 transition hover:text-white/80"
-                  onClick={clearProfileHotkeyStatus}
-                >
-                  {t('profileEditor.conflictsDismiss')}
-                </button>
-              </div>
-              <p>{t('profileEditor.conflictsDescription')}</p>
-              <ul className="space-y-1">
-                {profileHotkeyConflicts.map((conflict, index) => (
-                  <li key={`${conflict.code}-${index}`} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2">
-                    <span className="font-semibold text-white/80">{conflict.code}</span>
-                    {conflict.message ? ` — ${conflict.message}` : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
         <div className="space-y-4 text-sm">
@@ -891,20 +904,27 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
         <div className="space-y-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
             {currentMenu ? (
-              <PieMenu
-                slices={pieSlices}
-                activeSliceId={activeSliceId}
-                visible
-                dataTestId="pie-menu-editor"
-                centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
-                onSelect={(sliceId) => handleSliceSelect(sliceId)}
-                onAddSliceAfter={(sliceId) => {
-                  if (canAddSlice) void handleAddSlice(sliceId);
-                }}
-                onDeleteSlice={(sliceId) => {
-                  if (canRemoveSlice) void handleRemoveSlice(sliceId);
-                }}
-              />
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</p>
+                <div className="flex justify-center">
+                  <RadialMenu
+                    config={{
+                      radius: 160,
+                      itemSize: 62,
+                      spacing: 14,
+                      shortcut: '',
+                      activationMode: 'toggle',
+                      items: currentSlices.map((slice, index) => ({
+                        id: slice.id,
+                        label: slice.label || t('profileEditor.sliceUntitled'),
+                        command: slice.action,
+                        color: slice.color || defaultColors[index % defaultColors.length],
+                      })),
+                    }}
+                    onItemClick={(item) => handleSliceSelect(item.id)}
+                  />
+                </div>
+              </div>
             ) : (
               <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
             )}
@@ -925,9 +945,21 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-semibold text-white">{t('profileEditor.slicesTitle')}</h4>
-              <span className="text-xs uppercase tracking-[0.25em] text-white/40">
-                {t('profileEditor.slicesTotal').replace('{count}', String(currentSlices.length))}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs uppercase tracking-[0.25em] text-white/40">
+                  {t('profileEditor.slicesTotal').replace('{count}', String(currentSlices.length))}
+                </span>
+                <button
+                  type="button"
+                  className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-accent transition hover:bg-accent/20"
+                  onClick={() => {
+                    // TODO: Add slice functionality
+                    console.log('Add slice');
+                  }}
+                >
+                  + Add
+                </button>
+              </div>
             </div>
             <div className="mt-4 space-y-3">
               {currentSlices.length === 0 && (
@@ -935,25 +967,34 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                   {t('profileEditor.slicesEmpty')}
                 </div>
               )}
-              {currentSlices.map((slice) => (
-                <div
-                  key={slice.id}
-                  className={clsx(
-                    'rounded-2xl border px-4 py-3 transition flex flex-col gap-2',
-                    slice.id === activeSliceId
-                      ? 'border-accent/60 bg-accent/15 shadow-[0_0_25px_rgba(59,130,246,0.35)]'
-                      : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10',
-                  )}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <button
-                      type="button"
-                      className="text-left text-sm font-medium text-white"
-                      onClick={() => handleSliceSelect(slice.id)}
-                    >
-                      {slice.label || t('profileEditor.sliceUntitled')}
-                    </button>
-                    <div className="flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
+              {currentSlices.map((slice, index) => {
+                const sliceColor = slice.color || defaultColors[index % defaultColors.length];
+                return (
+                  <div
+                    key={slice.id}
+                    className={clsx(
+                      'rounded-2xl border px-4 py-3 transition',
+                      slice.id === activeSliceId
+                        ? 'border-accent/60 bg-accent/15 shadow-[0_0_25px_rgba(59,130,246,0.35)]'
+                        : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10',
+                    )}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div
+                          className="h-4 w-4 rounded-full border border-white/20 flex-shrink-0"
+                          style={{ backgroundColor: sliceColor }}
+                          title={sliceColor}
+                        />
+                        <button
+                          type="button"
+                          className="text-left text-sm font-medium text-white"
+                          onClick={() => handleSliceSelect(slice.id)}
+                        >
+                          {slice.label || t('profileEditor.sliceUntitled')}
+                        </button>
+                      </div>
+                    <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
                       <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
                         {t('profileEditor.sliceOrder').replace('{order}', String(slice.order ?? 0))}
                       </span>
@@ -971,15 +1012,17 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                           {t('profileEditor.sliceNestedButton')}
                         </button>
                       )}
-                      {canRemoveSlice && (
-                        <button
-                          type="button"
-                          className="ml-1 rounded-full border border-red-400/40 bg-red-500/10 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.25em] text-red-300 transition hover:border-red-400/70 hover:bg-red-500/20"
-                          onClick={() => handleRemoveSlice(slice.id)}
-                        >
-                          {t('profileEditor.sliceRemoveButton' as any) || 'Удалить'}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className="rounded-full border border-red-500/40 bg-red-500/10 px-2 py-1 text-red-400 transition hover:bg-red-500/20"
+                        onClick={() => {
+                          // TODO: Delete slice functionality
+                          console.log('Delete slice', slice.id);
+                        }}
+                        title="Delete slice"
+                      >
+                        ×
+                      </button>
                     </div>
                   </div>
                   {slice.action && (
@@ -991,7 +1034,8 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                     <p className="mt-1 text-xs text-white/60">{t('profileEditor.sliceNoAction')}</p>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <button

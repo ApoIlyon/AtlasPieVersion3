@@ -54,8 +54,10 @@ pub struct Profile {
     #[serde(default)]
     pub activation_rules: Vec<ActivationRule>,
     pub root_menu: PieMenuId,
-    #[serde(default, skip_serializing_if = "is_false")]
+    #[serde(default)]
     pub hold_to_open: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub radial_overlay_activation_mode: Option<RadialOverlayActivationMode>,
 }
 
 impl Profile {
@@ -69,6 +71,7 @@ impl Profile {
             activation_rules: Vec::new(),
             root_menu,
             hold_to_open: false,
+            radial_overlay_activation_mode: Some(RadialOverlayActivationMode::default()),
         }
     }
 }
@@ -105,4 +108,17 @@ pub struct ActivationRule {
     pub case_sensitive: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub screen_area: Option<ScreenArea>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum RadialOverlayActivationMode {
+    Toggle,
+    Hold,
+}
+
+impl Default for RadialOverlayActivationMode {
+    fn default() -> Self {
+        Self::Toggle
+    }
 }

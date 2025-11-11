@@ -63,24 +63,79 @@ const PieOverlayApp: React.FC = () => {
     });
   }, []);
 
+  const parseAccelerator = React.useCallback((accelerator: string | null | undefined): Set<string> | null => {
+    if (!accelerator) {
+      return null;
+    }
+    const normalize = (key: string) => {
+      const lower = key.toLowerCase();
+      if (lower === ' ' || lower === 'space' || lower === 'spacebar') return 'space';
+      if (lower === 'ctrl' || lower === 'control') return 'ctrl';
+      if (lower === 'shift') return 'shift';
+      if (lower === 'alt' || lower === 'option') return 'alt';
+      if (lower === 'meta' || lower === 'cmd' || lower === 'command' || lower === 'win') return 'meta';
+      return lower;
+    };
+    const parts = accelerator
+      .split('+')
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+      .map((part) => normalize(part));
+    return new Set(parts);
+  }, []);
+
   React.useEffect(() => {
-    if (!state.visible) {
+    if (!state.visible || state.activationMode !== 'hold') {
       return;
     }
 
+    const required = parseAccelerator(state.triggerAccelerator);
+    if (!required) {
+      return;
+    }
+
+    const pressed = new Set<string>();
+
+    const normalize = (key: string) => {
+      const lower = key.toLowerCase();
+      if (lower === ' ' || lower === 'space' || lower === 'spacebar') return 'space';
+      if (lower === 'ctrl' || lower === 'control') return 'ctrl';
+      if (lower === 'shift') return 'shift';
+      if (lower === 'alt' || lower === 'option') return 'alt';
+      if (lower === 'meta' || lower === 'cmd' || lower === 'command' || lower === 'win') return 'meta';
+      return lower;
+    };
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
+      pressed.add(normalize(event.key ?? event.code ?? ''));
+      if (event.ctrlKey) pressed.add('ctrl');
+      if (event.shiftKey) pressed.add('shift');
+      if (event.altKey) pressed.add('alt');
+      if (event.metaKey) pressed.add('meta');
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      pressed.delete(normalize(event.key ?? event.code ?? ''));
+      if (!event.ctrlKey) pressed.delete('ctrl');
+      if (!event.shiftKey) pressed.delete('shift');
+      if (!event.altKey) pressed.delete('alt');
+      if (!event.metaKey) pressed.delete('meta');
+
+      const allPressed = Array.from(required).every((key) => pressed.has(key));
+      if (!allPressed) {
         closeOverlay();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keyup', handleKeyUp, true);
+      pressed.clear();
     };
-  }, [closeOverlay, state.visible]);
+  }, [closeOverlay, parseAccelerator, state.activationMode, state.triggerAccelerator, state.visible]);
 
   React.useEffect(() => {
     const unlisten = listen<PieOverlayState>('pie-overlay://state', (event) => {
@@ -118,7 +173,7 @@ const PieOverlayApp: React.FC = () => {
       >
         <div
           className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
-          onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         >
           <PieMenu
             slices={state.slices}
