@@ -21,12 +21,14 @@ interface PieMenuConfigState {
 }
 
 const DEFAULT_SLICES: PieSliceConfig[] = [
-  { id: 'radial-browser', label: 'Browser', action: 'https://www.example.com', order: 0 },
-  { id: 'radial-mail', label: 'Mail', action: 'mailto:', order: 1 },
-  { id: 'radial-editor', label: 'Editor', action: '', order: 2 },
-  { id: 'radial-terminal', label: 'Terminal', action: '', order: 3 },
-  { id: 'radial-media', label: 'Media', action: '', order: 4 },
-  { id: 'radial-search', label: 'Search', action: '', order: 5 }
+  { id: nanoid(), label: 'Launch Browser', action: 'shell:browser', order: 0 },
+  { id: nanoid(), label: 'Open Editor', action: 'shell:editor', order: 1 },
+  { id: nanoid(), label: 'Mute Audio', action: 'system:mute', order: 2 },
+  { id: nanoid(), label: 'Clipboard History', action: 'shell:clipboard', order: 3 },
+  { id: nanoid(), label: 'Screenshot', action: 'system:screenshot', order: 4 },
+  { id: nanoid(), label: 'Quick Record', action: 'system:record', order: 5 },
+  { id: nanoid(), label: 'Window Layout', action: 'system:layout', order: 6 },
+  { id: nanoid(), label: 'Task Switcher', action: 'system:tasks', order: 7 }
 ];
 
 const DEFAULT_HOTKEYS = ['Control+Alt+Space'];

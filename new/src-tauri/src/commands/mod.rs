@@ -8,12 +8,11 @@ pub mod localization;
 pub mod logs;
 pub mod pie_overlay;
 pub mod profiles;
-pub mod radial_overlay;
 pub mod settings;
 pub mod system;
 pub mod updates;
 
-use self::{hotkeys::HotkeyState, radial_overlay::RadialOverlayState};
+use self::hotkeys::HotkeyState;
 use crate::domain::{Action, ActionId};
 use crate::models::Settings;
 use crate::services::action_runner::{
@@ -36,11 +35,7 @@ use crate::storage::profile_repository::{ProfileRecoveryInfo, ProfileStore};
 use crate::storage::StorageManager;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::str::FromStr;
-use tauri::{
-    ipc::InvokeError, App, AppHandle, Emitter, Manager, Runtime, WebviewUrl, WebviewWindowBuilder,
-};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use tauri::{ipc::InvokeError, App, AppHandle, Emitter, Manager, Runtime};
 use tokio::sync::broadcast::error::RecvError;
 
 #[derive(Debug, thiserror::Error)]
@@ -161,8 +156,6 @@ pub struct UpdatesState {
     pub checker: Arc<UpdateChecker>,
 }
 
-const RADIAL_OVERLAY_LABEL: &str = "radial-overlay";
-
 pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     let handle = app.handle();
     let storage = StorageManager::new(handle.clone())?;
@@ -264,7 +257,6 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         status: shared_status.clone(),
     });
 
-    app.manage(RadialOverlayState::default());
     app.manage(HotkeyState::default());
     app.manage(ProfileRouterState::default());
 
@@ -278,8 +270,6 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     profile_router::start_router(handle.clone());
     #[cfg(feature = "tray-icon")]
     tauri::async_runtime::block_on(tray::ensure_tray_state(&handle)).ok();
-
-    setup_radial_overlay(&handle);
 
     Ok(())
 }
@@ -302,36 +292,6 @@ fn collect_actions(actions: &[Action]) -> HashMap<ActionId, Action> {
         map.insert(action.id, action.clone());
     }
     map
-}
-
-fn setup_radial_overlay<R: Runtime>(handle: &AppHandle<R>) {
-    if handle.get_webview_window(RADIAL_OVERLAY_LABEL).is_none() {
-        match WebviewWindowBuilder::new(
-            handle,
-            RADIAL_OVERLAY_LABEL,
-            WebviewUrl::App("overlay.html".into()),
-        )
-        .decorations(false)
-        .visible(false)
-        .resizable(false)
-        .transparent(true)
-        .always_on_top(true)
-        .title("Radial Menu")
-        .inner_size(520.0, 520.0)
-        .build()
-        {
-            Ok(window) => {
-                let _ = window.set_skip_taskbar(true);
-                let _ = window.center();
-                println!("[radial-overlay] window initialized");
-            }
-            Err(err) => {
-                eprintln!("failed to create radial overlay window: {err}");
-            }
-        }
-    }
-
-    println!("[radial-overlay] awaiting profile hotkey trigger");
 }
 
 #[tauri::command]
