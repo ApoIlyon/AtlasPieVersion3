@@ -238,6 +238,7 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .shadow(false)
         .focused(false)
         .always_on_top(true)
+        .transparent(true)
         .title("Pie Menu")
         .inner_size(520.0, 520.0)
         .build()
