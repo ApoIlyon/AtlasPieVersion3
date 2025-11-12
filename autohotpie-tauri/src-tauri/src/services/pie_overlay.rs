@@ -229,7 +229,7 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         WebviewUrl::App("pie-overlay.html".into())
     };
 
-    let window = WebviewWindowBuilder::new(app, WINDOW_LABEL, url)
+    let builder = WebviewWindowBuilder::new(app, WINDOW_LABEL, url)
         .visible(false)
         .decorations(false)
         .resizable(false)
@@ -237,8 +237,15 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .accept_first_mouse(true)
         .shadow(false)
         .focused(false)
-        .always_on_top(true)
-        .transparent(true)
+        .always_on_top(true);
+
+    #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
+    let builder = builder.transparent(true);
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    let builder = builder;
+
+    let window = builder
         .title("Pie Menu")
         .inner_size(520.0, 520.0)
         .build()
