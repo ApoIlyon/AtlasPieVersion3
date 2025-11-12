@@ -68,7 +68,7 @@ test.describe('Perf - Latency benchmarks', () => {
     test.skip(testInfo.project.name.toLowerCase().includes('webkit'), 'WebKit has animation stability issues');
 
     await ensureReportDir();
-    await page.goto('/');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP');
     await page.waitForLoadState('networkidle');
 
     const pieMenu = page.getByTestId('pie-menu');

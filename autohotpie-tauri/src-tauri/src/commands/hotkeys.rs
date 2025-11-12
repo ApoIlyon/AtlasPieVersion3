@@ -230,7 +230,6 @@ fn register_hotkey_impl<R: Runtime>(
             let state_str = match evt.state {
                 ShortcutState::Pressed => "pressed",
                 ShortcutState::Released => "released",
-                _ => return,
             };
 
             let payload = HotkeyEventPayload {
@@ -308,7 +307,6 @@ pub fn check_hotkey<R: Runtime>(
 
     Ok(status)
 }
-
 
 fn broadcast_conflicts<R: Runtime>(app: &AppHandle<R>, snapshot: &HotkeyConflictSnapshot) {
     let _ = app.emit("hotkeys://conflicts", snapshot);

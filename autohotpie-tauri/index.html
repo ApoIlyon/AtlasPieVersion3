@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoHotPie Tauri</title>
+    <script>
+      // CRITICAL: Must run synchronously FIRST, before anything else
+      window.__PIE_HOTKEY_MATCHERS__ = ['control+shift+p'];
+      (function() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const hotkey = params.get('pieHotkey');
+          if (hotkey && hotkey.trim()) {
+            window.__PIE_HOTKEY_MATCHERS__ = [hotkey.trim().toLowerCase()];
+          }
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body class="dark">

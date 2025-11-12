@@ -8,6 +8,7 @@ const WEB_APP_URL = process.env.WEB_APP_URL ?? 'http://127.0.0.1:5173';
 const mockFlags = new URLSearchParams({
   mockSafeModeIgnore: '1',
   mockHotkeyDialog: 'off',
+  pieHotkey: process.env.AHP_E2E_PIE_HOTKEY ?? 'Control+Shift+P',
 });
 const BASE_TEST_PATH = `${WEB_APP_URL}?${mockFlags.toString()}`;
 const contextProfiles = JSON.parse(

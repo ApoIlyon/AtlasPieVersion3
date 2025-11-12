@@ -10,6 +10,13 @@ import { HotkeyRegistrationPanel } from './components/hotkeys/HotkeyRegistration
 import { useHotkeyStore } from './state/hotkeyStore';
 import { useProfileStore, selectProfileHotkeyStatus } from './state/profileStore';
 import { isTauriEnvironment } from './utils/tauriEnvironment';
+import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
+import { ActionToast } from './components/feedback/ActionToast';
+import { FullscreenNotice } from './components/pie/FullscreenNotice';
+import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
+import { PieMenu } from './components/pie/PieMenu';
+import type { PieSliceDefinition } from './components/pie/PieMenu';
+import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
@@ -17,14 +24,22 @@ import { SettingsImportExport } from './screens/SettingsImportExport';
 import { SettingsAutostart } from './screens/SettingsAutostart';
 import { SettingsUpdates } from './screens/SettingsUpdates';
 import { useLocalization } from './hooks/useLocalization';
-import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
-import type { PieSliceDefinition } from './components/pie/PieMenu';
-import { slicesForProfile } from './mocks/contextProfiles';
 import { LogPanel } from './components/log/LogPanel';
 import { useUpdateStore } from './state/updateStore';
 import type { UpdateStatus } from './state/types';
 
 type AppSection = 'dashboard' | 'profiles' | 'actions' | 'settings';
+
+const FALLBACK_PLACEHOLDER_SLICES = [
+  { id: 'fallback-launch-calculator', label: 'Launch Calculator', order: 0 },
+  { id: 'fallback-open-downloads', label: 'Open Downloads', order: 1 },
+  { id: 'fallback-mute-audio', label: 'Mute Audio', order: 2 },
+  { id: 'fallback-start-record', label: 'Start Screen Record', order: 3 },
+  { id: 'fallback-snap-layout', label: 'Snap Layout', order: 4 },
+  { id: 'fallback-clipboard-history', label: 'Clipboard History', order: 5 },
+  { id: 'fallback-window-layout', label: 'Window Layout', order: 6 },
+  { id: 'fallback-task-switcher', label: 'Task Switcher', order: 7 },
+];
 
 function useVersion() {
   const [version, setVersion] = useState<string | null>(null);
@@ -39,6 +54,46 @@ function useVersion() {
   }, []);
 
   return version;
+}
+
+function usePlatform() {
+  const [isLinux, setIsLinux] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    const detect = () => {
+      let linux = false;
+      let mac = false;
+      if (typeof navigator !== 'undefined' && navigator.userAgent) {
+        linux = /linux/i.test(navigator.userAgent);
+        mac = /macintosh|mac os x/i.test(navigator.userAgent);
+      }
+      if (typeof window !== 'undefined') {
+        const platformHint = (window as unknown as { process?: { platform?: string } }).process?.platform;
+        if (platformHint) {
+          const normalized = platformHint.toLowerCase();
+          linux = linux || normalized === 'linux';
+          mac = mac || normalized === 'darwin';
+        }
+        const params = new URLSearchParams(window.location.search);
+        const mockPlatform = params.get('mockPlatform');
+        if (mockPlatform === 'linux') {
+          linux = true;
+          mac = false;
+        } else if (mockPlatform === 'mac') {
+          mac = true;
+          linux = false;
+        }
+      }
+      return { linux, mac };
+    };
+
+    const result = detect();
+    setIsLinux(result.linux);
+    setIsMac(result.mac);
+  }, []);
+
+  return { isLinux, isMac };
 }
 
 export function App() {
@@ -60,6 +115,8 @@ export function App() {
   }, []);
 
   const version = useVersion();
+  const { isLinux, isMac } = usePlatform();
+  const isTauri = isTauriEnvironment();
   const { settings, isLoading, error } = useAppStore((state) => ({
     settings: state.settings,
     isLoading: state.isLoading,
@@ -171,6 +228,8 @@ export function App() {
   } else if (profilesInitialized) {
     statusMessages.push(loadedProfilesText);
   }
+
+  
 
   useEffect(() => {
     if (isTauriEnvironment()) {
@@ -318,17 +377,17 @@ export function App() {
   } = pieMenuState;
 
   const menuSlices = useMemo<PieSliceDefinition[]>(() => {
-    const fallbackSlices: PieSliceDefinition[] = slicesForProfile(0);
+    const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
     const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
 
     if (!isTauriEnvironment()) {
       if (activeSnapshot) {
-        const mockSlices = slicesForProfile(activeSnapshot.index) as PieSliceDefinition[];
+        const mockSlices = slicesForProfile(activeSnapshot.index);
         if (mockSlices.length) {
           return mockSlices;
         }
       }
-      const fallbackMock = slicesForProfile(0) as PieSliceDefinition[];
+      const fallbackMock = slicesForProfile(0);
       return fallbackMock.length ? fallbackMock : fallbackSlices;
     }
 
@@ -391,9 +450,87 @@ export function App() {
   }, [clearProfileHotkeyStatus, closeDialog]);
 
   useEffect(() => {
+    const currentKind = pieMenuActiveProfile?.matchKind ?? null;
+    const previousKind = previousMatchKindRef.current;
+    if (previousKind && currentKind === 'fallback' && previousKind !== 'fallback') {
+      setActiveSlice(null);
+      clearLastAction();
+      closePieMenu();
+    }
+    previousMatchKindRef.current = currentKind;
+  }, [pieMenuActiveProfile, clearLastAction, closePieMenu, setActiveSlice]);
+
+  useEffect(() => {
     void initialize();
     void systemInit();
   }, [initialize, systemInit]);
+
+  // Only set active slice when menu becomes visible, not on every render
+  const prevVisibleRef = useRef(false);
+  useEffect(() => {
+    const wasVisible = prevVisibleRef.current;
+    prevVisibleRef.current = isPieMenuVisible;
+    
+    // Only set active slice when menu first becomes visible
+    if (menuSlices.length > 0 && isPieMenuVisible && !wasVisible && !activeSliceId) {
+      setActiveSlice(menuSlices[0].id);
+    }
+  }, [isPieMenuVisible, menuSlices, activeSliceId, setActiveSlice]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    const syncOverlay = async () => {
+      try {
+        if (isPieMenuVisible) {
+          await invoke('pie_overlay_show', {
+            state: {
+              visible: true,
+              slices: menuSlices,
+              activeSliceId: activeSliceId ?? null,
+              centerLabel: lastSafeModeReason,
+              triggerAccelerator: pieMenuTriggerAccelerator ?? null,
+              activationMode: pieMenuActivationMode,
+            },
+          });
+        } else {
+          await invoke('pie_overlay_hide');
+        }
+      } catch (error) {
+        console.error('Failed to sync pie overlay window', error);
+      }
+    };
+
+    void syncOverlay();
+  }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    const updateOverlay = async () => {
+      try {
+        await invoke('pie_overlay_sync_state', {
+          update: {
+            slices: menuSlices,
+            activeSliceId: activeSliceId ?? null,
+            centerLabel: lastSafeModeReason ?? null,
+            triggerAccelerator: pieMenuTriggerAccelerator ?? null,
+            activationMode: pieMenuActivationMode ?? null,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to update pie overlay state', error);
+      }
+    };
+
+    void updateOverlay();
+  }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+
+  
 
   const openLogPanel = useCallback(() => {
     setIsLogPanelOpen(true);
@@ -648,8 +785,8 @@ export function App() {
                   <h3 className="text-lg font-semibold text-white">{t('dashboard.contextualTitle')}</h3>
                   <p className="mt-2 text-sm text-white/70">{t('dashboard.contextualBody')}</p>
                   <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                    <p>{t('dashboard.contextualActiveProfile')}: {systemActiveProfile?.name ?? '—'}</p>
-                    <p>{t('dashboard.contextualMatchMode')}: {systemActiveProfile?.matchKind ?? '—'}</p>
+                    <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
+                    <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
                     <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
                   </div>
                 </div>
@@ -703,7 +840,40 @@ export function App() {
           )}
         </section>
       </main>
+
+      {!isTauri && (
+        <div
+          className={clsx(
+            'fixed inset-0 z-40 flex items-center justify-center',
+            isPieMenuVisible ? 'pointer-events-auto' : 'pointer-events-none',
+          )}
+          style={{ visibility: isPieMenuVisible ? 'visible' : 'hidden' }}
+          aria-live="polite"
+        >
+          <PieMenu
+            slices={menuSlices}
+            activeSliceId={activeSliceId}
+            visible={isPieMenuVisible}
+            onHover={(sliceId) => setActiveSlice(sliceId)}
+            onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+            dataTestId="pie-menu"
+            centerContent={pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? 'Menu'}
+          />
+        </div>
+      )}
+      <ActionToast action={lastAction} onDismiss={clearLastAction} />
+      <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
       <LogPanel isOpen={isLogPanelOpen} onClose={() => setIsLogPanelOpen(false)} />
+      {isLinux && (
+        <LinuxFallbackPanel
+          isPieMenuOpen={isPieMenuVisible}
+          onTogglePieMenu={togglePieMenu}
+          onOpenPieMenu={openPieMenu}
+          onClosePieMenu={closePieMenu}
+          lastAction={lastAction}
+          lastSafeModeReason={lastSafeModeReason}
+        />
+      )}
       <ProfileRecoveryDialog />
     </div>
   );

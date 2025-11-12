@@ -25,7 +25,7 @@ async function triggerHotkey(page: Page, hotkey: string) {
 
 test.describe('Perf - Hotkey to menu latency', () => {
   test('pie menu appears under SLA after triggering hotkey', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP');
     await page.waitForLoadState('networkidle');
 
     // Warm-up: first open and close to stabilize timings
