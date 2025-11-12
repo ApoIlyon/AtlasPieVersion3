@@ -244,7 +244,6 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .context("failed to build pie overlay window")?;
 
     let _ = window.set_ignore_cursor_events(true);
-    let _ = window.set_transparent(true);
     let _ = window.center();
 
     #[cfg(debug_assertions)]
