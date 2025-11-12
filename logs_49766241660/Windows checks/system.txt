@@ -1,5 +1,0 @@
-2025-11-12T20:17:45.1150000Z Requested labels: windows-latest
-2025-11-12T20:17:45.1150000Z Job defined at: ApoIlyon/AtlasPieVersion3/.github/workflows/check-all.yml@refs/pull/69/merge
-2025-11-12T20:17:45.1150000Z Waiting for a runner to pick up this job...
-2025-11-12T20:17:45.9880000Z Job is about to start running on the hosted runner: GitHub Actions 1000002330
-2025-11-12T20:17:45.9900000Z Job is waiting for a hosted runner to come online.

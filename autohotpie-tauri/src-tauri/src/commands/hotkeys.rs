@@ -230,7 +230,6 @@ fn register_hotkey_impl<R: Runtime>(
             let state_str = match evt.state {
                 ShortcutState::Pressed => "pressed",
                 ShortcutState::Released => "released",
-                _ => return,
             };
 
             let payload = HotkeyEventPayload {
