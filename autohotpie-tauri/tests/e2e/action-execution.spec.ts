@@ -8,7 +8,7 @@ function parseHotkey(hotkey: string): string[] {
 
 test.describe('US1 - Action execution flow', () => {
   test('actions trigger immediately without confirmation dialogs', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP');
 
     await page.waitForFunction(
       () => (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ === true,

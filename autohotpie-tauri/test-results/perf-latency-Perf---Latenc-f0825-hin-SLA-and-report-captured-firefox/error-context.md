@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - button "Dashboard" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Dashboard
+        - img [ref=e8]
+      - button "Profiles" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profiles
+        - img [ref=e14]
+      - button "Actions" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: Actions
+        - img [ref=e19]
+      - button "Settings" [ref=e22] [cursor=pointer]:
+        - generic [ref=e23]: Settings
+        - img [ref=e24]
+  - banner [ref=e26]:
+    - generic [ref=e27]:
+      - paragraph [ref=e28]: AutoHotPie Tauri
+      - heading "Pie Menu Studio" [level=1] [ref=e29]
+    - generic [ref=e30]:
+      - generic [ref=e32]:
+        - generic [ref=e33]: Language
+        - combobox "Language" [ref=e34]:
+          - option "EN" [selected]
+        - button "Refresh" [ref=e35] [cursor=pointer]
+      - button "Open log" [ref=e36] [cursor=pointer]
+      - generic [ref=e37]: Loading version…
+  - main [ref=e38]:
+    - generic [ref=e39]:
+      - heading "dashboard.welcomeTitle" [level=2] [ref=e40]
+      - paragraph [ref=e41]: dashboard.welcomeBody.p1 kando-2.0.0.
+      - generic [ref=e43]:
+        - generic [ref=e44]: dashboard.normalMode · read_write
+        - generic [ref=e45]: dashboard.online · dashboard.lastCheck —
+      - generic [ref=e46]:
+        - paragraph [ref=e47]: dashboard.settingsMissing dashboard.loadedProfiles
+        - generic [ref=e49]:
+          - heading "hotkeyPanel.title" [level=3] [ref=e50]
+          - paragraph [ref=e51]: hotkeyPanel.description
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - text: hotkeyPanel.identifierLabel
+              - textbox "hotkeyPanel.identifierLabel" [ref=e54]:
+                - /placeholder: hotkeyPanel.identifierPlaceholder
+                - text: global-pie
+            - generic [ref=e55]:
+              - text: hotkeyPanel.acceleratorLabel
+              - textbox "hotkeyPanel.acceleratorLabel" [ref=e56]:
+                - /placeholder: hotkeyPanel.acceleratorPlaceholder
+            - generic [ref=e57]:
+              - button "hotkeyPanel.registerButton" [ref=e58] [cursor=pointer]
+              - button "hotkeyPanel.clearButton" [ref=e59] [cursor=pointer]
+        - generic [ref=e60]:
+          - heading "dashboard.contextualTitle" [level=3] [ref=e61]
+          - paragraph [ref=e62]: dashboard.contextualBody
+          - generic [ref=e63]:
+            - paragraph [ref=e64]: "dashboard.contextualActiveProfile: Default Profile"
+            - paragraph [ref=e65]: "dashboard.contextualMatchMode: fallback"
+            - paragraph [ref=e66]: "dashboard.contextualSafeMode: dashboard.disabled"
+```

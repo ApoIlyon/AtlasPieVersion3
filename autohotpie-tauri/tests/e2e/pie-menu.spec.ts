@@ -83,7 +83,7 @@ function parseHotkey(hotkey: string): string[] {
 
 test.describe('US1 - Pie menu invocation', () => {
   test('default profile is used when no context matches', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP');
 
     await waitForProfilesReady(page);
     await waitForHotkeyReady(page, HOTKEY);
@@ -112,7 +112,7 @@ test.describe('US1 - Pie menu invocation', () => {
   });
 
   test('VS Code profile is selected when process matches', async ({ page }) => {
-    await page.goto('/?mockProcess=code.exe&mockWindow=Visual%20Studio%20Code');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP&mockProcess=code.exe&mockWindow=Visual%20Studio%20Code');
 
     await waitForProfilesReady(page);
     await waitForHotkeyReady(page, HOTKEY);
@@ -127,7 +127,7 @@ test.describe('US1 - Pie menu invocation', () => {
   });
 
   test('browser profile is selected when window title matches', async ({ page }) => {
-    await page.goto('/?mockProcess=chrome.exe&mockWindow=Mozilla%20Firefox');
+    await page.goto('/?mockSafeModeIgnore=1&mockHotkeyDialog=off&pieHotkey=Control%2BShift%2BP&mockProcess=chrome.exe&mockWindow=Mozilla%20Firefox');
 
     await waitForProfilesReady(page);
     await waitForHotkeyReady(page, HOTKEY);

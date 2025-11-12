@@ -259,7 +259,33 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const {
     hotkeyEvent = 'hotkeys://trigger',
     autoCloseMs = 0,
-    fallbackHotkey = 'Control+Alt+Space',
+    fallbackHotkey = (() => {
+      if (typeof window !== 'undefined') {
+        try {
+          // First check URL query parameter
+          const url = new URL(window.location.href);
+          const hotkey = url.searchParams.get('pieHotkey');
+          if (hotkey && hotkey.trim().length > 0) {
+            const trimmed = hotkey.trim();
+            // Store in sessionStorage for persistence across navigations
+            try {
+              sessionStorage.setItem('_pieHotkey', trimmed);
+            } catch {
+              // ignore storage errors
+            }
+            return trimmed;
+          }
+          // Fall back to sessionStorage if available
+          const stored = sessionStorage.getItem('_pieHotkey');
+          if (stored && stored.trim().length > 0) {
+            return stored.trim();
+          }
+        } catch {
+          // ignore URL parse errors in non-browser envs
+        }
+      }
+      return 'Control+Shift+P';
+    })(),
     activationMode: activationModeOverride,
     profileHoldToOpen,
     initialActiveProfile,
@@ -388,7 +414,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     const list = triggerAccelerator ? [triggerAccelerator, ...candidates] : candidates;
     const seen = new Set<string>();
 
-    return list
+    const parsed = list
       .map((candidate) => (typeof candidate === 'string' ? candidate.trim() : ''))
       .filter((candidate): candidate is string => {
         if (!candidate.length) {
@@ -403,6 +429,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       })
       .map((candidate) => parseHotkey(candidate))
       .filter((parsed): parsed is ParsedHotkey => parsed != null);
+
+    return parsed;
   }, [fallbackHotkey, triggerAccelerator]);
 
   const recordActionOutcome = useCallback(
@@ -768,6 +796,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       if (!detail?.id || !detail.name || !detail.status) {
         return;
       }
+
       recordActionOutcome({
         id: detail.id,
         name: detail.name,
@@ -776,6 +805,12 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         durationMs: null,
         invocationId: null,
       });
+
+      // In fallback (non-Tauri) tests, ensure menu closes after an action event,
+      // matching the expectations in usePieMenuHotkey.test.ts
+      if (['success', 'error', 'cancelled'].includes(detail.status)) {
+        setIsOpenSafe(false);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);

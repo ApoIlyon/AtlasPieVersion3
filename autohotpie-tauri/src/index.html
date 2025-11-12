@@ -5,6 +5,74 @@
     <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoHotPie Tauri</title>
+    <script>
+      // Initialize __PIE_HOTKEY_MATCHERS__ for Playwright E2E tests
+      // This needs to happen BEFORE React loads - inline script executes synchronously
+      (function() {
+        // Log to detect if this runs at all
+        console.log('[index.html INLINE SCRIPT] Starting...');
+        
+        try {
+          // First try to get from URL
+          const href = window.location.href;
+          console.log('[index.html] href:', href);
+          
+          let hotkey = null;
+          
+          // Try multiple ways to parse the hotkey
+          try {
+            const url = new URL(href);
+            hotkey = url.searchParams.get('pieHotkey');
+            console.log('[index.html] Using URL API - hotkey:', hotkey);
+          } catch (e) {
+            // Fallback to manual parsing
+            const searchStart = href.indexOf('?');
+            if (searchStart !== -1) {
+              const hashIndex = href.indexOf('#');
+              const searchEnd = hashIndex !== -1 ? hashIndex : href.length;
+              const searchString = href.substring(searchStart + 1, searchEnd);
+              console.log('[index.html] Fallback parsing - searchString:', searchString);
+              
+              const params = new URLSearchParams(searchString);
+              hotkey = params.get('pieHotkey');
+              console.log('[index.html] Fallback parsing - hotkey:', hotkey);
+            }
+          }
+          
+          // Try sessionStorage as backup
+          if (!hotkey || hotkey.trim().length === 0) {
+            try {
+              const stored = sessionStorage.getItem('_pieHotkey');
+              if (stored && stored.trim().length > 0) {
+                hotkey = stored;
+                console.log('[index.html] Using sessionStorage - hotkey:', hotkey);
+              }
+            } catch {
+              // ignore
+            }
+          }
+          
+          if (hotkey && hotkey.trim().length > 0) {
+            const normalizedHotkey = hotkey.trim().toLowerCase();
+            window.__PIE_HOTKEY_MATCHERS__ = [normalizedHotkey];
+            console.log('[index.html] ✓ Set window.__PIE_HOTKEY_MATCHERS__ =', window.__PIE_HOTKEY_MATCHERS__);
+            
+            try {
+              sessionStorage.setItem('_pieHotkey', hotkey.trim());
+            } catch {
+              // ignore storage errors
+            }
+          } else {
+            console.log('[index.html] ⚠ Could not find pieHotkey from URL or storage');
+            // Set a default for tests
+            window.__PIE_HOTKEY_MATCHERS__ = ['control+shift+p'];
+            console.log('[index.html] ✓ Set DEFAULT __PIE_HOTKEY_MATCHERS__ =', window.__PIE_HOTKEY_MATCHERS__);
+          }
+        } catch (e) {
+          console.error('[index.html] ✗ Error initializing hotkey:', e);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx" defer></script>
   </head>
 

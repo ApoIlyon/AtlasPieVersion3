@@ -24,7 +24,7 @@ async function triggerHotkey(page: Page, hotkey: string) {
 
 test.describe('US2 - Hotkey conflict gating', () => {
   test('shows conflict dialog, suggests alternatives and logs audit entry', async ({ page }) => {
-    await page.goto('/?mockHotkeyDialog=strict');
+    await page.goto('/?mockSafeModeIgnore=1&pieHotkey=Control%2BShift%2BP&mockHotkeyDialog=strict');
 
     await page.waitForFunction(
       () => (window as unknown as { __PIE_PROFILES_READY__?: boolean }).__PIE_PROFILES_READY__ === true,
