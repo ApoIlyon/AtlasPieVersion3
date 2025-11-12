@@ -254,6 +254,7 @@ export interface PieMenuHotkeyState {
   }) => void;
 }
 
+// NOTE: This hook implementation is synchronized with autohotpie-tauri version to ensure correct hold-mode behavior.
 export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenuHotkeyState {
   const {
     hotkeyEvent = 'hotkeys://trigger',
@@ -361,6 +362,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const isOpenRef = useRef<boolean>(false);
   const activeHotkeyAcceleratorRef = useRef<string | null>(null);
   const pressedKeysInHoldModeRef = useRef<Set<string>>(new Set());
+  const holdTriggerKeysRef = useRef<Set<string> | null>(null);
   const lastHotkeyProcessedRef = useRef<number>(0);
   const isProcessingHotkeyRef = useRef<boolean>(false);
   const { dialogOpen: hasConflictDialogOpen, dialogStatus: dialogStatusState } = useHotkeyStore((state) => ({
@@ -716,11 +718,13 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     };
 
     const handleBlur = () => {
-      // CRITICAL: Don't close menu on blur - it causes menu to disappear immediately
-      // Only clear pressed keys, but don't close menu
-      // The menu should only close from user actions or hotkey release
+      const isHoldMode = resolvedActivationModeRef.current === 'hold';
+      if (isHoldMode && activeHoldHotkeyRef.current) {
+        setTimeout(() => {
+          clearMenuState();
+        }, 150);
+      }
       pressedKeysRef.current.clear();
-      // Don't close menu on window blur - it's too aggressive
     };
 
     const toggleEvent = () => {
@@ -805,6 +809,24 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     mockHotkeyDialog,
   ]);
 
+  // Suppress bare Alt in main window so it does not interfere with menu / system menu.
+  useEffect(() => {
+    if (!isTauriEnvironment()) return;
+
+    const handleAlt = (e: KeyboardEvent) => {
+      // Ignore bare Alt presses to prevent focusing menu bar / system behavior
+      if (e.key === 'Alt' && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    window.addEventListener('keydown', handleAlt, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', handleAlt, { capture: true } as any);
+    };
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     let hotkeyUnlisten: (() => void) | undefined;
@@ -814,6 +836,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     let windowUnlisten: (() => void) | undefined;
     let storageModeUnlisten: (() => void) | undefined;
     let profileUnlisten: (() => void) | undefined;
+    let initialProfileResolved = false;
 
     const setup = async () => {
       // Wait for Tauri API to be available
@@ -888,6 +911,21 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       // The profile will be resolved by the profile router and sent via events
       // Just wait for the profile event instead
 
+      if (!initialProfileResolved) {
+        const invokeFn = getTauriInvoke();
+        if (invokeFn) {
+          try {
+            const snapshot = (await invokeFn('resolve_active_profile')) as ActiveProfileSnapshot | null;
+            if (isMounted) {
+              setActiveProfile(snapshot ?? null);
+            }
+          } catch (error) {
+            console.error('Failed to resolve active profile', error);
+          }
+        }
+        initialProfileResolved = true;
+      }
+
       profileUnlisten = await listen<{ profile: ActiveProfileSnapshot | null }>(
         'profiles://active-changed',
         (event) => {
@@ -896,6 +934,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       );
 
       hotkeyUnlisten = await listen<HotkeyEventPayload>(hotkeyEvent, (event) => {
+        console.log('[Hotkey Event] Received hotkeyEvent:', hotkeyEvent, 'payload:', event.payload);
+        console.error('[HOTKEY DEBUG] Event received:', { hotkeyEvent, payload: event.payload });
         const payload = event.payload;
         const shortcutId = payload?.id ?? null;
         const acceleratorFromPayload = payload?.accelerator?.trim() || null;
@@ -914,14 +954,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           const profileIndex = profiles.findIndex((record) => record.profile.id === profileIdFromPayload);
           if (profileIndex !== -1) {
             const record = profiles[profileIndex];
+            const holdToOpen = !!(record as any).profile?.holdToOpen;
             const snapshot: ActiveProfileSnapshot = {
               index: profileIndex,
               name: record.profile.name,
               matchKind: 'custom',
-              holdToOpen: (record.profile.radialOverlayActivationMode ?? 'toggle') === 'hold',
+              holdToOpen,
             };
+
             activeProfileRef.current = snapshot;
             setActiveProfile(snapshot);
+            resolvedActivationModeRef.current = holdToOpen ? 'hold' : 'toggle';
+            console.log('[Hotkey Event] Set activation mode to:', resolvedActivationModeRef.current, 'holdToOpen:', holdToOpen);
           }
 
           if (activeProfileId !== profileIdFromPayload) {
@@ -970,8 +1014,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         const currentIsOpen = isOpenRef.current;
         const isHoldMode = resolvedActivationModeRef.current === 'hold';
 
+        console.log('[Hotkey Event] Mode check:', { 
+          eventState, 
+          isHoldMode, 
+          currentIsOpen, 
+          accelerator: acceleratorFromPayload,
+          resolvedMode: resolvedActivationModeRef.current
+        });
+        console.error('[MODE CHECK]', isHoldMode ? '✓ HOLD MODE' : '✗ TOGGLE MODE', 'isOpen:', currentIsOpen);
+
         if (isHoldMode) {
           if (eventState === 'pressed') {
+            console.log('[Hold Mode] Pressed event received');
             if (currentIsOpen) {
               return;
             }
@@ -989,17 +1043,10 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           }
 
           if (eventState === 'released') {
-            if (!currentIsOpen) {
-              return;
-            }
-
-            lastHotkeyProcessedRef.current = now;
-            lastHotkeyEventAtRef.current = now;
-            allowCloseInHoldModeRef.current = true;
-            lastClosedAtRef.current = now;
-            setIsOpenSafe(false);
-            clearTimer();
-            allowCloseInHoldModeRef.current = false;
+            console.log('[Hold Mode] Released event received - IGNORING (keyboard keyup will close)');
+            // In hold mode, we MUST NOT close here! The keyboard keyup handler is responsible
+            // for closing the menu when all trigger keys are released.
+            // Closing here creates a race condition where the menu closes before keyup fires.
             return;
           }
 
@@ -1095,15 +1142,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   }, [autoCloseMs, clearTimer, hotkeyEvent, recordActionOutcome, scheduleAutoClose, mockHotkeyDialog]);
 
   // In hold mode, track keyup events to close menu when trigger keys are released
-  // This works like kando - we listen to keyup events on document
+  // Same behaviour as in autohotpie-tauri: listen on document and close when combo is broken.
   useEffect(() => {
+    console.log('[usePieMenuHotkey HOLD MODE useEffect] Running - isTauri:', isTauriEnvironment(), 'isHoldMode:', resolvedActivationModeRef.current);
+    
     if (!isTauriEnvironment() || resolvedActivationModeRef.current !== 'hold') {
+      console.log('[usePieMenuHotkey HOLD MODE useEffect] Early return - conditions not met');
       return;
     }
 
+    console.log('[usePieMenuHotkey HOLD MODE useEffect] Setting up hold mode tracking');
     let isMounted = true;
 
-    // Get the active hotkey string when menu opens
     const getActiveHotkey = async () => {
       try {
         const invokeFn = getTauriInvoke();
@@ -1134,75 +1184,99 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isOpenRef.current || !isMounted) return;
-      
-      // Track all pressed keys
+      console.error('[KEYDOWN FIRED]', { key: event.key, code: event.code });
+      if (!isMounted) return;
+
       const key = event.key?.toLowerCase() || event.code?.toLowerCase();
       if (key) {
         pressedKeysInHoldModeRef.current.add(normalizeKey(key));
       }
-      
-      // Track modifiers from event state
+
       if (event.ctrlKey) pressedKeysInHoldModeRef.current.add('control');
       if (event.shiftKey) pressedKeysInHoldModeRef.current.add('shift');
       if (event.altKey) pressedKeysInHoldModeRef.current.add('alt');
       if (event.metaKey) pressedKeysInHoldModeRef.current.add('meta');
+
+      console.log('[Hold Mode] keydown event:', {
+        key,
+        pressedKeys: Array.from(pressedKeysInHoldModeRef.current),
+      });
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (!isOpenRef.current || !isMounted) return;
-      
-      // Remove released key
+      console.error('[KEYUP FIRED]', { key: event.key, code: event.code, isMounted });
+      if (!isMounted) return;
+
       const key = event.key?.toLowerCase() || event.code?.toLowerCase();
       if (key) {
         pressedKeysInHoldModeRef.current.delete(normalizeKey(key));
       }
-      
-      // Update modifiers based on current state
+
       if (!event.ctrlKey) pressedKeysInHoldModeRef.current.delete('control');
       if (!event.shiftKey) pressedKeysInHoldModeRef.current.delete('shift');
       if (!event.altKey) pressedKeysInHoldModeRef.current.delete('alt');
       if (!event.metaKey) pressedKeysInHoldModeRef.current.delete('meta');
-      
-      // Check if all trigger keys are released
+
+      console.log('[Hold Mode] keyup event (always listen):', { 
+        key, 
+        altKey: event.altKey, 
+        isOpen: isOpenRef.current,
+        activeHotkey: activeHotkeyAcceleratorRef.current,
+        pressedKeys: Array.from(pressedKeysInHoldModeRef.current),
+      });
+
+      // Check if menu is open and we need to close it
+      if (!isOpenRef.current) return;
+
       const activeHotkey = activeHotkeyAcceleratorRef.current;
       if (activeHotkey) {
         const requiredKeys = parseHotkeyParts(activeHotkey);
-        const allKeysStillPressed = Array.from(requiredKeys).every(key => 
+        const allKeysStillPressed = Array.from(requiredKeys).every(key =>
           pressedKeysInHoldModeRef.current.has(key)
         );
-        
+
+        console.log('[Hold Mode] check result:', {
+          requiredKeys: Array.from(requiredKeys),
+          allKeysStillPressed,
+        });
+
         if (!allKeysStillPressed) {
-          // All trigger keys released - close menu
-          // CRITICAL: In hold mode, this is the ONLY way menu should close
-          // Use special function that bypasses protection
+          console.log('[Hold Mode] Closing menu from keyup!');
           closeMenuFromKeyUp();
           pressedKeysInHoldModeRef.current.clear();
         }
       }
     };
 
-    // Set up listeners when menu opens
+    // CRITICAL: Add listeners SYNCHRONOUSLY - NOT asynchronously!
+    // This ensures we never miss keyup events due to async timing
+    console.log('[Hold Mode] Adding keydown/keyup listeners SYNCHRONOUSLY');
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    // Initialize with accelerator when menu opens
     if (isOpen) {
+      console.log('[Hold Mode] Menu opened, getting accelerator');
       getActiveHotkey().then(accelerator => {
+        console.log('[Hold Mode] getActiveHotkey returned:', accelerator);
         if (isMounted && accelerator) {
           activeHotkeyAcceleratorRef.current = accelerator;
           setTriggerAccelerator(accelerator);
-          // Initialize with current pressed keys
-          document.addEventListener('keydown', handleKeyDown);
-          document.addEventListener('keyup', handleKeyUp);
+        } else {
+          console.log('[Hold Mode] getActiveHotkey returned invalid:', {isMounted, accelerator});
         }
+      }).catch(err => {
+        console.error('[Hold Mode] getActiveHotkey error:', err);
       });
     } else {
-      // Clean up when menu closes
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
+      console.log('[Hold Mode] Menu closed');
       pressedKeysInHoldModeRef.current.clear();
       activeHotkeyAcceleratorRef.current = null;
       setTriggerAccelerator(null);
     }
 
     return () => {
+      console.log('[Hold Mode] Cleanup - removing listeners');
       isMounted = false;
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -1227,7 +1301,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         index,
         name: record.profile.name,
         matchKind,
-        holdToOpen: (record.profile.radialOverlayActivationMode ?? 'toggle') === 'hold',
+        holdToOpen: !!(record as any).profile?.holdToOpen,
       } satisfies ActiveProfileSnapshot;
     };
 
@@ -1236,11 +1310,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     if (initialActiveProfile) {
       snapshot = selectFromRecord(profiles[initialActiveProfile.index], initialActiveProfile.index, initialActiveProfile.matchKind);
       if (snapshot) {
-        const initialHold =
-          typeof initialActiveProfile.holdToOpen === 'boolean'
-            ? initialActiveProfile.holdToOpen
-            : (profiles[initialActiveProfile.index]?.profile.radialOverlayActivationMode ?? 'toggle') === 'hold';
-        snapshot = { ...snapshot, holdToOpen: initialHold };
+        snapshot = { ...snapshot, holdToOpen: initialActiveProfile.holdToOpen ?? snapshot.holdToOpen };
       }
     }
 

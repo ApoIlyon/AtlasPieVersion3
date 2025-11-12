@@ -250,23 +250,19 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .accept_first_mouse(true)
         .shadow(false)
         .focused(false)
+        .always_on_top(true)
+        .title("Pie Menu")
+        .inner_size(520.0, 520.0)
         .build()
         .context("failed to build pie overlay window")?;
 
-    let _ = window.set_always_on_top(true);
     let _ = window.set_ignore_cursor_events(true);
+    let _ = window.center();
 
     #[cfg(debug_assertions)]
     {
         let _ = window.open_devtools();
         let _ = window.set_focus();
-    }
-
-    if let Ok(Some(monitor)) = app.primary_monitor() {
-        let size = monitor.size();
-        let logical_size = LogicalSize::new(size.width as f64, size.height as f64);
-        let _ = window.set_size(Size::Logical(logical_size));
-        let _ = window.set_position(Position::Logical(LogicalPosition::new(0.0, 0.0)));
     }
 
     Ok(())
