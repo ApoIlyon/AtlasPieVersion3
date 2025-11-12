@@ -14,6 +14,7 @@ import { usePieMenuHotkey } from './hooks/usePieMenuHotkey';
 import { ActionToast } from './components/feedback/ActionToast';
 import { FullscreenNotice } from './components/pie/FullscreenNotice';
 import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
+import { PieMenu } from './components/pie/PieMenu';
 import type { PieSliceDefinition } from './components/pie/PieMenu';
 import { slicesForProfile } from './mocks/contextProfiles';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
@@ -115,6 +116,7 @@ export function App() {
 
   const version = useVersion();
   const { isLinux, isMac } = usePlatform();
+  const isTauri = isTauriEnvironment();
   const { settings, isLoading, error } = useAppStore((state) => ({
     settings: state.settings,
     isLoading: state.isLoading,
@@ -839,6 +841,26 @@ export function App() {
         </section>
       </main>
 
+      {!isTauri && (
+        <div
+          className={clsx(
+            'fixed inset-0 z-40 flex items-center justify-center',
+            isPieMenuVisible ? 'pointer-events-auto' : 'pointer-events-none',
+          )}
+          style={{ visibility: isPieMenuVisible ? 'visible' : 'hidden' }}
+          aria-live="polite"
+        >
+          <PieMenu
+            slices={menuSlices}
+            activeSliceId={activeSliceId}
+            visible={isPieMenuVisible}
+            onHover={(sliceId) => setActiveSlice(sliceId)}
+            onSelect={(sliceId, slice) => handleSelect(sliceId, slice)}
+            dataTestId="pie-menu"
+            centerContent={pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? 'Menu'}
+          />
+        </div>
+      )}
       <ActionToast action={lastAction} onDismiss={clearLastAction} />
       <FullscreenNotice visible={!!lastSafeModeReason} reason={lastSafeModeReason ?? ''} />
       <LogPanel isOpen={isLogPanelOpen} onClose={() => setIsLogPanelOpen(false)} />

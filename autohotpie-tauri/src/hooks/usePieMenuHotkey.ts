@@ -671,7 +671,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           event.preventDefault();
           
           // Block if in safe mode
-          if (lastSafeModeReason) {
+          const safeModeReason = currentSafeModeReasonRef.current;
+          if (safeModeReason) {
             clearTimer();
             return;
           }
@@ -691,14 +692,15 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         event.preventDefault();
         
         // Block if in safe mode
-        if (lastSafeModeReason) {
+        const safeModeReason = currentSafeModeReasonRef.current;
+        if (safeModeReason) {
           clearTimer();
           // Show notification about blocked action
           recordActionOutcome({
             id: 'safe-mode-blocked',
             name: 'Pie Menu Blocked',
             status: 'skipped',
-            message: lastSafeModeReason,
+            message: safeModeReason,
           });
           return;
         }
