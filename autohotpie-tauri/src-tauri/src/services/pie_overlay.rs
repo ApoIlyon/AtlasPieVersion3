@@ -2,19 +2,7 @@ use anyhow::Context;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::{
-    AppHandle,
-    Emitter,
-    Manager,
-    Runtime,
-    Url,
-    WebviewUrl,
-    WebviewWindowBuilder,
-    LogicalPosition,
-    LogicalSize,
-    Position,
-    Size,
-};
+use tauri::{AppHandle, Emitter, Manager, Runtime, Url, WebviewUrl, WebviewWindowBuilder};
 
 pub const WINDOW_LABEL: &str = "pie-overlay";
 const STATE_EVENT: &str = "pie-overlay://state";
@@ -245,7 +233,6 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .visible(false)
         .decorations(false)
         .resizable(false)
-        .transparent(true)
         .skip_taskbar(true)
         .accept_first_mouse(true)
         .shadow(false)
@@ -257,6 +244,7 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .context("failed to build pie overlay window")?;
 
     let _ = window.set_ignore_cursor_events(true);
+    let _ = window.set_transparent(true);
     let _ = window.center();
 
     #[cfg(debug_assertions)]
