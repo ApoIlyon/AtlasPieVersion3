@@ -918,7 +918,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
               index: profileIndex,
               name: record.profile.name,
               matchKind: 'custom',
-              holdToOpen: record.profile.holdToOpen ?? false,
+              holdToOpen: (record.profile.radialOverlayActivationMode ?? 'toggle') === 'hold',
             };
             activeProfileRef.current = snapshot;
             setActiveProfile(snapshot);
@@ -1227,7 +1227,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         index,
         name: record.profile.name,
         matchKind,
-        holdToOpen: record.profile.holdToOpen ?? false,
+        holdToOpen: (record.profile.radialOverlayActivationMode ?? 'toggle') === 'hold',
       } satisfies ActiveProfileSnapshot;
     };
 
@@ -1236,7 +1236,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     if (initialActiveProfile) {
       snapshot = selectFromRecord(profiles[initialActiveProfile.index], initialActiveProfile.index, initialActiveProfile.matchKind);
       if (snapshot) {
-        snapshot = { ...snapshot, holdToOpen: initialActiveProfile.holdToOpen ?? snapshot.holdToOpen };
+        const initialHold =
+          typeof initialActiveProfile.holdToOpen === 'boolean'
+            ? initialActiveProfile.holdToOpen
+            : (profiles[initialActiveProfile.index]?.profile.radialOverlayActivationMode ?? 'toggle') === 'hold';
+        snapshot = { ...snapshot, holdToOpen: initialHold };
       }
     }
 
