@@ -1,0 +1,30 @@
+﻿2025-11-12T20:17:50.5129290Z Current runner version: '2.329.0'
+2025-11-12T20:17:50.5148690Z ##[group]Runner Image Provisioner
+2025-11-12T20:17:50.5149230Z Hosted Compute Agent
+2025-11-12T20:17:50.5149760Z Version: 20251016.436
+2025-11-12T20:17:50.5150160Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+2025-11-12T20:17:50.5150700Z Build Date: 2025-10-15T20:44:12Z
+2025-11-12T20:17:50.5151620Z ##[endgroup]
+2025-11-12T20:17:50.5151980Z ##[group]Operating System
+2025-11-12T20:17:50.5152350Z macOS
+2025-11-12T20:17:50.5152650Z 15.7.1
+2025-11-12T20:17:50.5152950Z 24G231
+2025-11-12T20:17:50.5153240Z ##[endgroup]
+2025-11-12T20:17:50.5153630Z ##[group]Runner Image
+2025-11-12T20:17:50.5153980Z Image: macos-15-arm64
+2025-11-12T20:17:50.5154310Z Version: 20251104.0104
+2025-11-12T20:17:50.5155050Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20251104.0104/images/macos/macos-15-arm64-Readme.md
+2025-11-12T20:17:50.5156060Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20251104.0104
+2025-11-12T20:17:50.5156900Z ##[endgroup]
+2025-11-12T20:17:50.5157660Z ##[group]GITHUB_TOKEN Permissions
+2025-11-12T20:17:50.5159090Z Contents: read
+2025-11-12T20:17:50.5159420Z Metadata: read
+2025-11-12T20:17:50.5159740Z Packages: read
+2025-11-12T20:17:50.5160050Z ##[endgroup]
+2025-11-12T20:17:50.5161850Z Secret source: Actions
+2025-11-12T20:17:50.5162280Z Prepare workflow directory
+2025-11-12T20:17:50.5801360Z Prepare all required actions
+2025-11-12T20:17:50.5877760Z Getting action download info
+2025-11-12T20:17:50.8035570Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-11-12T20:17:51.2452970Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-11-12T20:17:51.4630440Z Complete job name: macOS smoke checks

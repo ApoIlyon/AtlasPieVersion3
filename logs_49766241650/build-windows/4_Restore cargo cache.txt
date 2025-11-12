@@ -1,0 +1,27 @@
+﻿2025-11-12T20:18:02.9072656Z ##[group]Run actions/cache@v4
+2025-11-12T20:18:02.9072958Z with:
+2025-11-12T20:18:02.9073247Z   path: ~/.cargo/registry
+~/.cargo/git
+autohotpie-tauri/src-tauri/target
+
+2025-11-12T20:18:02.9073756Z   key: Windows-cargo-c9f9ada4d1379251dbd616655af14a8ea8842815d645954d9a7ce81fcfb8f6c3
+2025-11-12T20:18:02.9074144Z   restore-keys: Windows-cargo-
+2025-11-12T20:18:02.9074371Z   enableCrossOsArchive: false
+2025-11-12T20:18:02.9074586Z   fail-on-cache-miss: false
+2025-11-12T20:18:02.9074768Z   lookup-only: false
+2025-11-12T20:18:02.9074950Z   save-always: false
+2025-11-12T20:18:02.9075097Z env:
+2025-11-12T20:18:02.9075236Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:02.9075411Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:02.9075577Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:02.9075784Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:18:02.9076003Z ##[endgroup]
+2025-11-12T20:18:03.3585482Z Cache hit for restore-key: Windows-cargo-437244eb4ef147be876114de64d6bef69666e703f85773bf81c1dda58eda060f
+2025-11-12T20:18:04.4184221Z Received 138412032 of 543348500 (25.5%), 131.3 MBs/sec
+2025-11-12T20:18:05.4240572Z Received 314572800 of 543348500 (57.9%), 149.2 MBs/sec
+2025-11-12T20:18:06.4387500Z Received 478150656 of 543348500 (88.0%), 150.7 MBs/sec
+2025-11-12T20:18:07.0464410Z Received 543348500 of 543348500 (100.0%), 142.6 MBs/sec
+2025-11-12T20:18:07.0469346Z Cache Size: ~518 MB (543348500 B)
+2025-11-12T20:18:07.0644311Z [command]"C:\Program Files\Git\usr\bin\tar.exe" -xf D:/a/_temp/fd955cb3-cda4-41aa-b5a6-6cc7cd857c10/cache.tzst -P -C D:/a/AtlasPieVersion3/AtlasPieVersion3 --force-local --use-compress-program "zstd -d"
+2025-11-12T20:18:38.8544937Z Cache restored successfully
+2025-11-12T20:18:38.8943320Z Cache restored from key: Windows-cargo-437244eb4ef147be876114de64d6bef69666e703f85773bf81c1dda58eda060f

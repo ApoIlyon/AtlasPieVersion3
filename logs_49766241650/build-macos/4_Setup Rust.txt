@@ -1,0 +1,39 @@
+﻿2025-11-12T20:17:54.4542740Z ##[group]Run rustup update stable --no-self-update
+2025-11-12T20:17:54.4543250Z [36;1mrustup update stable --no-self-update[0m
+2025-11-12T20:17:54.4543500Z [36;1mrustup default stable[0m
+2025-11-12T20:17:54.4543690Z [36;1mrustup component add clippy rustfmt[0m
+2025-11-12T20:17:54.4583040Z shell: /bin/bash -e {0}
+2025-11-12T20:17:54.4583290Z env:
+2025-11-12T20:17:54.4583460Z   CARGO_TERM_COLOR: always
+2025-11-12T20:17:54.4583650Z   RUST_BACKTRACE: 1
+2025-11-12T20:17:54.4583820Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:17:54.4584010Z ##[endgroup]
+2025-11-12T20:17:54.7569890Z info: syncing channel updates for 'stable-aarch64-apple-darwin'
+2025-11-12T20:17:54.8397040Z info: latest update on 2025-11-10, rust version 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:17:54.8633800Z info: downloading component 'clippy'
+2025-11-12T20:17:54.8949350Z info: downloading component 'rustfmt'
+2025-11-12T20:17:54.9140880Z info: downloading component 'cargo'
+2025-11-12T20:17:54.9634650Z info: downloading component 'rust-std'
+2025-11-12T20:17:55.1245970Z info: downloading component 'rustc'
+2025-11-12T20:17:55.5286890Z info: removing previous version of component 'clippy'
+2025-11-12T20:17:55.5304010Z info: removing previous version of component 'rustfmt'
+2025-11-12T20:17:55.5318710Z info: removing previous version of component 'cargo'
+2025-11-12T20:17:55.5379480Z info: removing previous version of component 'rust-std'
+2025-11-12T20:17:55.5430910Z info: removing previous version of component 'rustc'
+2025-11-12T20:17:55.5488380Z info: installing component 'clippy'
+2025-11-12T20:17:55.8547620Z info: installing component 'rustfmt'
+2025-11-12T20:17:56.0769980Z info: installing component 'cargo'
+2025-11-12T20:17:56.5815170Z info: installing component 'rust-std'
+2025-11-12T20:17:58.1257190Z info: installing component 'rustc'
+2025-11-12T20:18:01.4814550Z 
+2025-11-12T20:18:01.5483820Z info: self-update is disabled for this build of rustup
+2025-11-12T20:18:01.5484520Z info: any updates to rustup will need to be fetched with your system package manager
+2025-11-12T20:18:01.5485310Z   stable-aarch64-apple-darwin updated - rustc 1.91.1 (ed61e7d7e 2025-11-07) (from rustc 1.91.0 (f8297e351 2025-10-28))
+2025-11-12T20:18:01.5485780Z 
+2025-11-12T20:18:01.5647910Z info: using existing install for 'stable-aarch64-apple-darwin'
+2025-11-12T20:18:01.5913940Z info: default toolchain set to 'stable-aarch64-apple-darwin'
+2025-11-12T20:18:01.5914400Z 
+2025-11-12T20:18:01.6000410Z   stable-aarch64-apple-darwin unchanged - rustc 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:18:01.6000940Z 
+2025-11-12T20:18:01.7247100Z info: component 'clippy' for target 'aarch64-apple-darwin' is up to date
+2025-11-12T20:18:01.8155600Z info: component 'rustfmt' for target 'aarch64-apple-darwin' is up to date

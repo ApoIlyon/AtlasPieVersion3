@@ -1,0 +1,71 @@
+﻿2025-11-12T20:17:51.5177660Z ##[group]Run actions/checkout@v4
+2025-11-12T20:17:51.5178310Z with:
+2025-11-12T20:17:51.5178650Z   repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:51.5179340Z   token: ***
+2025-11-12T20:17:51.5179670Z   ssh-strict: true
+2025-11-12T20:17:51.5179970Z   ssh-user: git
+2025-11-12T20:17:51.5180290Z   persist-credentials: true
+2025-11-12T20:17:51.5180630Z   clean: true
+2025-11-12T20:17:51.5180950Z   sparse-checkout-cone-mode: true
+2025-11-12T20:17:51.5181310Z   fetch-depth: 1
+2025-11-12T20:17:51.5181620Z   fetch-tags: false
+2025-11-12T20:17:51.5181970Z   show-progress: true
+2025-11-12T20:17:51.5182280Z   lfs: false
+2025-11-12T20:17:51.5182590Z   submodules: false
+2025-11-12T20:17:51.5182910Z   set-safe-directory: true
+2025-11-12T20:17:51.5184300Z env:
+2025-11-12T20:17:51.5185450Z   CI: true
+2025-11-12T20:17:51.5186270Z ##[endgroup]
+2025-11-12T20:17:52.0266560Z Syncing repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:52.0271170Z ##[group]Getting Git version info
+2025-11-12T20:17:52.0272910Z Working directory is '/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-12T20:17:52.0275820Z [command]/opt/homebrew/bin/git version
+2025-11-12T20:17:52.0548480Z git version 2.50.1
+2025-11-12T20:17:52.0583770Z ##[endgroup]
+2025-11-12T20:17:52.0597550Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/61bcc92c-3b57-427d-8350-b227d814869b/.gitconfig'
+2025-11-12T20:17:52.0607960Z Temporarily overriding HOME='/Users/runner/work/_temp/61bcc92c-3b57-427d-8350-b227d814869b' before making global git config changes
+2025-11-12T20:17:52.0610940Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-12T20:17:52.0613080Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-12T20:17:52.0743860Z Deleting the contents of '/Users/runner/work/AtlasPieVersion3/AtlasPieVersion3'
+2025-11-12T20:17:52.0747030Z ##[group]Initializing the repository
+2025-11-12T20:17:52.0753360Z [command]/opt/homebrew/bin/git init /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3
+2025-11-12T20:17:52.1064670Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-11-12T20:17:52.1066290Z hint: is subject to change. To configure the initial branch name to use in all
+2025-11-12T20:17:52.1067070Z hint: of your new repositories, which will suppress this warning, call:
+2025-11-12T20:17:52.1067660Z hint:
+2025-11-12T20:17:52.1068200Z hint: 	git config --global init.defaultBranch <name>
+2025-11-12T20:17:52.1068680Z hint:
+2025-11-12T20:17:52.1069120Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-11-12T20:17:52.1069810Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-11-12T20:17:52.1070380Z hint:
+2025-11-12T20:17:52.1070680Z hint: 	git branch -m <name>
+2025-11-12T20:17:52.1071040Z hint:
+2025-11-12T20:17:52.1071520Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-11-12T20:17:52.1072780Z Initialized empty Git repository in /Users/runner/work/AtlasPieVersion3/AtlasPieVersion3/.git/
+2025-11-12T20:17:52.1087310Z [command]/opt/homebrew/bin/git remote add origin https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:52.1206730Z ##[endgroup]
+2025-11-12T20:17:52.1211940Z ##[group]Disabling automatic garbage collection
+2025-11-12T20:17:52.1214680Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2025-11-12T20:17:52.1311190Z ##[endgroup]
+2025-11-12T20:17:52.1313890Z ##[group]Setting up auth
+2025-11-12T20:17:52.1316610Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-12T20:17:52.1404120Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-12T20:17:52.2779500Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-12T20:17:52.2848200Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-12T20:17:52.4161320Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-11-12T20:17:52.4187200Z ##[endgroup]
+2025-11-12T20:17:52.4187980Z ##[group]Fetching the repository
+2025-11-12T20:17:52.4189150Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +99249010b8434925590fc359403d52c53ebda861:refs/remotes/pull/69/merge
+2025-11-12T20:17:56.5751540Z From https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:56.5758420Z  * [new ref]         99249010b8434925590fc359403d52c53ebda861 -> pull/69/merge
+2025-11-12T20:17:56.6047250Z ##[endgroup]
+2025-11-12T20:17:56.6048090Z ##[group]Determining the checkout info
+2025-11-12T20:17:56.6048840Z ##[endgroup]
+2025-11-12T20:17:56.6049590Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2025-11-12T20:17:56.6139380Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2025-11-12T20:17:56.6267380Z ##[group]Checking out the ref
+2025-11-12T20:17:56.6270970Z [command]/opt/homebrew/bin/git checkout --progress --force refs/remotes/pull/69/merge
+2025-11-12T20:17:57.4728680Z HEAD is now at 9924901 Merge 452a0bee0310a435cffabc968950422ca342f97e into 56d1aa5a507af63952877a9357b852334e51ed04
+2025-11-12T20:17:57.4794120Z ##[endgroup]
+2025-11-12T20:17:57.4987260Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2025-11-12T20:17:57.5075530Z 99249010b8434925590fc359403d52c53ebda861

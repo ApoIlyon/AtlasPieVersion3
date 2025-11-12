@@ -1,0 +1,32 @@
+﻿2025-11-12T20:17:59.3168130Z ##[group]Run npm ci
+2025-11-12T20:17:59.3168610Z [36;1mnpm ci[0m
+2025-11-12T20:17:59.3322670Z shell: /bin/bash -e {0}
+2025-11-12T20:17:59.3323450Z env:
+2025-11-12T20:17:59.3323940Z   CI: true
+2025-11-12T20:17:59.3324420Z ##[endgroup]
+2025-11-12T20:18:00.3860510Z npm error code EUSAGE
+2025-11-12T20:18:00.3861090Z npm error
+2025-11-12T20:18:00.3862050Z npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+2025-11-12T20:18:00.3862840Z npm error
+2025-11-12T20:18:00.3949310Z npm error Invalid: lock file's nanoid@3.3.11 does not satisfy nanoid@5.1.6
+2025-11-12T20:18:00.3954260Z npm error Missing: nanoid@3.3.11 from lock file
+2025-11-12T20:18:00.3954550Z npm error
+2025-11-12T20:18:00.3956460Z npm error Clean install a project
+2025-11-12T20:18:00.3956730Z npm error
+2025-11-12T20:18:00.3956920Z npm error Usage:
+2025-11-12T20:18:00.3957120Z npm error npm ci
+2025-11-12T20:18:00.3957320Z npm error
+2025-11-12T20:18:00.3957460Z npm error Options:
+2025-11-12T20:18:00.3957850Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2025-11-12T20:18:00.3958470Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2025-11-12T20:18:00.3960400Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2025-11-12T20:18:00.3960970Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+2025-11-12T20:18:00.3961380Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2025-11-12T20:18:00.3961850Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2025-11-12T20:18:00.3962330Z npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+2025-11-12T20:18:00.3962610Z npm error
+2025-11-12T20:18:00.3964020Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2025-11-12T20:18:00.3965240Z npm error
+2025-11-12T20:18:00.3968180Z npm error Run "npm help ci" for more info
+2025-11-12T20:18:00.3969180Z npm error A complete log of this run can be found in: /Users/runner/.npm/_logs/2025-11-12T20_17_59_481Z-debug-0.log
+2025-11-12T20:18:00.4923900Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,254 @@
+﻿2025-11-12T20:17:49.0985430Z Current runner version: '2.329.0'
+2025-11-12T20:17:49.1023490Z ##[group]Runner Image Provisioner
+2025-11-12T20:17:49.1024606Z Hosted Compute Agent
+2025-11-12T20:17:49.1025468Z Version: 20251016.436
+2025-11-12T20:17:49.1026383Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+2025-11-12T20:17:49.1027436Z Build Date: 2025-10-15T20:44:12Z
+2025-11-12T20:17:49.1028344Z ##[endgroup]
+2025-11-12T20:17:49.1029287Z ##[group]Operating System
+2025-11-12T20:17:49.1030261Z Microsoft Windows Server 2025
+2025-11-12T20:17:49.1031165Z 10.0.26100
+2025-11-12T20:17:49.1031614Z Datacenter
+2025-11-12T20:17:49.1032165Z ##[endgroup]
+2025-11-12T20:17:49.1032961Z ##[group]Runner Image
+2025-11-12T20:17:49.1033742Z Image: windows-2025
+2025-11-12T20:17:49.1034579Z Version: 20251102.77.1
+2025-11-12T20:17:49.1036520Z Included Software: https://github.com/actions/runner-images/blob/win25/20251102.77/images/windows/Windows2025-Readme.md
+2025-11-12T20:17:49.1039540Z Image Release: https://github.com/actions/runner-images/releases/tag/win25%2F20251102.77
+2025-11-12T20:17:49.1041420Z ##[endgroup]
+2025-11-12T20:17:49.1043681Z ##[group]GITHUB_TOKEN Permissions
+2025-11-12T20:17:49.1046285Z Contents: read
+2025-11-12T20:17:49.1047061Z Metadata: read
+2025-11-12T20:17:49.1047768Z Packages: read
+2025-11-12T20:17:49.1048459Z ##[endgroup]
+2025-11-12T20:17:49.1051704Z Secret source: Actions
+2025-11-12T20:17:49.1052740Z Prepare workflow directory
+2025-11-12T20:17:49.1529408Z Prepare all required actions
+2025-11-12T20:17:49.1569293Z Getting action download info
+2025-11-12T20:17:49.4419594Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-11-12T20:17:49.5765906Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-11-12T20:17:49.7450859Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2025-11-12T20:17:49.8907350Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2025-11-12T20:17:50.2121520Z Complete job name: build-windows
+2025-11-12T20:17:50.3570528Z ##[group]Run actions/checkout@v4
+2025-11-12T20:17:50.3571828Z with:
+2025-11-12T20:17:50.3572311Z   repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:50.3573256Z   token: ***
+2025-11-12T20:17:50.3573683Z   ssh-strict: true
+2025-11-12T20:17:50.3574124Z   ssh-user: git
+2025-11-12T20:17:50.3574572Z   persist-credentials: true
+2025-11-12T20:17:50.3575070Z   clean: true
+2025-11-12T20:17:50.3575510Z   sparse-checkout-cone-mode: true
+2025-11-12T20:17:50.3576063Z   fetch-depth: 1
+2025-11-12T20:17:50.3576492Z   fetch-tags: false
+2025-11-12T20:17:50.3576934Z   show-progress: true
+2025-11-12T20:17:50.3577391Z   lfs: false
+2025-11-12T20:17:50.3577822Z   submodules: false
+2025-11-12T20:17:50.3578282Z   set-safe-directory: true
+2025-11-12T20:17:50.3579103Z env:
+2025-11-12T20:17:50.3579525Z   CARGO_TERM_COLOR: always
+2025-11-12T20:17:50.3580008Z   RUST_BACKTRACE: 1
+2025-11-12T20:17:50.3580516Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:17:50.3581127Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:17:50.3581680Z ##[endgroup]
+2025-11-12T20:17:50.5315389Z Syncing repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:50.5317263Z ##[group]Getting Git version info
+2025-11-12T20:17:50.5317937Z Working directory is 'D:\a\AtlasPieVersion3\AtlasPieVersion3'
+2025-11-12T20:17:50.6331528Z [command]"C:\Program Files\Git\bin\git.exe" version
+2025-11-12T20:17:51.0185095Z git version 2.51.2.windows.1
+2025-11-12T20:17:51.0238518Z ##[endgroup]
+2025-11-12T20:17:51.0260550Z Temporarily overriding HOME='D:\a\_temp\8b38116a-d92c-4f94-88c7-0224480d6051' before making global git config changes
+2025-11-12T20:17:51.0262166Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-12T20:17:51.0272873Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\AtlasPieVersion3\AtlasPieVersion3
+2025-11-12T20:17:51.0826883Z Deleting the contents of 'D:\a\AtlasPieVersion3\AtlasPieVersion3'
+2025-11-12T20:17:51.0834411Z ##[group]Initializing the repository
+2025-11-12T20:17:51.0844767Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\AtlasPieVersion3\AtlasPieVersion3
+2025-11-12T20:17:51.1733971Z Initialized empty Git repository in D:/a/AtlasPieVersion3/AtlasPieVersion3/.git/
+2025-11-12T20:17:51.1781574Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:51.2553302Z ##[endgroup]
+2025-11-12T20:17:51.2554047Z ##[group]Disabling automatic garbage collection
+2025-11-12T20:17:51.2563766Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2025-11-12T20:17:51.2870635Z ##[endgroup]
+2025-11-12T20:17:51.2871320Z ##[group]Setting up auth
+2025-11-12T20:17:51.2891253Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2025-11-12T20:17:51.3212024Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2025-11-12T20:17:52.8251561Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-12T20:17:52.8578614Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2025-11-12T20:17:53.4281927Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2025-11-12T20:17:53.4591626Z ##[endgroup]
+2025-11-12T20:17:53.4592446Z ##[group]Fetching the repository
+2025-11-12T20:17:53.4606333Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +99249010b8434925590fc359403d52c53ebda861:refs/remotes/pull/69/merge
+2025-11-12T20:17:56.0095952Z From https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:56.0096739Z  * [new ref]         99249010b8434925590fc359403d52c53ebda861 -> pull/69/merge
+2025-11-12T20:17:56.0425358Z ##[endgroup]
+2025-11-12T20:17:56.0426071Z ##[group]Determining the checkout info
+2025-11-12T20:17:56.0428522Z ##[endgroup]
+2025-11-12T20:17:56.0440533Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2025-11-12T20:17:56.0907887Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2025-11-12T20:17:56.1200356Z ##[group]Checking out the ref
+2025-11-12T20:17:56.1211270Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force refs/remotes/pull/69/merge
+2025-11-12T20:17:57.1479130Z Note: switching to 'refs/remotes/pull/69/merge'.
+2025-11-12T20:17:57.1479663Z 
+2025-11-12T20:17:57.1480016Z You are in 'detached HEAD' state. You can look around, make experimental
+2025-11-12T20:17:57.1480863Z changes and commit them, and you can discard any commits you make in this
+2025-11-12T20:17:57.1481363Z state without impacting any branches by switching back to a branch.
+2025-11-12T20:17:57.1481840Z 
+2025-11-12T20:17:57.1482132Z If you want to create a new branch to retain commits you create, you may
+2025-11-12T20:17:57.1482794Z do so (now or later) by using -c with the switch command. Example:
+2025-11-12T20:17:57.1483211Z 
+2025-11-12T20:17:57.1483389Z   git switch -c <new-branch-name>
+2025-11-12T20:17:57.1483983Z 
+2025-11-12T20:17:57.1484133Z Or undo this operation with:
+2025-11-12T20:17:57.1484376Z 
+2025-11-12T20:17:57.1484493Z   git switch -
+2025-11-12T20:17:57.1484708Z 
+2025-11-12T20:17:57.1485041Z Turn off this advice by setting config variable advice.detachedHead to false
+2025-11-12T20:17:57.1485521Z 
+2025-11-12T20:17:57.1486081Z HEAD is now at 9924901 Merge 452a0bee0310a435cffabc968950422ca342f97e into 56d1aa5a507af63952877a9357b852334e51ed04
+2025-11-12T20:17:57.1614621Z ##[endgroup]
+2025-11-12T20:17:57.2065955Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2025-11-12T20:17:57.2377382Z 99249010b8434925590fc359403d52c53ebda861
+2025-11-12T20:17:57.2894373Z ##[group]Run actions/setup-node@v4
+2025-11-12T20:17:57.2894760Z with:
+2025-11-12T20:17:57.2894938Z   node-version: 20
+2025-11-12T20:17:57.2895114Z   cache: npm
+2025-11-12T20:17:57.2895367Z   cache-dependency-path: autohotpie-tauri/package-lock.json
+2025-11-12T20:17:57.2895676Z   always-auth: false
+2025-11-12T20:17:57.2895852Z   check-latest: false
+2025-11-12T20:17:57.2896299Z   token: ***
+2025-11-12T20:17:57.2896453Z env:
+2025-11-12T20:17:57.2896602Z   CARGO_TERM_COLOR: always
+2025-11-12T20:17:57.2896797Z   RUST_BACKTRACE: 1
+2025-11-12T20:17:57.2896963Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:17:57.2897177Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:17:57.2897387Z ##[endgroup]
+2025-11-12T20:17:57.5523665Z Found in cache @ C:\hostedtoolcache\windows\node\20.19.5\x64
+2025-11-12T20:17:57.5534321Z ##[group]Environment details
+2025-11-12T20:18:01.8918313Z node: v20.19.5
+2025-11-12T20:18:01.8918595Z npm: 10.8.2
+2025-11-12T20:18:01.8918841Z yarn: 1.22.22
+2025-11-12T20:18:01.8920662Z ##[endgroup]
+2025-11-12T20:18:01.9710809Z [command]C:\Windows\system32\cmd.exe /D /S /C "C:\hostedtoolcache\windows\node\20.19.5\x64\npm.cmd config get cache"
+2025-11-12T20:18:02.5051902Z C:\npm\cache
+2025-11-12T20:18:02.7694654Z npm cache is not found
+2025-11-12T20:18:02.9072677Z ##[group]Run actions/cache@v4
+2025-11-12T20:18:02.9072961Z with:
+2025-11-12T20:18:02.9073252Z   path: ~/.cargo/registry
+~/.cargo/git
+autohotpie-tauri/src-tauri/target
+
+2025-11-12T20:18:02.9073758Z   key: Windows-cargo-c9f9ada4d1379251dbd616655af14a8ea8842815d645954d9a7ce81fcfb8f6c3
+2025-11-12T20:18:02.9074146Z   restore-keys: Windows-cargo-
+2025-11-12T20:18:02.9074373Z   enableCrossOsArchive: false
+2025-11-12T20:18:02.9074588Z   fail-on-cache-miss: false
+2025-11-12T20:18:02.9074770Z   lookup-only: false
+2025-11-12T20:18:02.9074952Z   save-always: false
+2025-11-12T20:18:02.9075099Z env:
+2025-11-12T20:18:02.9075238Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:02.9075413Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:02.9075579Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:02.9075787Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:18:02.9076005Z ##[endgroup]
+2025-11-12T20:18:03.3585577Z Cache hit for restore-key: Windows-cargo-437244eb4ef147be876114de64d6bef69666e703f85773bf81c1dda58eda060f
+2025-11-12T20:18:04.4184270Z Received 138412032 of 543348500 (25.5%), 131.3 MBs/sec
+2025-11-12T20:18:05.4240629Z Received 314572800 of 543348500 (57.9%), 149.2 MBs/sec
+2025-11-12T20:18:06.4387544Z Received 478150656 of 543348500 (88.0%), 150.7 MBs/sec
+2025-11-12T20:18:07.0464463Z Received 543348500 of 543348500 (100.0%), 142.6 MBs/sec
+2025-11-12T20:18:07.0469362Z Cache Size: ~518 MB (543348500 B)
+2025-11-12T20:18:07.0644359Z [command]"C:\Program Files\Git\usr\bin\tar.exe" -xf D:/a/_temp/fd955cb3-cda4-41aa-b5a6-6cc7cd857c10/cache.tzst -P -C D:/a/AtlasPieVersion3/AtlasPieVersion3 --force-local --use-compress-program "zstd -d"
+2025-11-12T20:18:38.8544989Z Cache restored successfully
+2025-11-12T20:18:38.8943371Z Cache restored from key: Windows-cargo-437244eb4ef147be876114de64d6bef69666e703f85773bf81c1dda58eda060f
+2025-11-12T20:18:38.9198068Z ##[group]Run rustup update stable --no-self-update
+2025-11-12T20:18:38.9198887Z [36;1mrustup update stable --no-self-update[0m
+2025-11-12T20:18:38.9199175Z [36;1mrustup default stable[0m
+2025-11-12T20:18:38.9199408Z [36;1mrustup component add clippy rustfmt[0m
+2025-11-12T20:18:38.9199673Z [36;1mrustup target add $env:TAURI_TARGET[0m
+2025-11-12T20:18:38.9845727Z shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE -command ". '{0}'"
+2025-11-12T20:18:38.9846162Z env:
+2025-11-12T20:18:38.9846343Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:38.9846551Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:38.9846753Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:38.9847239Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:18:38.9847484Z ##[endgroup]
+2025-11-12T20:18:42.5600491Z info: syncing channel updates for 'stable-x86_64-pc-windows-msvc'
+2025-11-12T20:18:43.0721006Z info: latest update on 2025-11-10, rust version 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:18:43.1201652Z info: downloading component 'clippy'
+2025-11-12T20:18:43.3042047Z info: downloading component 'rustfmt'
+2025-11-12T20:18:43.4202762Z info: downloading component 'rust-std' for 'x86_64-pc-windows-gnu'
+2025-11-12T20:18:43.9352472Z info: downloading component 'rust-std' for 'i686-pc-windows-msvc'
+2025-11-12T20:18:44.3245245Z info: downloading component 'cargo'
+2025-11-12T20:18:44.5301102Z info: downloading component 'rust-std'
+2025-11-12T20:18:44.9635799Z info: downloading component 'rustc'
+2025-11-12T20:18:45.9938939Z info: removing previous version of component 'clippy'
+2025-11-12T20:18:46.0141131Z info: removing previous version of component 'rustfmt'
+2025-11-12T20:18:46.0391957Z info: removing previous version of component 'rust-std' for 'x86_64-pc-windows-gnu'
+2025-11-12T20:18:46.1019747Z info: removing previous version of component 'rust-std' for 'i686-pc-windows-msvc'
+2025-11-12T20:18:46.1496360Z info: removing previous version of component 'cargo'
+2025-11-12T20:18:46.2865362Z info: removing previous version of component 'rust-std'
+2025-11-12T20:18:46.3396492Z info: removing previous version of component 'rustc'
+2025-11-12T20:18:46.4302290Z info: installing component 'clippy'
+2025-11-12T20:18:46.7974286Z info: installing component 'rustfmt'
+2025-11-12T20:18:47.0895574Z info: installing component 'rust-std' for 'x86_64-pc-windows-gnu'
+2025-11-12T20:18:48.8218847Z info: installing component 'rust-std' for 'i686-pc-windows-msvc'
+2025-11-12T20:18:50.9188888Z info: installing component 'cargo'
+2025-11-12T20:18:51.6700438Z info: installing component 'rust-std'
+2025-11-12T20:18:53.7286077Z info: installing component 'rustc'
+2025-11-12T20:18:58.8289866Z 
+2025-11-12T20:18:58.8586228Z   stable-x86_64-pc-windows-msvc updated - rustc 1.91.1 (ed61e7d7e 2025-11-07) (from rustc 1.91.0 (f8297e351 2025-10-28))
+2025-11-12T20:18:58.8588365Z 
+2025-11-12T20:18:58.8850870Z info: using existing install for 'stable-x86_64-pc-windows-msvc'
+2025-11-12T20:18:58.9374712Z info: default toolchain set to 'stable-x86_64-pc-windows-msvc'
+2025-11-12T20:18:58.9375172Z 
+2025-11-12T20:18:58.9578759Z   stable-x86_64-pc-windows-msvc unchanged - rustc 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:18:58.9579116Z 
+2025-11-12T20:18:59.2004449Z info: component 'clippy' for target 'x86_64-pc-windows-msvc' is up to date
+2025-11-12T20:18:59.3695530Z info: component 'rustfmt' for target 'x86_64-pc-windows-msvc' is up to date
+2025-11-12T20:18:59.5630776Z info: component 'rust-std' for target 'x86_64-pc-windows-msvc' is up to date
+2025-11-12T20:18:59.7011357Z ##[group]Run npm ci
+2025-11-12T20:18:59.7011637Z [36;1mnpm ci[0m
+2025-11-12T20:18:59.7268317Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2025-11-12T20:18:59.7268696Z env:
+2025-11-12T20:18:59.7268889Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:59.7269107Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:59.7269308Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:59.7269558Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:18:59.7269804Z ##[endgroup]
+2025-11-12T20:19:07.4641450Z npm error code EUSAGE
+2025-11-12T20:19:07.4642803Z npm error
+2025-11-12T20:19:07.4643954Z npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+2025-11-12T20:19:07.4644664Z npm error
+2025-11-12T20:19:07.4645238Z npm error Invalid: lock file's nanoid@3.3.11 does not satisfy nanoid@5.1.6
+2025-11-12T20:19:07.4646006Z npm error Missing: nanoid@3.3.11 from lock file
+2025-11-12T20:19:07.4646407Z npm error
+2025-11-12T20:19:07.4646712Z npm error Clean install a project
+2025-11-12T20:19:07.4647092Z npm error
+2025-11-12T20:19:07.4647928Z npm error Usage:
+2025-11-12T20:19:07.4648249Z npm error npm ci
+2025-11-12T20:19:07.4648580Z npm error
+2025-11-12T20:19:07.4648930Z npm error Options:
+2025-11-12T20:19:07.4649622Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2025-11-12T20:19:07.4650653Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2025-11-12T20:19:07.4651692Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2025-11-12T20:19:07.4652717Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+2025-11-12T20:19:07.4653582Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2025-11-12T20:19:07.4654377Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2025-11-12T20:19:07.4655304Z npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+2025-11-12T20:19:07.4655916Z npm error
+2025-11-12T20:19:07.4656604Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2025-11-12T20:19:07.4657180Z npm error
+2025-11-12T20:19:07.4657551Z npm error Run "npm help ci" for more info
+2025-11-12T20:19:07.4662154Z npm error A complete log of this run can be found in: C:\npm\cache\_logs\2025-11-12T20_19_05_117Z-debug-0.log
+2025-11-12T20:19:08.1563813Z ##[error]Process completed with exit code 1.
+2025-11-12T20:19:08.1785225Z Post job cleanup.
+2025-11-12T20:19:08.4466472Z [command]"C:\Program Files\Git\bin\git.exe" version
+2025-11-12T20:19:08.4766080Z git version 2.51.2.windows.1
+2025-11-12T20:19:08.4852004Z Temporarily overriding HOME='D:\a\_temp\560455b0-69c5-42c3-8135-b24637ea20f8' before making global git config changes
+2025-11-12T20:19:08.4853273Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-12T20:19:08.4866943Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\AtlasPieVersion3\AtlasPieVersion3
+2025-11-12T20:19:08.5219923Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2025-11-12T20:19:08.5576960Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2025-11-12T20:19:09.1627912Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-12T20:19:09.1922447Z http.https://github.com/.extraheader
+2025-11-12T20:19:09.1991634Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2025-11-12T20:19:09.2333693Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2025-11-12T20:19:09.8296464Z Cleaning up orphan processes

@@ -1,0 +1,31 @@
+﻿2025-11-12T20:17:49.5019710Z Current runner version: '2.329.0'
+2025-11-12T20:17:49.5034380Z ##[group]Runner Image Provisioner
+2025-11-12T20:17:49.5034900Z Hosted Compute Agent
+2025-11-12T20:17:49.5035250Z Version: 20251016.436
+2025-11-12T20:17:49.5035690Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+2025-11-12T20:17:49.5036130Z Build Date: 2025-10-15T20:44:12Z
+2025-11-12T20:17:49.5036500Z ##[endgroup]
+2025-11-12T20:17:49.5036850Z ##[group]Operating System
+2025-11-12T20:17:49.5037200Z macOS
+2025-11-12T20:17:49.5037510Z 15.7.1
+2025-11-12T20:17:49.5037790Z 24G231
+2025-11-12T20:17:49.5038100Z ##[endgroup]
+2025-11-12T20:17:49.5038420Z ##[group]Runner Image
+2025-11-12T20:17:49.5038750Z Image: macos-15-arm64
+2025-11-12T20:17:49.5039170Z Version: 20251104.0104
+2025-11-12T20:17:49.5040080Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20251104.0104/images/macos/macos-15-arm64-Readme.md
+2025-11-12T20:17:49.5041040Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20251104.0104
+2025-11-12T20:17:49.5041740Z ##[endgroup]
+2025-11-12T20:17:49.5042440Z ##[group]GITHUB_TOKEN Permissions
+2025-11-12T20:17:49.5043610Z Contents: read
+2025-11-12T20:17:49.5043920Z Metadata: read
+2025-11-12T20:17:49.5044230Z Packages: read
+2025-11-12T20:17:49.5044540Z ##[endgroup]
+2025-11-12T20:17:49.5045900Z Secret source: Actions
+2025-11-12T20:17:49.5046300Z Prepare workflow directory
+2025-11-12T20:17:49.5301180Z Prepare all required actions
+2025-11-12T20:17:49.5327230Z Getting action download info
+2025-11-12T20:17:50.0676580Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-11-12T20:17:50.2112800Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-11-12T20:17:50.2901190Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2025-11-12T20:17:50.4611360Z Complete job name: build-macos

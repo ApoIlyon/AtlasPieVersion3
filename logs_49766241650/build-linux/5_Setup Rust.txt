@@ -1,0 +1,37 @@
+﻿2025-11-12T20:18:40.6455792Z ##[group]Run rustup update stable --no-self-update
+2025-11-12T20:18:40.6456180Z [36;1mrustup update stable --no-self-update[0m
+2025-11-12T20:18:40.6456452Z [36;1mrustup default stable[0m
+2025-11-12T20:18:40.6456695Z [36;1mrustup component add clippy rustfmt[0m
+2025-11-12T20:18:40.6489320Z shell: /usr/bin/bash -e {0}
+2025-11-12T20:18:40.6489551Z env:
+2025-11-12T20:18:40.6489718Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:40.6489920Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:40.6490320Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:40.6490545Z ##[endgroup]
+2025-11-12T20:18:40.8756352Z info: syncing channel updates for 'stable-x86_64-unknown-linux-gnu'
+2025-11-12T20:18:41.0634429Z info: latest update on 2025-11-10, rust version 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:18:41.0949297Z info: downloading component 'clippy'
+2025-11-12T20:18:41.2169801Z info: downloading component 'rustfmt'
+2025-11-12T20:18:41.3202001Z info: downloading component 'cargo'
+2025-11-12T20:18:41.4601397Z info: downloading component 'rust-std'
+2025-11-12T20:18:41.7232331Z info: downloading component 'rustc'
+2025-11-12T20:18:42.3217620Z info: removing previous version of component 'clippy'
+2025-11-12T20:18:42.3233683Z info: removing previous version of component 'rustfmt'
+2025-11-12T20:18:42.3244110Z info: removing previous version of component 'cargo'
+2025-11-12T20:18:42.3292120Z info: removing previous version of component 'rust-std'
+2025-11-12T20:18:42.3321281Z info: removing previous version of component 'rustc'
+2025-11-12T20:18:42.3374307Z info: installing component 'clippy'
+2025-11-12T20:18:42.7141794Z info: installing component 'rustfmt'
+2025-11-12T20:18:42.9485128Z info: installing component 'cargo'
+2025-11-12T20:18:43.6348768Z info: installing component 'rust-std'
+2025-11-12T20:18:45.5235702Z info: installing component 'rustc'
+2025-11-12T20:18:50.1321321Z 
+2025-11-12T20:18:50.1431346Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.91.1 (ed61e7d7e 2025-11-07) (from rustc 1.91.0 (f8297e351 2025-10-28))
+2025-11-12T20:18:50.1431930Z 
+2025-11-12T20:18:50.1514270Z info: using existing install for 'stable-x86_64-unknown-linux-gnu'
+2025-11-12T20:18:50.1879574Z info: default toolchain set to 'stable-x86_64-unknown-linux-gnu'
+2025-11-12T20:18:50.1880324Z 
+2025-11-12T20:18:50.1967732Z   stable-x86_64-unknown-linux-gnu unchanged - rustc 1.91.1 (ed61e7d7e 2025-11-07)
+2025-11-12T20:18:50.1968147Z 
+2025-11-12T20:18:50.3500036Z info: component 'clippy' for target 'x86_64-unknown-linux-gnu' is up to date
+2025-11-12T20:18:50.4615945Z info: component 'rustfmt' for target 'x86_64-unknown-linux-gnu' is up to date

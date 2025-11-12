@@ -1,0 +1,35 @@
+﻿2025-11-12T20:18:59.7011334Z ##[group]Run npm ci
+2025-11-12T20:18:59.7011634Z [36;1mnpm ci[0m
+2025-11-12T20:18:59.7268297Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2025-11-12T20:18:59.7268693Z env:
+2025-11-12T20:18:59.7268887Z   CARGO_TERM_COLOR: always
+2025-11-12T20:18:59.7269105Z   RUST_BACKTRACE: 1
+2025-11-12T20:18:59.7269306Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:18:59.7269555Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:18:59.7269802Z ##[endgroup]
+2025-11-12T20:19:07.4641403Z npm error code EUSAGE
+2025-11-12T20:19:07.4642793Z npm error
+2025-11-12T20:19:07.4643947Z npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+2025-11-12T20:19:07.4644661Z npm error
+2025-11-12T20:19:07.4645234Z npm error Invalid: lock file's nanoid@3.3.11 does not satisfy nanoid@5.1.6
+2025-11-12T20:19:07.4645902Z npm error Missing: nanoid@3.3.11 from lock file
+2025-11-12T20:19:07.4646394Z npm error
+2025-11-12T20:19:07.4646708Z npm error Clean install a project
+2025-11-12T20:19:07.4647084Z npm error
+2025-11-12T20:19:07.4647921Z npm error Usage:
+2025-11-12T20:19:07.4648242Z npm error npm ci
+2025-11-12T20:19:07.4648574Z npm error
+2025-11-12T20:19:07.4648919Z npm error Options:
+2025-11-12T20:19:07.4649616Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2025-11-12T20:19:07.4650640Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2025-11-12T20:19:07.4651686Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2025-11-12T20:19:07.4652713Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+2025-11-12T20:19:07.4653577Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2025-11-12T20:19:07.4654371Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2025-11-12T20:19:07.4655282Z npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+2025-11-12T20:19:07.4655909Z npm error
+2025-11-12T20:19:07.4656597Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2025-11-12T20:19:07.4657175Z npm error
+2025-11-12T20:19:07.4657547Z npm error Run "npm help ci" for more info
+2025-11-12T20:19:07.4662138Z npm error A complete log of this run can be found in: C:\npm\cache\_logs\2025-11-12T20_19_05_117Z-debug-0.log
+2025-11-12T20:19:08.1563789Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,78 @@
+﻿2025-11-12T20:17:50.3570469Z ##[group]Run actions/checkout@v4
+2025-11-12T20:17:50.3571805Z with:
+2025-11-12T20:17:50.3572305Z   repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:50.3573248Z   token: ***
+2025-11-12T20:17:50.3573678Z   ssh-strict: true
+2025-11-12T20:17:50.3574119Z   ssh-user: git
+2025-11-12T20:17:50.3574568Z   persist-credentials: true
+2025-11-12T20:17:50.3575065Z   clean: true
+2025-11-12T20:17:50.3575505Z   sparse-checkout-cone-mode: true
+2025-11-12T20:17:50.3576059Z   fetch-depth: 1
+2025-11-12T20:17:50.3576488Z   fetch-tags: false
+2025-11-12T20:17:50.3576929Z   show-progress: true
+2025-11-12T20:17:50.3577379Z   lfs: false
+2025-11-12T20:17:50.3577817Z   submodules: false
+2025-11-12T20:17:50.3578264Z   set-safe-directory: true
+2025-11-12T20:17:50.3579093Z env:
+2025-11-12T20:17:50.3579520Z   CARGO_TERM_COLOR: always
+2025-11-12T20:17:50.3580003Z   RUST_BACKTRACE: 1
+2025-11-12T20:17:50.3580511Z   TAURI_SKIP_UPDATE_CHECK: true
+2025-11-12T20:17:50.3581058Z   TAURI_TARGET: x86_64-pc-windows-msvc
+2025-11-12T20:17:50.3581675Z ##[endgroup]
+2025-11-12T20:17:50.5315312Z Syncing repository: ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:50.5317244Z ##[group]Getting Git version info
+2025-11-12T20:17:50.5317933Z Working directory is 'D:\a\AtlasPieVersion3\AtlasPieVersion3'
+2025-11-12T20:17:50.6331442Z [command]"C:\Program Files\Git\bin\git.exe" version
+2025-11-12T20:17:51.0184999Z git version 2.51.2.windows.1
+2025-11-12T20:17:51.0238464Z ##[endgroup]
+2025-11-12T20:17:51.0260514Z Temporarily overriding HOME='D:\a\_temp\8b38116a-d92c-4f94-88c7-0224480d6051' before making global git config changes
+2025-11-12T20:17:51.0262146Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-12T20:17:51.0272849Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\AtlasPieVersion3\AtlasPieVersion3
+2025-11-12T20:17:51.0826825Z Deleting the contents of 'D:\a\AtlasPieVersion3\AtlasPieVersion3'
+2025-11-12T20:17:51.0834351Z ##[group]Initializing the repository
+2025-11-12T20:17:51.0844739Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\AtlasPieVersion3\AtlasPieVersion3
+2025-11-12T20:17:51.1733884Z Initialized empty Git repository in D:/a/AtlasPieVersion3/AtlasPieVersion3/.git/
+2025-11-12T20:17:51.1781507Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:51.2553234Z ##[endgroup]
+2025-11-12T20:17:51.2554040Z ##[group]Disabling automatic garbage collection
+2025-11-12T20:17:51.2563729Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2025-11-12T20:17:51.2870569Z ##[endgroup]
+2025-11-12T20:17:51.2871315Z ##[group]Setting up auth
+2025-11-12T20:17:51.2891209Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2025-11-12T20:17:51.3211881Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2025-11-12T20:17:52.8251465Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-12T20:17:52.8578540Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2025-11-12T20:17:53.4281849Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2025-11-12T20:17:53.4591559Z ##[endgroup]
+2025-11-12T20:17:53.4592436Z ##[group]Fetching the repository
+2025-11-12T20:17:53.4606310Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +99249010b8434925590fc359403d52c53ebda861:refs/remotes/pull/69/merge
+2025-11-12T20:17:56.0093425Z From https://github.com/ApoIlyon/AtlasPieVersion3
+2025-11-12T20:17:56.0096728Z  * [new ref]         99249010b8434925590fc359403d52c53ebda861 -> pull/69/merge
+2025-11-12T20:17:56.0425284Z ##[endgroup]
+2025-11-12T20:17:56.0426056Z ##[group]Determining the checkout info
+2025-11-12T20:17:56.0428468Z ##[endgroup]
+2025-11-12T20:17:56.0440503Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2025-11-12T20:17:56.0907833Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2025-11-12T20:17:56.1200281Z ##[group]Checking out the ref
+2025-11-12T20:17:56.1211218Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force refs/remotes/pull/69/merge
+2025-11-12T20:17:57.1479080Z Note: switching to 'refs/remotes/pull/69/merge'.
+2025-11-12T20:17:57.1479656Z 
+2025-11-12T20:17:57.1479990Z You are in 'detached HEAD' state. You can look around, make experimental
+2025-11-12T20:17:57.1480834Z changes and commit them, and you can discard any commits you make in this
+2025-11-12T20:17:57.1481357Z state without impacting any branches by switching back to a branch.
+2025-11-12T20:17:57.1481834Z 
+2025-11-12T20:17:57.1482126Z If you want to create a new branch to retain commits you create, you may
+2025-11-12T20:17:57.1482789Z do so (now or later) by using -c with the switch command. Example:
+2025-11-12T20:17:57.1483204Z 
+2025-11-12T20:17:57.1483384Z   git switch -c <new-branch-name>
+2025-11-12T20:17:57.1483977Z 
+2025-11-12T20:17:57.1484128Z Or undo this operation with:
+2025-11-12T20:17:57.1484373Z 
+2025-11-12T20:17:57.1484480Z   git switch -
+2025-11-12T20:17:57.1484704Z 
+2025-11-12T20:17:57.1485036Z Turn off this advice by setting config variable advice.detachedHead to false
+2025-11-12T20:17:57.1485517Z 
+2025-11-12T20:17:57.1486067Z HEAD is now at 9924901 Merge 452a0bee0310a435cffabc968950422ca342f97e into 56d1aa5a507af63952877a9357b852334e51ed04
+2025-11-12T20:17:57.1614583Z ##[endgroup]
+2025-11-12T20:17:57.2065843Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2025-11-12T20:17:57.2377074Z 99249010b8434925590fc359403d52c53ebda861
