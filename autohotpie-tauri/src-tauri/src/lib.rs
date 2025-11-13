@@ -18,6 +18,8 @@ pub fn run() {
             // Initialize commands/state
             commands::init(app)?;
 
+            crate::services::ipc::start_toggle_server(app.handle().clone());
+
             // Create a basic tray icon for desktop platforms
             #[cfg(not(mobile))]
             {
@@ -74,6 +76,7 @@ pub fn run() {
             commands::pie_overlay::pie_overlay_sync_state,
             commands::pie_overlay::pie_overlay_select_slice,
             commands::pie_overlay::pie_overlay_focus_slice,
+            commands::toggle::toggle_pie_menu,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application");

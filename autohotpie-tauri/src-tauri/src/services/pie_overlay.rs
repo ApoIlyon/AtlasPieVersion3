@@ -159,6 +159,14 @@ pub fn hide<R: Runtime>(app: &AppHandle<R>, store: &PieOverlayStore) -> anyhow::
     Ok(())
 }
 
+pub fn set_position<R: Runtime>(app: &AppHandle<R>, x: i32, y: i32) -> anyhow::Result<()> {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        let pos = tauri::PhysicalPosition { x, y };
+        let _ = window.set_position(pos);
+    }
+    Ok(())
+}
+
 pub fn sync<R: Runtime>(
     app: &AppHandle<R>,
     store: &PieOverlayStore,

@@ -1061,32 +1061,19 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         console.error('[MODE CHECK]', isHoldMode ? '✓ HOLD MODE' : '✗ TOGGLE MODE', 'isOpen:', currentIsOpen);
 
         if (isHoldMode) {
+          const invokeFn = getTauriInvoke();
           if (eventState === 'pressed') {
-            console.log('[Hold Mode] Pressed event received');
-            if (currentIsOpen) {
-              return;
+            if (invokeFn) {
+              invokeFn('toggle_pie_menu').catch(err => console.error('toggle_pie_menu failed', err));
             }
-
-            if (now - (lastHotkeyProcessedRef.current ?? 0) < 50) {
-              return;
-            }
-
-            lastHotkeyProcessedRef.current = now;
-            lastHotkeyEventAtRef.current = now;
-            isOpenRef.current = true;
-            lastToggleAtRef.current = now;
-            setIsOpenSafe(true);
             return;
           }
-
           if (eventState === 'released') {
-            console.log('[Hold Mode] Released event received - IGNORING (keyboard keyup will close)');
-            // In hold mode, we MUST NOT close here! The keyboard keyup handler is responsible
-            // for closing the menu when all trigger keys are released.
-            // Closing here creates a race condition where the menu closes before keyup fires.
+            if (invokeFn) {
+              invokeFn('pie_overlay_hide').catch(err => console.error('pie_overlay_hide failed', err));
+            }
             return;
           }
-
           return;
         }
 
@@ -1095,45 +1082,11 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           return;
         }
 
-        if (currentIsOpen) {
-          lastClosedAtRef.current = now;
-          clearTimer();
-          setIsOpenSafe(false);
-          isProcessingHotkeyRef.current = true;
-          setTimeout(() => {
-            isProcessingHotkeyRef.current = false;
-          }, HOTKEY_DEBOUNCE_MS);
-          return;
+        const invokeFn = getTauriInvoke();
+        if (invokeFn) {
+          invokeFn('toggle_pie_menu').catch(err => console.error('toggle_pie_menu failed', err));
         }
-
-        const sinceClosed = now - (lastClosedAtRef.current ?? 0);
-        if (sinceClosed < REOPEN_COOLDOWN_MS) {
-          return;
-        }
-
-        isProcessingHotkeyRef.current = true;
-
-        const timeSinceLastProcessed = now - (lastHotkeyProcessedRef.current ?? 0);
-        if (timeSinceLastProcessed < 200) {
-          isProcessingHotkeyRef.current = false;
-          return;
-        }
-
-        lastHotkeyProcessedRef.current = now;
-        lastHotkeyEventAtRef.current = now;
-        isOpenRef.current = true;
-        lastToggleAtRef.current = now;
-        setIsOpenSafe(true);
-
-        setTimeout(() => {
-          if (isOpenRef.current && autoCloseMs > 0) {
-            scheduleAutoClose();
-          }
-        }, 100);
-
-        setTimeout(() => {
-          isProcessingHotkeyRef.current = false;
-        }, 50);
+        return;
       });
 
       if (!aggregatorReady) {

@@ -12,3 +12,4 @@ pub mod tray;
 pub mod update_checker;
 pub mod pie_overlay;
 pub mod window_info;
+pub mod ipc;

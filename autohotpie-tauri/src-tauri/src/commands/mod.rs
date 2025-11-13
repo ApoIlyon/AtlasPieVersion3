@@ -7,6 +7,7 @@ pub mod import_export;
 pub mod localization;
 pub mod logs;
 pub mod pie_overlay;
+pub mod toggle;
 pub mod profiles;
 pub mod settings;
 pub mod system;

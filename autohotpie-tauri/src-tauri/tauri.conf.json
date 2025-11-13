@@ -17,6 +17,19 @@
         "title": "autohotpie-tauri",
         "width": 800,
         "height": 600
+      },
+      {
+        "label": "pie-overlay",
+        "title": "Pie Menu",
+        "width": 520,
+        "height": 520,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "skipTaskbar": true,
+        "focus": false
       }
     ],
     "security": {
