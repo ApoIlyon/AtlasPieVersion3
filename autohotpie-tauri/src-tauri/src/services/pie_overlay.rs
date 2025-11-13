@@ -125,8 +125,13 @@ pub fn show<R: Runtime>(
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         let _ = window.set_always_on_top(true);
-        let _ = window.set_ignore_cursor_events(false);
-        window.show().context("failed to show pie overlay window")?;
+        window
+            .show()
+            .context("failed to show pie overlay window")?;
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = window.set_ignore_cursor_events(false);
+        }
     }
 
     Ok(())
@@ -142,7 +147,10 @@ pub fn hide<R: Runtime>(app: &AppHandle<R>, store: &PieOverlayStore) -> anyhow::
     }
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        let _ = window.set_ignore_cursor_events(true);
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = window.set_ignore_cursor_events(true);
+        }
         let _ = window.hide();
     }
 
@@ -255,7 +263,10 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .build()
         .context("failed to build pie overlay window")?;
 
-    let _ = window.set_ignore_cursor_events(true);
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = window.set_ignore_cursor_events(true);
+    }
     let _ = window.center();
 
     #[cfg(debug_assertions)]
