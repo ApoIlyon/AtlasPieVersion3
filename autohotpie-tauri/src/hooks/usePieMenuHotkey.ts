@@ -1192,6 +1192,33 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         key,
         pressedKeys: Array.from(pressedKeysInHoldModeRef.current),
       });
+
+      if (!isOpenRef.current) {
+        const invokeFn = getTauriInvoke();
+        const ensureHotkey = async () => {
+          if (!activeHotkeyAcceleratorRef.current) {
+            try {
+              const hotkeys = await invokeFn?.('list_hotkeys') as Array<{ id: string; accelerator: string; event: string }> | null;
+              const triggerHotkey = hotkeys?.find(h => h.event === hotkeyEvent);
+              if (triggerHotkey?.accelerator) {
+                activeHotkeyAcceleratorRef.current = triggerHotkey.accelerator;
+                setTriggerAccelerator(triggerHotkey.accelerator);
+              }
+            } catch {}
+          }
+        };
+        ensureHotkey().then(() => {
+          const accel = activeHotkeyAcceleratorRef.current;
+          if (!accel) return;
+          const required = parseHotkeyParts(accel);
+          const allPressed = Array.from(required).every(k => pressedKeysInHoldModeRef.current.has(k));
+          if (allPressed) {
+            const safeModeReason = currentSafeModeReasonRef.current;
+            if (safeModeReason) return;
+            invokeFn?.('toggle_pie_menu').catch(err => console.error('toggle_pie_menu failed', err));
+          }
+        });
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
