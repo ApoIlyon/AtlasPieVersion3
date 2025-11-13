@@ -15,16 +15,17 @@ name = "autohotpie_tauri_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-default = []
+default = ["macos-private-api"]
 # Enable Tauri tray icon APIs when building the app.
 tray-icon = ["tauri/tray-icon"]
+macos-private-api = ["tauri/macos-private-api"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = ["config-json"] }
 
 [dependencies]
 # Keep Tauri minimal for tests; opt-in to tray via crate feature.
-tauri = { version = "2", default-features = false, features = ["test", "wry", "tray-icon"] }
+tauri = { version = "2", default-features = false, features = ["test", "wry", "tray-icon", "macos-private-api"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-log = { version = "2", features = ["colored"] }

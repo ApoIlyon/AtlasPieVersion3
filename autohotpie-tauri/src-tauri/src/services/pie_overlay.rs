@@ -125,8 +125,13 @@ pub fn show<R: Runtime>(
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         let _ = window.set_always_on_top(true);
-        let _ = window.set_ignore_cursor_events(false);
-        window.show().context("failed to show pie overlay window")?;
+        window
+            .show()
+            .context("failed to show pie overlay window")?;
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = window.set_ignore_cursor_events(false);
+        }
     }
 
     Ok(())
@@ -142,7 +147,10 @@ pub fn hide<R: Runtime>(app: &AppHandle<R>, store: &PieOverlayStore) -> anyhow::
     }
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        let _ = window.set_ignore_cursor_events(true);
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = window.set_ignore_cursor_events(true);
+        }
         let _ = window.hide();
     }
 
@@ -229,7 +237,7 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         WebviewUrl::App("pie-overlay.html".into())
     };
 
-    let window = WebviewWindowBuilder::new(app, WINDOW_LABEL, url)
+    let mut builder = WebviewWindowBuilder::new(app, WINDOW_LABEL, url)
         .visible(false)
         .decorations(false)
         .resizable(false)
@@ -237,13 +245,28 @@ fn ensure_window<R: Runtime>(app: &AppHandle<R>) -> anyhow::Result<()> {
         .accept_first_mouse(true)
         .shadow(false)
         .focused(false)
-        .always_on_top(true)
+        .always_on_top(true);
+
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    {
+        builder = builder.transparent(true);
+    }
+
+    #[cfg(all(target_os = "macos", feature = "macos-private-api"))]
+    {
+        builder = builder.transparent(true);
+    }
+
+    let window = builder
         .title("Pie Menu")
         .inner_size(520.0, 520.0)
         .build()
         .context("failed to build pie overlay window")?;
 
-    let _ = window.set_ignore_cursor_events(true);
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = window.set_ignore_cursor_events(true);
+    }
     let _ = window.center();
 
     #[cfg(debug_assertions)]
