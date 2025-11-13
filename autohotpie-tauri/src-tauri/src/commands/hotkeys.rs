@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
-const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
+pub const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +16,17 @@ pub struct HotkeyEventPayload {
     pub id: String,
     pub accelerator: String,
     pub state: String,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EmitTriggerRequest {
+    #[serde(default)]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub accelerator: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
 }
 
 #[derive(Clone, Default, Serialize)]
@@ -226,7 +237,7 @@ fn register_hotkey_impl<R: Runtime>(
 
     app
         .global_shortcut()
-        .on_shortcut(shortcut, move |app_handle, _shortcut, evt: ShortcutEvent| {
+        .on_shortcut(shortcut.clone(), move |app_handle, _shortcut, evt: ShortcutEvent| {
             let state_str = match evt.state {
                 ShortcutState::Pressed => "pressed",
                 ShortcutState::Released => "released",
@@ -240,7 +251,9 @@ fn register_hotkey_impl<R: Runtime>(
 
             let _ = app_handle.emit(&event_name, payload);
         })
-        .map_err(|err| AppError::Message(format!("Failed to register global hotkey: {err}")))?;
+        .map_err(|err| AppError::Message(format!(
+            "Failed to register global hotkey: {err}"
+        )))?;
 
     state.upsert(RegisteredHotkey {
         id: id.clone(),
@@ -264,6 +277,31 @@ pub fn unregister_hotkey<R: Runtime>(
         }
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn emit_hotkey_trigger<R: Runtime>(
+    app: AppHandle<R>,
+    request: Option<EmitTriggerRequest>,
+) -> Result<()> {
+    let request = request.unwrap_or_default();
+    let mut state = request.state.unwrap_or_else(|| "pressed".into());
+    if !matches!(state.as_str(), "pressed" | "released") {
+        state = "pressed".into();
+    }
+
+    let payload = HotkeyEventPayload {
+        id: request
+            .id
+            .unwrap_or_else(|| "external-trigger".to_string()),
+        accelerator: request.accelerator.unwrap_or_default(),
+        state,
+    };
+
+    app.emit(HOTKEY_TRIGGER_EVENT, payload)
+        .map_err(|err| AppError::Message(format!(
+            "failed to emit hotkey trigger: {err}"
+        )))
 }
 
 #[tauri::command]
