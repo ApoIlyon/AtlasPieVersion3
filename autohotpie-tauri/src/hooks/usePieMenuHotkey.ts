@@ -1002,6 +1002,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
             activeProfileRef.current = snapshot;
             setActiveProfile(snapshot);
             resolvedActivationModeRef.current = holdToOpen ? 'hold' : 'toggle';
+            setActivationMode(holdToOpen ? 'hold' : 'toggle');
             console.log('[Hotkey Event] Set activation mode to:', resolvedActivationModeRef.current, 'holdToOpen:', holdToOpen);
           }
 
@@ -1274,7 +1275,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       activeHotkeyAcceleratorRef.current = null;
       setTriggerAccelerator(null);
     };
-  }, [isOpen, resolvedActivationMode, hotkeyEvent, clearTimer]);
+  }, [isOpen, resolvedActivationMode, activationMode, hotkeyEvent, clearTimer]);
 
   useEffect(() => {
     if (isTauriEnvironment()) {
