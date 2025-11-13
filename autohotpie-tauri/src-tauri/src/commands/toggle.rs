@@ -1,6 +1,6 @@
 use super::{AppError, Result};
 use crate::backend::{resolve_backend, set_overlay_position};
-use crate::services::pie_overlay::{self, PieOverlayStore, WINDOW_LABEL};
+use crate::services::pie_overlay::{self, PieOverlayStore};
 use tauri::{AppHandle, Manager, Runtime};
 
 #[tauri::command]
@@ -56,4 +56,3 @@ fn center_of_screen<R: Runtime>(app: &AppHandle<R>) -> Option<(i32, i32)> {
     }
     None
 }
-

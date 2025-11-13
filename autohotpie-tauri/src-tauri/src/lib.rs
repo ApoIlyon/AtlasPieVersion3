@@ -3,6 +3,7 @@ mod domain;
 mod models;
 mod services;
 mod storage;
+mod backend;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
