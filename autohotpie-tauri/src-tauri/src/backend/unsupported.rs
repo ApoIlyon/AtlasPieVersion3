@@ -23,10 +23,12 @@ impl<R: Runtime> Backend<R> for UnsupportedBackend {
         Ok(())
     }
 
-    fn on_shortcut<F>(&self, _app: &AppHandle<R>, _accelerator: &str, _handler: F) -> Result<()>
-    where
-        F: Fn(&AppHandle<R>, &str) + Send + 'static,
-    {
+    fn on_shortcut(
+        &self,
+        _app: &AppHandle<R>,
+        _accelerator: &str,
+        _handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+    ) -> Result<()> {
         Ok(())
     }
 
@@ -42,4 +44,3 @@ impl<R: Runtime> Backend<R> for UnsupportedBackend {
         hide_overlay(app)
     }
 }
-

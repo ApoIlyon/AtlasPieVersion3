@@ -1,4 +1,3 @@
-use anyhow::Context;
 use tauri::{AppHandle, Runtime};
 
 const TOGGLE_PORT: u16 = 16738;
@@ -16,7 +15,7 @@ pub fn start_toggle_server<R: Runtime>(app: AppHandle<R>) {
 
         loop {
             match listener.accept().await {
-                Ok((mut stream, _peer)) => {
+                Ok((stream, _peer)) => {
                     let mut buf = [0u8; 64];
                     let n = match stream.readable().await {
                         Ok(_) => match stream.try_read(&mut buf) {

@@ -44,10 +44,12 @@ impl<R: Runtime> Backend<R> for WindowsBackend {
         Ok(())
     }
 
-    fn on_shortcut<F>(&self, app: &AppHandle<R>, accelerator: &str, handler: F) -> Result<()>
-    where
-        F: Fn(&AppHandle<R>, &str) + Send + 'static,
-    {
+    fn on_shortcut(
+        &self,
+        app: &AppHandle<R>,
+        accelerator: &str,
+        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+    ) -> Result<()> {
         let shortcut = Shortcut::from_str(accelerator)
             .map_err(|e| anyhow!("invalid accelerator: {e}"))?;
         app.global_shortcut()
@@ -76,4 +78,3 @@ impl<R: Runtime> Backend<R> for WindowsBackend {
         hide_overlay(app)
     }
 }
-

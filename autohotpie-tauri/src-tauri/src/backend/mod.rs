@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 
 #[cfg(target_os = "windows")]
@@ -20,9 +19,12 @@ pub trait Backend<R: Runtime>: Send + Sync {
         accelerator: &str,
     ) -> Result<()>;
     fn unbind_global_shortcut(&self, app: &AppHandle<R>, id: &str) -> Result<()>;
-    fn on_shortcut<F>(&self, app: &AppHandle<R>, accelerator: &str, handler: F) -> Result<()>
-    where
-        F: Fn(&AppHandle<R>, &str) + Send + 'static;
+    fn on_shortcut(
+        &self,
+        app: &AppHandle<R>,
+        accelerator: &str,
+        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+    ) -> Result<()>;
     fn get_pointer_position(&self, app: &AppHandle<R>) -> Option<(i32, i32)>;
     fn show_menu_at(&self, app: &AppHandle<R>, x: i32, y: i32) -> Result<()>;
     fn hide_menu(&self, app: &AppHandle<R>) -> Result<()>;
