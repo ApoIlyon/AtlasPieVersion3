@@ -1,50 +1,102 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: none → 1.0.0
+- Modified principles: template → concrete AtlasPie principles
+- Added sections: Core Principles (filled), Constraints & Standards, Workflow & Quality Gates, Governance rules
+- Removed sections: placeholder comments only
+- Templates checked:
+  - ✅ .specify/templates/spec-template.md (структура спецификаций согласована)
+  - ✅ .specify/templates/plan-template.md (Constitution Check использует общие принципы)
+  - ✅ .specify/templates/tasks-template.md (группировка по user stories совместима)
+  - ⚠ .specify/templates/commands/* (директория отсутствует, обновление не требуется)
+- Deferred TODOs:
+  - TODO(RATIFICATION_DATE): исходная дата ратификации неизвестна, требуется зафиксировать вручную
+-->
+
+# AtlasPie Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-First & MVP Slices
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- Каждая фича начинается со спецификации (`spec.md`) и плана (`plan.md`).
+- Пользовательские сценарии в спецификации ДОЛЖНЫ быть разбиты на независимые
+  MVP-срезы (P1, P2, P3), каждый из которых даёт самостоятельную ценность.
+- Спецификация НЕ ДОЛЖНА содержать детали реализации (языки, фреймворки,
+  внутреннюю архитектуру), только поведение и критерии успеха.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Cross-Platform Desktop Focus
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Все решения по архитектуре и UX ДОЛЖНЫ учитывать целевые платформы AtlasPie:
+  Windows, X11 и Wayland (GNOME, KDE, wlroots-композиторы и т.п.).
+- MVP может ограничивать функциональность на части платформ, но это ДОЛЖНО быть
+  явно задокументировано в спецификации и quickstart.
+- Нельзя вводить платформенные зависимости, которые блокируют развитие на
+  других платформах, без явного обоснования в плане и задачах.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Automation & Agent-Friendly Flow
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- Все шаблоны (`spec`, `plan`, `tasks`) должны быть совместимы с автоматическим
+  заполнением через Speckit-команды.
+- Требования и задачи формулируются так, чтобы ИИ-агент мог выполнять работу
+  итеративно, с явными gate'ами и проверяемыми критериями.
+- Любые нетривиальные допущения ДОЛЖНЫ быть зафиксированы в разделе
+  "Assumptions & Dependencies" спецификации или плана.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Testing & Observability as Features
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- Для критических сценариев (P1) ДОЛЖНЫ существовать явные шаги проверки в
+  спецификации и tasks (мануальные или автоматизированные).
+- Логирование и понятные ошибки считаются частью UX: CLI, IPC и backend ДОЛЖНЫ
+  возвращать сообщения, которые помогают пользователю и разработчику понять
+  причину сбоя.
+- Добавление новой инфраструктуры (бэкенд, окно, CLI) ДОЛЖНО сопровождаться
+  минимально достаточными средствами диагностики (логи, события, инструкции в
+  quickstart).
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Simplicity & Incremental Delivery
+
+- Предпочтение отдаётся простым решениям, которые можно доставить поэтапно
+  (сначала stub/MVP, затем полноценная реализация), вместо сразу сложных
+  архитектур.
+- Каждый инкремент (user story) ДОЛЖЕН быть:
+  - реализуемым независимо;
+  - тестируемым независимо;
+  - описанным в tasks с понятными границами и зависимостями.
+- Если принимается более сложное решение, чем необходимо, его сложность ДОЛЖНА
+  быть зафиксирована и обоснована в разделах `Complexity Tracking` плана.
+
+## Constraints & Standards
+
+- Спецификации и планы пишутся на человеческом языке (для AtlasPie — русский
+  предпочтителен), понятном не только разработчикам.
+- Все артефакты Speckit (spec, plan, tasks, research, data-model, contracts,
+  quickstart) ДОЛЖНЫ находиться в `specs/[###-feature-name]/` и ссылаться друг
+  на друга относительными путями.
+- Временные решения (stub backend, ограничения платформы и т.п.) ДОЛЖНЫ быть
+  явно помечены и иметь описанные пути развития.
+
+## Development Workflow & Quality Gates
+
+- Новый функционал проходит через цепочку:
+  1. `/speckit.specify` → спецификация с user stories и критериями успеха.
+  2. `/speckit.plan` → план реализации, data-model, contracts, quickstart.
+  3. `/speckit.tasks` → tasks, сгруппированные по user stories.
+- Перед началом реализации DOLZHEN быть выполнен раздел `Constitution Check` в
+  плане; выявленные отклонения фиксируются и, по возможности, устраняются до
+  кодинга.
+- Задачи в `tasks.md` ДОЛЖНЫ быть достаточно конкретными, чтобы их можно было
+  выполнить и проверить в рамках одного MR/PR.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Эта конституция имеет приоритет над неформальными практиками и примерным
+  содержимым шаблонов.
+- Любые изменения принципов, Constraints или Governance ДОЛЖНЫ сопровождаться:
+  - обновлением версии ниже;
+  - кратким описанием изменений в Sync Impact Report (комментарий выше);
+  - проверкой, что шаблоны spec/plan/tasks остаются согласованными.
+- Проверка соответствия конституции осуществляется в ревью: reviewer обязан
+  явно подумать о Core Principles и Quality Gates.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE) | **Last Amended**: 2025-11-13
