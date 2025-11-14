@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useCallback } from 'react';
 import clsx from 'clsx';
 
 export interface PieSliceDefinition {
@@ -21,6 +21,9 @@ export interface PieMenuProps {
   gapDeg?: number;
   centerContent?: React.ReactNode;
   dataTestId?: string;
+  interactive?: boolean;
+  onReorder?: (sliceId: string, targetIndex: number) => void;
+  onRadiusChange?: (nextRadius: number) => void;
 }
 
 const DEFAULT_RADIUS = 156;
@@ -35,11 +38,28 @@ export function PieMenu({
   gapDeg = 4,
   centerContent,
   dataTestId = 'pie-menu',
+  interactive = false,
+  onReorder,
+  onRadiusChange,
 }: PieMenuProps) {
   const sortedSlices = useMemo(
     () => [...slices].sort((a, b) => a.order - b.order),
     [slices],
   );
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const draggingIdRef = useRef<string | null>(null);
+  const [dragTargetIndex, setDragTargetIndex] = useState<number | null>(null);
+
+  const finishDrag = useCallback(() => {
+    const draggingId = draggingIdRef.current;
+    const target = dragTargetIndex;
+    draggingIdRef.current = null;
+    setDragTargetIndex(null);
+    if (interactive && draggingId && target != null && onReorder) {
+      onReorder(draggingId, target);
+    }
+  }, [interactive, dragTargetIndex, onReorder]);
 
   if (sortedSlices.length === 0) {
     return (
@@ -61,6 +81,39 @@ export function PieMenu({
       style={{
         '--radial-item-size': `56px`,
       } as React.CSSProperties}
+      ref={containerRef}
+      onPointerMove={(e) => {
+        if (!interactive) return;
+        const draggingId = draggingIdRef.current;
+        if (!draggingId) return;
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const angle = Math.atan2(dy, dx);
+        const count = sortedSlices.length;
+        if (count === 0) return;
+        const angleStep = (Math.PI * 2) / count;
+        let idx = Math.round(((angle + Math.PI / 2) % (Math.PI * 2)) / angleStep);
+        if (idx < 0) idx += count;
+        setDragTargetIndex(idx % count);
+      }}
+      onPointerUp={() => {
+        if (!interactive) return;
+        finishDrag();
+      }}
+      onPointerLeave={() => {
+        if (!interactive) return;
+        finishDrag();
+      }}
+      onWheel={(e) => {
+        if (!interactive || !onRadiusChange) return;
+        const delta = Math.sign(e.deltaY);
+        const next = Math.max(80, Math.min(360, radius - delta * 8));
+        onRadiusChange(next);
+      }}
     >
       <div
         className="radial-menu__core relative flex aspect-square w-full items-center justify-center"
@@ -86,6 +139,7 @@ export function PieMenu({
                 'radial-menu__item absolute flex h-[var(--radial-item-size)] w-[var(--radial-item-size)] -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 shadow-[0_20px_45px_rgba(15,23,42,0.45)] transition-transform hover:scale-105 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70',
                 slice.disabled && 'cursor-not-allowed opacity-40 hover:scale-100',
                 isActive && 'z-10 border-accent/60 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]',
+                interactive && draggingIdRef.current === slice.id && 'scale-105',
               )}
               style={{
                 left: '50%',
@@ -99,6 +153,11 @@ export function PieMenu({
               onMouseEnter={() => onHover?.(slice.id, slice)}
               onFocus={() => onHover?.(slice.id, slice)}
               onClick={() => !slice.disabled && onSelect?.(slice.id, slice)}
+              onPointerDown={() => {
+                if (!interactive) return;
+                draggingIdRef.current = slice.id;
+                setDragTargetIndex(index);
+              }}
               disabled={slice.disabled}
             >
               <span className="px-3 text-[0.7rem] uppercase tracking-[0.25em]" title={slice.label}>

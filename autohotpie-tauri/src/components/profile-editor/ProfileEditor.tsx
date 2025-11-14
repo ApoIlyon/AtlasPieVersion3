@@ -435,6 +435,8 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
     }));
   }, [currentSlices, t]);
 
+  const [previewRadius, setPreviewRadius] = useState<number>(200);
+
   const breadcrumbItems: BreadcrumbItem[] = [{
     id: 'profile-root',
     label: profile.profile.name || t('profileEditor.breadcrumbProfile'),
@@ -898,6 +900,24 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 dataTestId="pie-menu-editor"
                 centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
                 onSelect={(sliceId) => handleSliceSelect(sliceId)}
+                radius={previewRadius}
+                interactive
+                onReorder={(sliceId, targetIndex) => {
+                  if (!currentMenu) return;
+                  const sourceIndex = (currentMenu.slices ?? []).findIndex((s) => s.id === sliceId);
+                  if (sourceIndex === -1) return;
+                  const clone = [...(currentMenu.slices ?? [])];
+                  const [removed] = clone.splice(sourceIndex, 1);
+                  const safeTarget = Math.max(0, Math.min(clone.length, targetIndex));
+                  clone.splice(safeTarget, 0, removed);
+                  const reordered = clone.map((s, idx) => ({ ...s, order: idx }));
+                  const nextRecord = {
+                    ...profile,
+                    menus: (profile.menus ?? []).map((m) => (m.id === currentMenu.id ? { ...m, slices: reordered } : m)),
+                  };
+                  void profileStore.saveProfile(nextRecord);
+                }}
+                onRadiusChange={(next) => setPreviewRadius(next)}
               />
             ) : (
               <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
