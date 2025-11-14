@@ -18,7 +18,9 @@
     "test:pie": "npm run test -- --run usePieMenuHotkey.test.ts && npx playwright test --config=tests/e2e/playwright.config.ts perf/latency.spec.ts perf/menu-latency.spec.ts perf/fps.spec.ts --reporter=line --workers=1 && npx playwright test --config=tests/e2e/playwright.config.ts pie-menu.spec.ts action-execution.spec.ts hotkey-conflict.spec.ts --reporter=line --workers=1",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:dev:wayland": "WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
+    "tauri:dev:x11": "WINIT_UNIX_BACKEND=x11 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",
