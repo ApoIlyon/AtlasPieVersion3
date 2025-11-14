@@ -11,6 +11,7 @@ interface UpdateState {
   error: string | null;
   initialize: () => Promise<void>;
   checkForUpdates: (force?: boolean) => Promise<void>;
+  setUpdateChannel: (channel: 'stable' | 'beta') => Promise<void>;
 }
 
 let unsubscribe: UnlistenFn | null = null;
@@ -80,6 +81,18 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
       set({ status, isChecking: false });
     } catch (error) {
       set({ error: toMessage(error), isChecking: false });
+    }
+  },
+  async setUpdateChannel(channel: 'stable' | 'beta') {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    try {
+      const status = await invoke<UpdateStatus>('set_update_channel', { channel });
+      set({ status });
+    } catch (error) {
+      console.error('Failed to set update channel:', error);
     }
   },
 }));

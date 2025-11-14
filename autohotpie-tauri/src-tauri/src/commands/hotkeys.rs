@@ -1,4 +1,7 @@
 //! Hotkey management commands and conflict detection.
+//! 
+//! DEPRECATED: Hotkey registration has been disabled as per T021 - User Story 5.
+//! All registration attempts will return a "registrationDisabled" conflict.
 
 use super::{AppError, Result};
 use serde::{Deserialize, Serialize};
@@ -137,11 +140,19 @@ fn default_emit_event() -> String {
 
 #[tauri::command]
 pub fn register_hotkey<R: Runtime>(
-    app: AppHandle<R>,
-    state: State<'_, HotkeyState>,
-    request: RegisterHotkeyRequest,
+    _app: AppHandle<R>,
+    _state: State<'_, HotkeyState>,
+    _request: RegisterHotkeyRequest,
 ) -> Result<HotkeyRegistrationStatus> {
-    register_hotkey_impl(&app, state.inner(), request)
+    // Hotkey registration disabled as per T021 - User Story 5
+    Ok(HotkeyRegistrationStatus {
+        registered: false,
+        conflicts: vec![HotkeyConflict {
+            code: "registrationDisabled".into(),
+            message: "Hotkey registration has been disabled in this version".into(),
+            meta: None,
+        }],
+    })
 }
 
 fn register_hotkey_impl<R: Runtime>(
@@ -297,16 +308,12 @@ fn register_hotkey_impl<R: Runtime>(
 
 #[tauri::command]
 pub fn unregister_hotkey<R: Runtime>(
-    app: AppHandle<R>,
-    state: State<'_, HotkeyState>,
-    request: UnregisterHotkeyRequest,
+    _app: AppHandle<R>,
+    _state: State<'_, HotkeyState>,
+    _request: UnregisterHotkeyRequest,
 ) -> Result<()> {
-    if let Some(previous) = state.remove_by_id(&request.id)? {
-        // Best-effort unregister of the native global shortcut for this accelerator.
-        if let Ok(shortcut) = Shortcut::from_str(&previous.accelerator) {
-            let _ = app.global_shortcut().unregister(shortcut);
-        }
-    }
+    // Hotkey registration disabled as per T021 - User Story 5
+    // No-op since registration is disabled
     Ok(())
 }
 

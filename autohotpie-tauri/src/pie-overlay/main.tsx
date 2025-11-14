@@ -12,6 +12,9 @@ interface PieOverlayState {
   centerLabel?: string | null;
   triggerAccelerator?: string | null;
   activationMode?: 'toggle' | 'hold' | null;
+  animationsEnabled?: boolean;
+  theme?: 'dark' | 'light' | 'auto';
+  animationStyle?: 'slide' | 'fade' | 'scale' | 'none';
 }
 
 const rootElement = document.getElementById('pie-overlay-root');
@@ -36,6 +39,9 @@ const PieOverlayApp: React.FC = () => {
     centerLabel: null,
     triggerAccelerator: null,
     activationMode: 'toggle',
+    animationsEnabled: true,
+    theme: 'dark',
+    animationStyle: 'slide',
   });
 
   React.useEffect(() => {
@@ -166,7 +172,7 @@ const PieOverlayApp: React.FC = () => {
         style={{
           pointerEvents: state.visible ? 'auto' : 'none',
           opacity: state.visible ? 1 : 0,
-          transition: 'opacity 80ms ease-out',
+          transition: state.animationsEnabled ? 'opacity var(--duration-normal) var(--ease-out)' : 'opacity 80ms ease-out',
           backgroundColor: 'transparent',
           border: 'none',
           outline: 'none',
@@ -186,6 +192,9 @@ const PieOverlayApp: React.FC = () => {
             radius={200}
             gapDeg={8}
             activeSliceId={state.activeSliceId}
+            animationsEnabled={state.animationsEnabled}
+            theme={state.theme}
+            animationStyle={state.animationStyle}
             onHover={(sliceId) => {
               void invoke('pie_overlay_focus_slice', {
                 payload: { sliceId },
@@ -199,7 +208,7 @@ const PieOverlayApp: React.FC = () => {
             dataTestId="pie-menu"
           />
           {state.centerLabel && (
-            <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80">
+            <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/80 backdrop-blur-sm">
               {state.centerLabel}
             </div>
           )}

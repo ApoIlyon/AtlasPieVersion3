@@ -10,6 +10,8 @@ pub mod storage_guard;
 pub mod system_status;
 pub mod tray;
 pub mod update_checker;
+pub mod update_download;
+pub mod update_installer;
 pub mod pie_overlay;
 pub mod window_info;
 pub mod ipc;

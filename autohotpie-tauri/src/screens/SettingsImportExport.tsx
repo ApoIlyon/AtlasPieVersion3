@@ -46,6 +46,8 @@ export function SettingsImportExport() {
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [selectedProfileIds, setSelectedProfileIds] = useState<string[]>([]);
+  const [showProfileSelector, setShowProfileSelector] = useState(false);
 
   const {
     isExporting,
@@ -73,6 +75,34 @@ export function SettingsImportExport() {
 
   const profiles = useProfileStore((state) => state.profiles);
   const hasProfiles = profiles.length > 0;
+
+  const handleProfileToggle = useCallback((profileId: string) => {
+    setSelectedProfileIds(prev => 
+      prev.includes(profileId) 
+        ? prev.filter(id => id !== profileId)
+        : [...prev, profileId]
+    );
+  }, []);
+
+  const handleSelectAllProfiles = useCallback(() => {
+    setSelectedProfileIds(profiles.map(p => p.profile.id));
+  }, [profiles]);
+
+  const handleDeselectAllProfiles = useCallback(() => {
+    setSelectedProfileIds([]);
+  }, []);
+
+  const handleExportSelected = useCallback(async () => {
+    if (selectedProfileIds.length === 0) {
+      setFileError(t('settings.importExport.noProfilesSelected'));
+      return;
+    }
+    setCopySuccess(null);
+    setSavedPath(null);
+    clearStatus();
+    setShowProfileSelector(false);
+    await exportProfiles(selectedProfileIds);
+  }, [selectedProfileIds, exportProfiles, clearStatus, t]);
 
   const decodedExport = useMemo(() => {
     return lastBundle ? decodeBundle(lastBundle) : '';

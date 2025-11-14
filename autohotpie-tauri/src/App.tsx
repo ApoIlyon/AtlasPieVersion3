@@ -374,6 +374,7 @@ export function App() {
     toggle: togglePieMenu,
     open: openPieMenu,
     close: closePieMenu,
+    recordActionOutcome,
   } = pieMenuState;
 
   const menuSlices = useMemo<PieSliceDefinition[]>(() => {
@@ -523,6 +524,104 @@ export function App() {
 
     void syncOverlay();
   }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+
+  // Listen for pie overlay slice selection events and execute actions
+  useEffect(() => {
+    if (!isTauriEnvironment()) {
+      return;
+    }
+
+    let unlisten: (() => void) | undefined;
+
+    const setupListener = async () => {
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+        
+        unlisten = await listen('pie-overlay://select', async (event) => {
+          const payload = event.payload as { slice_id: string };
+          const sliceId = payload.slice_id;
+          
+          // Find the slice in the current menu slices
+          const slice = menuSlices.find(s => s.id === sliceId);
+          if (!slice) {
+            console.warn(`Slice ${sliceId} not found in current menu`);
+            return;
+          }
+
+          // Find the action associated with this slice
+          const activeRecord = profiles.find(p => 
+            p.profile.id === (pieMenuActiveProfile?.id ?? activeProfileId)
+          );
+          
+          if (!activeRecord) {
+            console.warn('No active profile found for action execution');
+            return;
+          }
+
+          // Look for the slice in the root menu to find its action
+          const rootMenu = activeRecord.menus.find(m => m.id === activeRecord.profile.rootMenu);
+          const sliceConfig = rootMenu?.slices.find(s => s.id === sliceId);
+          
+          if (!sliceConfig?.actionId) {
+            console.warn(`No action configured for slice ${sliceId}`);
+            recordActionOutcome({
+              id: sliceId,
+              name: slice.label,
+              status: 'skipped',
+              message: 'No action configured for this slice',
+            });
+            return;
+          }
+
+          // Execute the action
+          try {
+            const startTime = Date.now();
+            const result = await invoke('run_action', { 
+              actionId: sliceConfig.actionId 
+            }) as { 
+              event_id: string;
+              id: string;
+              name: string;
+              status: 'success' | 'failure' | 'skipped';
+              duration_ms: number;
+              message?: string | null;
+              timestamp: string;
+              invocation_id?: string | null;
+            };
+            
+            const durationMs = Date.now() - startTime;
+            
+            recordActionOutcome({
+              id: result.id,
+              name: result.name,
+              status: result.status,
+              message: result.message || null,
+              durationMs: result.duration_ms,
+              invocationId: result.invocation_id || sliceId,
+            });
+          } catch (error) {
+            console.error('Failed to execute action:', error);
+            recordActionOutcome({
+              id: sliceConfig.actionId,
+              name: slice.label,
+              status: 'failure',
+              message: error instanceof Error ? error.message : 'Action execution failed',
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Failed to setup pie overlay event listener:', error);
+      }
+    };
+
+    void setupListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [menuSlices, profiles, pieMenuActiveProfile, activeProfileId, recordActionOutcome]);
 
   useEffect(() => {
     if (!isTauriEnvironment()) {
@@ -771,11 +870,11 @@ export function App() {
                   ) : (
                     <>
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/60">
-                        {systemStatus.safeMode ? t('dashboard.safeMode') : t('dashboard.normalMode')} · {systemStatus.storageMode}
+                        {systemStatus?.safeMode ? t('dashboard.safeMode') : t('dashboard.normalMode')} · {systemStatus?.storageMode ?? 'local'}
                       </span>
                       <span className="text-white/60" data-testid="status-last-check">
-                        {systemStatus.connectivity.isOffline ? t('dashboard.offline') : t('dashboard.online')} · {t('dashboard.lastCheck')}{' '}
-                        {systemStatus.connectivity.lastChecked ?? '—'}
+                        {systemStatus?.connectivity?.isOffline ? t('dashboard.offline') : t('dashboard.online')} · {t('dashboard.lastCheck')}{' '}
+                        {systemStatus?.connectivity?.lastChecked ?? '—'}
                       </span>
                     </>
                   )}
@@ -812,7 +911,7 @@ export function App() {
                   <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
                     <p>{t('dashboard.contextualActiveProfile')}: {pieMenuActiveProfile?.name ?? systemActiveProfile?.name ?? '—'}</p>
                     <p>{t('dashboard.contextualMatchMode')}: {pieMenuActiveProfile?.matchKind ?? systemActiveProfile?.matchKind ?? '—'}</p>
-                    <p>{t('dashboard.contextualSafeMode')}: {status.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
+                    <p>{t('dashboard.contextualSafeMode')}: {status?.safeMode ? t('dashboard.enabled') : t('dashboard.disabled')}</p>
                   </div>
                 </div>
               </div>

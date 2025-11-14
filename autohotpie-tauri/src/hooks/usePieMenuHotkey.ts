@@ -396,7 +396,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
     dialogStatus: state.dialogStatus,
   }));
   const systemHotkeyStatus = useSystemStore((state) => state.hotkeyStatus);
-  const systemWindowSnapshot = useSystemStore((state) => state.status.window);
+  const systemWindowSnapshot = useSystemStore((state) => state.status?.window);
   const hasHotkeyConflicts = useMemo(() => {
     const dialogConflict = dialogStatusState && !dialogStatusState.registered;
     const systemConflict = systemHotkeyStatus && !systemHotkeyStatus.registered;
@@ -537,7 +537,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
       return lastSafeModeReason;
     }
     return null;
-  }, [lastSafeModeReason, systemWindowSnapshot.isFullscreen]);
+  }, [lastSafeModeReason, systemWindowSnapshot?.isFullscreen]);
 
   const hasConflictDialogOpenRef = useRef(resolvedConflictDialogOpen);
   useEffect(() => {
@@ -1429,6 +1429,8 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
   const handleSelect = useCallback(
     (sliceId: string, slice?: PieSliceDefinition) => {
       setActiveSliceId(sliceId);
+      
+      // For non-Tauri environments, simulate action execution
       if (!isTauriEnvironment() && slice?.label) {
         recordActionOutcome({
           id: sliceId,
@@ -1436,6 +1438,9 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
           status: 'success',
         });
       }
+      
+      // For Tauri environments, the action execution is handled by the pie-overlay://select event listener
+      // in App.tsx, so we just close the menu here
       if (autoCloseMs === 0) {
         setIsOpenSafe(false);
       } else {

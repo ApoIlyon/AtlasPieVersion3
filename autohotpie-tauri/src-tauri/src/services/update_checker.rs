@@ -27,6 +27,7 @@ pub struct UpdateStatus {
     pub release_notes: Option<String>,
     pub last_checked: Option<String>,
     pub error: Option<String>,
+    pub update_channel: Option<String>,
 }
 
 impl UpdateStatus {
@@ -39,6 +40,7 @@ impl UpdateStatus {
             release_notes: None,
             last_checked: None,
             error: None,
+            update_channel: Some("stable".to_string()),
         }
     }
 

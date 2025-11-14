@@ -51,12 +51,21 @@ export interface PieSlice {
   action?: string | null;
   childMenu?: string | null;
   order: number;
+  description?: string | null;
+  color?: string | null;
+  shortcut?: string | null;
 }
 
 export interface PieAppearance {
   radius: number;
   innerRadius: number;
   fontSize: number;
+  animationsEnabled?: boolean;
+  theme?: 'dark' | 'light' | 'auto';
+  animationStyle?: 'slide' | 'fade' | 'scale' | 'none';
+  accentColor?: string | null;
+  backgroundColor?: string | null;
+  textColor?: string | null;
 }
 
 export interface PieMenu {

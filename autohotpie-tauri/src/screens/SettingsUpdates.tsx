@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useUpdateStore, disposeUpdateStoreListener } from '../state/updateStore';
 import { useLocalization } from '../hooks/useLocalization';
@@ -31,6 +31,8 @@ export function SettingsUpdates() {
     initialize: state.initialize,
     checkForUpdates: state.checkForUpdates,
   }));
+  const [updateChannel, setUpdateChannel] = useState<'stable' | 'beta'>('stable');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const hasBrowserMocks = typeof window !== 'undefined' && Boolean(
     (window as typeof window & {

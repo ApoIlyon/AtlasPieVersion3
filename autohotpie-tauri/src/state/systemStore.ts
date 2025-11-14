@@ -1,207 +1,142 @@
+import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { create } from 'zustand';
-import { selectMockActiveProfile } from '../mocks/contextProfiles';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
-import type { ActiveProfileSnapshot, HotkeyConflictSnapshot } from '../types/hotkeys';
-import type { ConnectivitySnapshot, StorageMode, SystemStatus, WindowSnapshot } from './types';
-import { useProfileStore, type ProfileRecord } from './profileStore';
 
-type SystemStore = {
-  status: SystemStatus;
-  initialized: boolean;
+export interface WindowInfo {
+  application: string;
+  windowTitle: string;
+  url?: string;
+  filePath?: string;
+  processName: string;
+  windowClass?: string;
+  isActive: boolean;
+}
+
+export interface SystemStoreState {
+  currentWindow: WindowInfo | null;
+  isTracking: boolean;
   error: string | null;
-  lastEventAt: string | null;
-  activeProfile: ActiveProfileSnapshot | null;
-  hotkeyStatus: HotkeyConflictSnapshot | null;
-  readOnlyInstructionUrl: string | null;
-  init: () => Promise<void>;
-  setOffline: (isOffline: boolean, timestamp?: string) => void;
-  setWindowSnapshot: (snapshot: WindowSnapshot) => void;
-  setStorageMode: (mode: StorageMode, instructionUrl?: string | null) => void;
-  setActiveProfile: (profile: ActiveProfileSnapshot | null) => void;
-  setHotkeyStatus: (status: HotkeyConflictSnapshot | null) => void;
-};
-
-function defaultConnectivity(): ConnectivitySnapshot {
-  return {
-    isOffline: false,
-    lastChecked: null,
-  };
+  trackingInterval: number;
+  initialized: boolean;
+  startTracking: () => Promise<void>;
+  stopTracking: () => Promise<void>;
+  getCurrentWindow: () => Promise<WindowInfo | null>;
+  setTrackingInterval: (interval: number) => void;
 }
 
-function defaultWindow(): WindowSnapshot {
-  return {
-    processName: null,
-    windowTitle: null,
-    cursorPosition: null,
-    isFullscreen: false,
-    timestamp: new Date().toISOString(),
-  };
+const eventBindings: {
+  windowChanged?: UnlistenFn;
+} = {};
+
+async function attachListeners(set: (partial: Partial<SystemStoreState>) => void) {
+  if (!isTauriEnvironment()) {
+    return;
+  }
+
+  if (!eventBindings.windowChanged) {
+    eventBindings.windowChanged = await listen<{ window: WindowInfo | null }>(
+      'system://window-changed',
+      ({ payload }) => {
+        set({ currentWindow: payload.window });
+      }
+    );
+  }
 }
 
-const defaultStatus: SystemStatus = {
-  connectivity: defaultConnectivity(),
-  window: defaultWindow(),
-  safeMode: false,
-  storageMode: 'read_write',
-};
-
-export const useSystemStore = create<SystemStore>((set, get) => ({
-  status: defaultStatus,
-  initialized: false,
+export const useSystemStore = create<SystemStoreState>()((set, get) => ({
+  currentWindow: null,
+  isTracking: false,
   error: null,
-  lastEventAt: null,
-  activeProfile: null,
-  hotkeyStatus: null,
-  readOnlyInstructionUrl: null,
-  init: async () => {
-    if (get().initialized) {
-      return;
-    }
+  trackingInterval: 1000, // 1 second default
+  initialized: false,
+  
+  async startTracking() {
+    if (get().isTracking) return;
+    
     if (!isTauriEnvironment()) {
-      const url = new URL(window.location.href);
-      const mockProcess = url.searchParams.get('mockProcess');
-      const mockWindow = url.searchParams.get('mockWindow');
-      const mockSelection = selectMockActiveProfile(mockProcess, mockWindow);
-
+      // Mock data for browser preview
       set({
-        initialized: true,
-        error: null,
-        lastEventAt: new Date().toISOString(),
-        status: {
-          ...defaultStatus,
-          window: {
-            ...defaultStatus.window,
-            processName: mockProcess ?? null,
-            windowTitle: mockWindow ?? null,
-          },
+        currentWindow: {
+          application: 'Browser',
+          windowTitle: 'AutoHotPie - Pie Menu Overhaul',
+          processName: 'browser.exe',
+          isActive: true,
         },
-        activeProfile: mockSelection
-          ? {
-              index: mockSelection.index,
-              name: mockSelection.name,
-              matchKind: mockSelection.matchKind,
-              holdToOpen: mockSelection.holdToOpen,
-            }
-          : null,
-        hotkeyStatus: null,
+        isTracking: true,
+        initialized: true,
       });
       return;
     }
+
     try {
-      const status = await invoke<SystemStatus>('system_get_status');
-      set({
-        status,
-        initialized: true,
-        error: null,
-        lastEventAt: new Date().toISOString(),
+      await attachListeners(set);
+      await invoke('start_window_tracking', { 
+        interval: get().trackingInterval 
       });
-      const profileStore = useProfileStore.getState();
-      if (!profileStore.initialized) {
-        await profileStore.loadProfiles();
-      }
-      const activeProfileId = profileStore.activeProfileId;
-      const activeRecord =
-        (activeProfileId && profileStore.getProfileById(activeProfileId)) ?? profileStore.profiles[0];
-      if (activeRecord) {
-        set({
-          activeProfile: {
-            index: profileStore.profiles.findIndex((entry: ProfileRecord) => entry.profile.id === activeRecord.profile.id),
-            name: activeRecord.profile.name,
-            matchKind: 'fallback',
-            holdToOpen: activeRecord.profile.holdToOpen ?? false,
-          },
-        });
-      }
+      set({ isTracking: true, error: null, initialized: true });
+      
+      // Get initial window info
+      const windowInfo = await get().getCurrentWindow();
+      set({ currentWindow: windowInfo });
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : String(error),
-        initialized: true,
-        lastEventAt: new Date().toISOString(),
-      });
+      const message = error instanceof Error ? error.message : 'Failed to start tracking';
+      set({ error: message, isTracking: false });
+    }
+  },
+
+  async stopTracking() {
+    if (!get().isTracking) return;
+    
+    if (!isTauriEnvironment()) {
+      set({ isTracking: false });
+      return;
     }
 
-    listen<{ isOffline: boolean; timestamp?: string }>('system://connectivity', (event) => {
-      const { isOffline, timestamp } = event.payload;
-      get().setOffline(isOffline, timestamp);
-    });
-
-    listen<WindowSnapshot>('system://window-info', (event) => {
-      get().setWindowSnapshot(event.payload);
-    });
-
-    listen<{ mode: StorageMode; instructionUrl?: string | null }>('system://storage-mode', (event) => {
-      get().setStorageMode(event.payload.mode, event.payload.instructionUrl ?? null);
-    });
-
-    listen<{ profile: ActiveProfileSnapshot | null }>('profiles://active-changed', (event) => {
-      get().setActiveProfile(event.payload.profile);
-    });
-
-    listen<HotkeyConflictSnapshot>('hotkeys://conflicts', (event) => {
-      get().setHotkeyStatus(event.payload);
-    });
+    try {
+      await invoke('stop_window_tracking');
+      set({ isTracking: false });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to stop tracking';
+      set({ error: message });
+    }
   },
-  setOffline: (isOffline, timestamp) => {
-    set((state) => ({
-      status: {
-        ...state.status,
-        connectivity: {
-          isOffline,
-          lastChecked: timestamp ?? new Date().toISOString(),
-        },
-      },
-      lastEventAt: new Date().toISOString(),
-    }));
-  },
-  setWindowSnapshot: (snapshot) => {
-    set((state) => {
-      const nextStatus = {
-        ...state.status,
-        window: snapshot,
-      };
 
-      let nextActive = state.activeProfile;
-      if (!isTauriEnvironment()) {
-        const selection = selectMockActiveProfile(snapshot.processName, snapshot.windowTitle);
-        nextActive = selection
-          ? {
-              index: selection.index,
-              name: selection.name,
-              matchKind: selection.matchKind,
-              holdToOpen: selection.holdToOpen,
-            }
-          : null;
-      }
-
+  async getCurrentWindow() {
+    if (!isTauriEnvironment()) {
       return {
-        status: nextStatus,
-        activeProfile: nextActive,
-        lastEventAt: new Date().toISOString(),
+        application: 'Browser',
+        windowTitle: 'AutoHotPie - Pie Menu Overhaul',
+        processName: 'browser.exe',
+        isActive: true,
       };
-    });
+    }
+
+    try {
+      const windowInfo = await invoke<WindowInfo | null>('get_current_window');
+      return windowInfo;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get window info';
+      set({ error: message });
+      return null;
+    }
   },
-  setStorageMode: (mode, instructionUrl) => {
-    set((state) => ({
-      status: {
-        ...state.status,
-        storageMode: mode,
-        safeMode: mode === 'read_only',
-      },
-      readOnlyInstructionUrl: instructionUrl ?? state.readOnlyInstructionUrl,
-      lastEventAt: new Date().toISOString(),
-    }));
-  },
-  setActiveProfile: (profile) => {
-    set({ activeProfile: profile, lastEventAt: new Date().toISOString() });
-  },
-  setHotkeyStatus: (status) => {
-    set({ hotkeyStatus: status, lastEventAt: new Date().toISOString() });
+
+  setTrackingInterval(interval: number) {
+    const wasTracking = get().isTracking;
+    set({ trackingInterval: interval });
+    
+    // Restart tracking with new interval if it was active
+    if (wasTracking) {
+      get().stopTracking().then(() => {
+        get().startTracking();
+      });
+    }
   },
 }));
 
+// Auto-start tracking when store is created
 if (typeof window !== 'undefined') {
-  (window as typeof window & { __AUTOHOTPIE_SYSTEM_STORE__?: typeof useSystemStore }).__AUTOHOTPIE_SYSTEM_STORE__ =
-    useSystemStore;
+  useSystemStore.getState().startTracking().catch(console.error);
 }

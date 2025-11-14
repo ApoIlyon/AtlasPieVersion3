@@ -2,6 +2,50 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+:root {
+  /* Kando-inspired visual tokens */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-active: #1d4ed8;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-border: #475569;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-text-disabled: #64748b;
+  
+  /* Spacing tokens */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Animation tokens */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  
+  /* Shadow tokens */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.5);
+  
+  /* Border radius tokens */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
+
 html,
 body,
 #app {
@@ -9,14 +53,101 @@ body,
 }
 
 body {
-  background-color: #090a13;
-  color: #f4f5ff;
+  background-color: var(--color-background);
+  color: var(--color-text);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
   overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   display: flex;
   flex-direction: column;
+}
+
+/* Animation utilities */
+.transition-fast {
+  transition-property: all;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-in-out);
+}
+
+.transition-normal {
+  transition-property: all;
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-in-out);
+}
+
+.transition-slow {
+  transition-property: all;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-in-out);
+}
+
+/* Pie menu specific styles */
+.radial-menu__item {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--duration-normal) var(--ease-in-out);
+}
+
+.radial-menu__item:hover {
+  transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1.1);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+  border-color: var(--color-accent);
+}
+
+.radial-menu__item:active {
+  transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.95);
+}
+
+.radial-menu__center {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation toggles */
+.animations-enabled .radial-menu__item {
+  animation: slideIn var(--duration-normal) var(--ease-out) both;
+}
+
+.animations-enabled .radial-menu__item:nth-child(1) { animation-delay: 0ms; }
+.animations-enabled .radial-menu__item:nth-child(2) { animation-delay: 50ms; }
+.animations-enabled .radial-menu__item:nth-child(3) { animation-delay: 100ms; }
+.animations-enabled .radial-menu__item:nth-child(4) { animation-delay: 150ms; }
+.animations-enabled .radial-menu__item:nth-child(5) { animation-delay: 200ms; }
+.animations-enabled .radial-menu__item:nth-child(6) { animation-delay: 250ms; }
+.animations-enabled .radial-menu__item:nth-child(7) { animation-delay: 300ms; }
+.animations-enabled .radial-menu__item:nth-child(8) { animation-delay: 350ms; }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(0, 0) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out) both;
 }

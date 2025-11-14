@@ -1,0 +1,12 @@
+Testing compilation state:
+
+1. UpdatesState struct should have:
+   - checker: Arc<UpdateChecker>
+   - downloader: Option<Arc<UpdateDownloader>>
+   - installer: Option<Arc<UpdateInstaller>>
+
+2. UpdateChecker should have set_update_channel method
+
+3. Current file state:
+   - commands/mod.rs line 221 should show complete UpdatesState initialization
+   - update_checker.rs should have set_update_channel method at line 94-98
