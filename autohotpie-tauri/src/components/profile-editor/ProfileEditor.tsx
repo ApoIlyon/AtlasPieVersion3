@@ -898,12 +898,6 @@ function ProfileEditorContent({ profile, onClose }: ProfileEditorContentProps) {
                 dataTestId="pie-menu-editor"
                 centerContent={<span className="text-xs uppercase tracking-[0.3em] text-white/50">{currentMenu.title}</span>}
                 onSelect={(sliceId) => handleSliceSelect(sliceId)}
-                onAddSliceAfter={(sliceId) => {
-                  if (canAddSlice) void handleAddSlice(sliceId);
-                }}
-                onDeleteSlice={(sliceId) => {
-                  if (canRemoveSlice) void handleRemoveSlice(sliceId);
-                }}
               />
             ) : (
               <div className="text-sm text-white/60">{t('profileEditor.previewEmpty')}</div>
