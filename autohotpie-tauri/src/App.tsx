@@ -465,6 +465,24 @@ export function App() {
     void systemInit();
   }, [initialize, systemInit]);
 
+  useEffect(() => {
+    if (!isTauri) {
+      return;
+    }
+    const handler = (e: KeyboardEvent) => {
+      const key = e.key?.toLowerCase();
+      const code = e.code?.toLowerCase();
+      if (e.ctrlKey && e.shiftKey && (key === 'p' || code === 'keyp')) {
+        e.preventDefault();
+        togglePieMenu();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+    };
+  }, [isTauri, togglePieMenu]);
+
   // Only set active slice when menu becomes visible, not on every render
   const prevVisibleRef = useRef(false);
   useEffect(() => {
@@ -721,6 +739,13 @@ export function App() {
             onClick={openLogPanel}
           >
             {t('header.openLog')}
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(59,130,246,0.25)] transition hover:bg-white/10"
+            onClick={togglePieMenu}
+          >
+            Toggle Pie
           </button>
           <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70 shadow-[0_0_20px_rgba(148,163,184,0.2)]">
             {version ? `${t('app.title')} v${version}` : t('header.versionLoading')}
