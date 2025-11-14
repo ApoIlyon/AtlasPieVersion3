@@ -78,6 +78,7 @@ pub fn run() {
             commands::pie_overlay::pie_overlay_select_slice,
             commands::pie_overlay::pie_overlay_focus_slice,
             commands::toggle::toggle_pie_menu,
+            commands::linux_shortcut::setup_gnome_shortcut,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application");

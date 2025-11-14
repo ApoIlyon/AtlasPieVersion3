@@ -181,6 +181,18 @@ export function LinuxFallbackPanel({
     }
   };
 
+  const handleEnableGnomeShortcut = async () => {
+    try {
+      if (!isTauriEnvironment()) return;
+      const { invoke } = await import('@tauri-apps/api/core');
+      const accel = (window as any)?.__PIE_DEBUG__?.state?.triggerAccelerator || undefined;
+      await invoke('setup_gnome_shortcut', { accelerator: accel });
+      setIsPanelVisible(true);
+    } catch (error) {
+      console.error('Failed to setup GNOME shortcut', error);
+    }
+  };
+
   const details = useMemo(() => {
     const entries = [
       { label: t('linuxFallback.details.hotkey'), value: hotkeyHint },
@@ -388,6 +400,13 @@ export function LinuxFallbackPanel({
                 }}
               >
                 {openButtonLabel}
+              </button>
+              <button
+                type="button"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-[11px] uppercase tracking-[0.35em] text-white/70 transition hover:bg-white/10"
+                onClick={handleEnableGnomeShortcut}
+              >
+                Enable Global Shortcut (GNOME)
               </button>
               <button
                 type="button"

@@ -12,6 +12,7 @@ pub mod profiles;
 pub mod settings;
 pub mod system;
 pub mod updates;
+pub mod linux_shortcut;
 
 use self::hotkeys::HotkeyState;
 use crate::domain::{Action, ActionId};
