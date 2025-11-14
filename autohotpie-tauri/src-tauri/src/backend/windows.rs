@@ -48,13 +48,14 @@ impl<R: Runtime> Backend<R> for WindowsBackend {
         &self,
         app: &AppHandle<R>,
         accelerator: &str,
-        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + Sync + 'static>,
     ) -> Result<()> {
         let shortcut = Shortcut::from_str(accelerator)
             .map_err(|e| anyhow!("invalid accelerator: {e}"))?;
+        let accel_owned = accelerator.to_string();
         app.global_shortcut()
             .on_shortcut(shortcut, move |app_handle, _shortcut, _evt| {
-                handler(app_handle, accelerator)
+                handler(app_handle, &accel_owned)
             })
             .map_err(|e| anyhow!("failed to attach shortcut handler: {e}"))
     }

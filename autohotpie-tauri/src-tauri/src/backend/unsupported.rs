@@ -27,7 +27,7 @@ impl<R: Runtime> Backend<R> for UnsupportedBackend {
         &self,
         _app: &AppHandle<R>,
         _accelerator: &str,
-        _handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+        _handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + Sync + 'static>,
     ) -> Result<()> {
         Ok(())
     }

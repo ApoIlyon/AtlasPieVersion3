@@ -23,7 +23,7 @@ pub trait Backend<R: Runtime>: Send + Sync {
         &self,
         app: &AppHandle<R>,
         accelerator: &str,
-        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + 'static>,
+        handler: Box<dyn Fn(&AppHandle<R>, &str) + Send + Sync + 'static>,
     ) -> Result<()>;
     fn get_pointer_position(&self, app: &AppHandle<R>) -> Option<(i32, i32)>;
     fn show_menu_at(&self, app: &AppHandle<R>, x: i32, y: i32) -> Result<()>;
@@ -33,9 +33,12 @@ pub trait Backend<R: Runtime>: Send + Sync {
 pub fn resolve_backend<R: Runtime>() -> Box<dyn Backend<R>> {
     #[cfg(target_os = "windows")]
     {
-        return Box::new(windows::WindowsBackend::default());
+        Box::new(windows::WindowsBackend::default())
     }
-    Box::new(unsupported::UnsupportedBackend::default())
+    #[cfg(not(target_os = "windows"))]
+    {
+        Box::new(unsupported::UnsupportedBackend::default())
+    }
 }
 
 // Convenience helpers shared by backends
