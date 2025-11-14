@@ -1067,12 +1067,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
             if (invokeFn) {
               invokeFn('toggle_pie_menu').catch(err => console.error('toggle_pie_menu failed', err));
             }
+            setIsOpenSafe(true);
+            lastToggleAtRef.current = now;
+            scheduleAutoClose();
             return;
           }
           if (eventState === 'released') {
             if (invokeFn) {
               invokeFn('pie_overlay_hide').catch(err => console.error('pie_overlay_hide failed', err));
             }
+            lastClosedAtRef.current = Date.now();
+            setIsOpenSafe(false);
+            clearTimer();
             return;
           }
           return;
@@ -1087,6 +1093,18 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
         if (invokeFn) {
           invokeFn('toggle_pie_menu').catch(err => console.error('toggle_pie_menu failed', err));
         }
+        setIsOpenSafe((prev) => {
+          const next = !prev;
+          if (next) {
+            lastToggleAtRef.current = now;
+            scheduleAutoClose();
+          } else {
+            lastToggleAtRef.current = now;
+            lastClosedAtRef.current = now;
+            clearTimer();
+          }
+          return next;
+        });
         return;
       });
 

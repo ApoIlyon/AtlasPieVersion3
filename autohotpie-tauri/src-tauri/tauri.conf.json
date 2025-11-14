@@ -21,6 +21,7 @@
       {
         "label": "pie-overlay",
         "title": "Pie Menu",
+        "url": "pie-overlay.html",
         "width": 520,
         "height": 520,
         "visible": false,

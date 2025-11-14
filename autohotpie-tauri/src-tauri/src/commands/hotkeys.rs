@@ -393,5 +393,22 @@ fn evaluate_conflicts_internal(
     };
     let _ = shortcut;
 
+    // Detect Windows-reserved combinations that are known to be intercepted by the OS
+    // Alt+Space opens the window system menu and cannot be overridden reliably
+    #[cfg(target_os = "windows")]
+    {
+        let lower = accelerator.to_ascii_lowercase();
+        let parts: Vec<&str> = lower.split('+').map(|s| s.trim()).collect();
+        let has_alt = parts.iter().any(|p| *p == "alt" || *p == "option");
+        let has_space = parts.iter().any(|p| *p == "space" || *p == "spacebar" || *p == " ");
+        if has_alt && has_space {
+            conflicts.push(HotkeyConflict {
+                code: "platformDenied".into(),
+                message: "Alt+Space is reserved by Windows (opens window menu)".into(),
+                meta: None,
+            });
+        }
+    }
+
     Ok(conflicts)
 }
