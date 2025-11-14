@@ -43,8 +43,20 @@ pub fn resolve_backend<R: Runtime>() -> Box<dyn Backend<R>> {
 
 // Convenience helpers shared by backends
 pub fn set_overlay_position<R: Runtime>(app: &AppHandle<R>, x: i32, y: i32) -> Result<()> {
-    crate::services::pie_overlay::set_position(app, x, y)
-        .map_err(|e| anyhow!("failed to position overlay: {e}"))
+    if let Some(window) = app.get_webview_window(crate::services::pie_overlay::WINDOW_LABEL) {
+        if let Ok(size) = window.inner_size() {
+            let nx = x - (size.width as i32 / 2);
+            let ny = y - (size.height as i32 / 2);
+            crate::services::pie_overlay::set_position(app, nx, ny)
+                .map_err(|e| anyhow!("failed to position overlay: {e}"))
+        } else {
+            crate::services::pie_overlay::set_position(app, x, y)
+                .map_err(|e| anyhow!("failed to position overlay: {e}"))
+        }
+    } else {
+        crate::services::pie_overlay::set_position(app, x, y)
+            .map_err(|e| anyhow!("failed to position overlay: {e}"))
+    }
 }
 
 pub fn show_overlay<R: Runtime>(app: &AppHandle<R>) -> Result<()> {

@@ -62,8 +62,10 @@ impl<R: Runtime> Backend<R> for WindowsBackend {
 
     fn get_pointer_position(&self, app: &AppHandle<R>) -> Option<(i32, i32)> {
         if let Some(window) = app.get_webview_window("main") {
-            if let Ok(pos) = window.cursor_position() {
-                return Some((pos.x as i32, pos.y as i32));
+            let base = window.outer_position().ok();
+            let rel = window.cursor_position().ok();
+            if let (Some(bp), Some(rp)) = (base, rel) {
+                return Some((bp.x + rp.x as i32, bp.y + rp.y as i32));
             }
         }
         None

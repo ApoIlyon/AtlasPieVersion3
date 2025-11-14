@@ -167,12 +167,17 @@ const PieOverlayApp: React.FC = () => {
           pointerEvents: state.visible ? 'auto' : 'none',
           opacity: state.visible ? 1 : 0,
           transition: 'opacity 80ms ease-out',
-          backgroundColor: state.visible ? 'transparent' : 'transparent',
+          backgroundColor: 'transparent',
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
+          overflow: 'hidden',
         }}
         onClick={closeOverlay}
       >
         <div
           className="flex max-w-xl flex-col items-center gap-6 px-6 text-center"
+          style={{ background: 'transparent', border: 'none', outline: 'none', boxShadow: 'none' }}
           onClick={(event) => event.stopPropagation()}
         >
           <PieMenu
