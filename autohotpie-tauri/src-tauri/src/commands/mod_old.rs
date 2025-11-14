@@ -12,11 +12,9 @@ pub mod profiles;
 pub mod settings;
 pub mod system;
 pub mod updates;
-pub mod update_state;
 pub mod linux_shortcut;
 
 use self::hotkeys::HotkeyState;
-use self::update_state::UpdatesState;
 use crate::domain::{Action, ActionId};
 use crate::models::Settings;
 use crate::services::action_runner::{
@@ -158,6 +156,12 @@ pub struct SystemState {
     pub status: Arc<Mutex<SystemStatus>>,
 }
 
+pub struct UpdatesState {
+    pub checker: Arc<UpdateChecker>,
+    pub downloader: Option<Arc<UpdateDownloader>>,
+    pub installer: Option<Arc<UpdateInstaller>>,
+}
+
 pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     let handle = app.handle();
     let storage = StorageManager::new(handle.clone())?;
@@ -203,16 +207,6 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     update_checker::emit_status(&handle, &checker.cached_status());
     update_checker::start_polling(handle.clone(), checker.clone());
 
-    // Create downloads and temp directories for update services
-    let downloads_dir = storage.base_dir().join("downloads");
-    let temp_dir = storage.base_dir().join("temp");
-    std::fs::create_dir_all(&downloads_dir)?;
-    std::fs::create_dir_all(&temp_dir)?;
-
-    // Initialize update services
-    let downloader = Arc::new(UpdateDownloader::new(downloads_dir, temp_dir));
-    let installer = Arc::new(UpdateInstaller::new());
-
     app.manage(AppState {
         storage: storage.clone(),
         audit,
@@ -224,7 +218,7 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
         actions: Mutex::new(actions_map),
     });
 
-    app.manage(UpdatesState::with_services(checker, downloader, installer));
+    app.manage(UpdatesState { checker });
 
     if let Some(info) = recovery {
         if let Err(err) = handle.emit(

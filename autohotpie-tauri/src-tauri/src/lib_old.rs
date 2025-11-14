@@ -1,15 +1,9 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 mod commands;
 mod domain;
 mod models;
 mod services;
 mod storage;
 mod backend;
-mod update_services_state;
-
-use commands::init_v2::{init_app, shutdown_app};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -23,7 +17,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             // Initialize commands/state
-            init_app(app)?;
+            commands::init(app)?;
 
             crate::services::ipc::start_toggle_server(app.handle().clone());
 
@@ -97,7 +91,7 @@ pub fn run() {
 
     app.run(|_, event| {
         if matches!(event, tauri::RunEvent::Exit) {
-            shutdown_app();
+            commands::shutdown();
         }
     });
 }

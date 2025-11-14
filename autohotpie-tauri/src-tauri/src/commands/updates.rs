@@ -1,4 +1,5 @@
-use super::{AppError, Result, UpdatesState};
+use super::{AppError, Result};
+use super::update_state::UpdatesState;
 use crate::services::update_checker;
 use crate::services::update_checker::UpdateStatus;
 use crate::services::update_download::get_filename_from_url;
@@ -28,7 +29,7 @@ pub async fn check_updates<R: Runtime>(
 #[tauri::command]
 pub fn set_update_channel(
     state: State<'_, UpdatesState>,
-    channel: String,
+    _channel: String,
 ) -> Result<UpdateStatus> {
     // Update the channel in the cached status
     // Temporarily disabled due to compilation issues
