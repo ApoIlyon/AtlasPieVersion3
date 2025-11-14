@@ -5,10 +5,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use once_cell::sync::Lazy;
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
 pub const HOTKEY_TRIGGER_EVENT: &str = "hotkeys://trigger";
+
+static LAST_PRESS_MODE: Lazy<Mutex<HashMap<String, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -250,6 +253,34 @@ fn register_hotkey_impl<R: Runtime>(
             };
 
             let _ = app_handle.emit(&event_name, payload);
+
+            // Backend safety: ensure overlay closes on release when overlay is in hold mode
+            if matches!(evt.state, ShortcutState::Released) {
+                let mut guard = LAST_PRESS_MODE.lock().unwrap_or_else(|e| e.into_inner());
+                if guard.remove(&shortcut_id).unwrap_or(false) {
+                    let store = app_handle.state::<crate::services::pie_overlay::PieOverlayStore>();
+                    if store.snapshot().visible {
+                        let _ = crate::services::pie_overlay::hide(&app_handle, &store);
+                    }
+                }
+            } else {
+                let router = app_handle.state::<crate::services::profile_router::ProfileRouterState>();
+                let mut guard = LAST_PRESS_MODE.lock().unwrap_or_else(|e| e.into_inner());
+                let mut is_hold = router
+                    .current()
+                    .map(|p| p.hold_to_open)
+                    .unwrap_or(false);
+                if !is_hold {
+                    let store = app_handle.state::<crate::services::pie_overlay::PieOverlayStore>();
+                    is_hold = store
+                        .snapshot()
+                        .activation_mode
+                        .as_deref()
+                        .map(|m| m.eq_ignore_ascii_case("hold"))
+                        .unwrap_or(false);
+                }
+                guard.insert(shortcut_id.clone(), is_hold);
+            }
         })
         .map_err(|err| AppError::Message(format!(
             "Failed to register global hotkey: {err}"

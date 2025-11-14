@@ -1077,8 +1077,7 @@ export function usePieMenuHotkey(options: UsePieMenuHotkeyOptions = {}): PieMenu
               invokeFn('pie_overlay_hide').catch(err => console.error('pie_overlay_hide failed', err));
             }
             lastClosedAtRef.current = Date.now();
-            setIsOpenSafe(false);
-            clearTimer();
+            closeMenuFromKeyUp();
             return;
           }
           return;
