@@ -140,19 +140,11 @@ fn default_emit_event() -> String {
 
 #[tauri::command]
 pub fn register_hotkey<R: Runtime>(
-    _app: AppHandle<R>,
-    _state: State<'_, HotkeyState>,
-    _request: RegisterHotkeyRequest,
+    app: AppHandle<R>,
+    state: State<'_, HotkeyState>,
+    request: RegisterHotkeyRequest,
 ) -> Result<HotkeyRegistrationStatus> {
-    // Hotkey registration disabled as per T021 - User Story 5
-    Ok(HotkeyRegistrationStatus {
-        registered: false,
-        conflicts: vec![HotkeyConflict {
-            code: "registrationDisabled".into(),
-            message: "Hotkey registration has been disabled in this version".into(),
-            meta: None,
-        }],
-    })
+    register_hotkey_impl(&app, state.inner(), request)
 }
 
 fn register_hotkey_impl<R: Runtime>(
