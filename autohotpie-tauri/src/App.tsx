@@ -17,7 +17,6 @@ import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 import { PieMenu } from './components/pie/PieMenu';
 import type { PieSliceDefinition } from './components/pie/PieMenu';
 import { slicesForProfile } from './mocks/contextProfiles';
-import type { ActiveProfileSnapshot } from './types/hotkeys';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
@@ -355,23 +354,11 @@ export function App() {
     return profiles.find((record) => record.profile.id === selectedProfileId) ?? null;
   }, [profiles, selectedProfileId]);
 
-  const initialActiveProfileSnapshot = useMemo<ActiveProfileSnapshot | null>(() => {
-    const record = activeProfileRecord ?? profiles[0] ?? null;
-    if (!record) return null;
-    const index = profiles.findIndex((r) => r.profile.id === record.profile.id);
-    return {
-      index: index >= 0 ? index : 0,
-      name: record.profile.name,
-      matchKind: 'fallback',
-      holdToOpen: Boolean(record.profile.holdToOpen),
-    };
-  }, [activeProfileRecord, profiles]);
-
   const pieMenuState = usePieMenuHotkey({
     hotkeyEvent: 'hotkeys://trigger',
     autoCloseMs: 0,
-    profileHoldToOpen: initialActiveProfileSnapshot?.holdToOpen,
-    initialActiveProfile: initialActiveProfileSnapshot,
+    profileHoldToOpen: systemActiveProfile?.holdToOpen,
+    initialActiveProfile: systemActiveProfile,
   });
   const {
     isOpen: isPieMenuVisible,
@@ -392,7 +379,7 @@ export function App() {
 
   const menuSlices = useMemo<PieSliceDefinition[]>(() => {
     const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
-    const activeSnapshot = pieMenuActiveProfile ?? initialActiveProfileSnapshot;
+    const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
 
     if (!isTauriEnvironment()) {
       if (activeSnapshot) {
@@ -562,12 +549,12 @@ export function App() {
           }
 
           // Find the action associated with this slice
-          const snapshot = pieMenuActiveProfile ?? initialActiveProfileSnapshot;
-          let activeRecord = snapshot?.index != null && profiles[snapshot.index]
-            ? profiles[snapshot.index]
-            : activeProfileId
-              ? profiles.find((p) => p.profile.id === activeProfileId)
-              : profiles[0];
+          let activeRecord: typeof profiles[number] | null = null;
+          if (pieMenuActiveProfile?.index != null) {
+            activeRecord = profiles[pieMenuActiveProfile.index] ?? null;
+          } else if (activeProfileId) {
+            activeRecord = profiles.find(p => p.profile.id === activeProfileId) ?? null;
+          }
           
           if (!activeRecord) {
             console.warn('No active profile found for action execution');
@@ -890,7 +877,7 @@ export function App() {
                       </span>
                       <span className="text-white/60" data-testid="status-last-check">
                         {systemStatus?.connectivity?.isOffline ? t('dashboard.offline') : t('dashboard.online')} · {t('dashboard.lastCheck')}{' '}
-                        {systemStatus?.connectivity?.lastChecked ?? '—'}
+                        {systemStatus?.connectivity?.lastCheckedAt ?? '—'}
                       </span>
                     </>
                   )}

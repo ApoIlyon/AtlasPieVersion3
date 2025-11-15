@@ -9,9 +9,8 @@ export interface PieSliceDefinition {
   accentToken?: string;
   disabled?: boolean;
   color?: string | null;
-  description?: string | null;
-  shortcut?: string | null;
-  action?: string | null;
+  description?: string;
+  shortcut?: string;
 }
 
 // Интерфейс для CSS свойств с поддержкой пользовательских CSS-переменных
@@ -166,6 +165,8 @@ export function PieMenu({
               style={{
                 left: '50%',
                 top: '50%',
+                '--x': `${x}px`,
+                '--y': `${y}px`,
                 transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
                 width: '56px',
                 height: '56px',
