@@ -4,63 +4,63 @@ Feature: Pie Menu Complete Redesign and Overhaul
 
 ## Phase 1: Setup
 
-- [ ] T001 Align Kando visual tokens (accent, spacing) in `autohotpie-tauri/src/styles.css`
-- [ ] T002 Verify Tauri IPC routes for overlay and system status in `autohotpie-tauri/src-tauri/src/services/mod.rs`
+- [x] T001 Align Kando visual tokens (accent, spacing) in `autohotpie-tauri/src/styles.css`
+- [x] T002 Verify Tauri IPC routes for overlay and system status in `autohotpie-tauri/src-tauri/src/services/mod.rs`
 
 ## Phase 2: Foundational
 
-- [ ] T003 Implement base animation toggles (ease-in-out 300ms) in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
-- [ ] T004 Sync activation mode to overlay state in `autohotpie-tauri/src/App.tsx`
+- [x] T003 Implement base animation toggles (ease-in-out 300ms) in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
+- [x] T004 Sync activation mode to overlay state in `autohotpie-tauri/src/App.tsx`
 
 ## Phase 3: User Story 1 — Redesigned pie menu with smooth animations (P1)
 
-- [ ] T005 [US1] Apply Kando-like styles (colors/radii/shadows) in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
-- [ ] T006 [P] [US1] Add UI toggle to enable/disable animations in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T005 [US1] Apply Kando-like styles (colors/radii/shadows) in `autohotpie-tauri/src/components/pie/PieMenu.tsx`
+- [x] T006 [P] [US1] Add UI toggle to enable/disable animations in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 - [ ] T007 [US1] Ensure overlay respects animation settings in `autohotpie-tauri/src/pie-overlay/main.tsx`
 - [ ] T008 [US1] Persist visual style settings per menu in `autohotpie-tauri/src/state/profileStore.ts`
 
 ## Phase 4: User Story 2 — Manage slices with visual editing (P1)
 
-- [ ] T009 [US2] Create Pie Menu (create) action in `autohotpie-tauri/src/state/profileStore.ts`
-- [ ] T010 [US2] Create Pie Menu (delete) action in `autohotpie-tauri/src/state/profileStore.ts`
-- [ ] T011 [P] [US2] Add UI for create/delete menus in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T012 [US2] Show helper hints for slice functions in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T013 [US2] Visualize assigned actions for each slice in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T009 [US2] Create Pie Menu (create) action in `autohotpie-tauri/src/state/profileStore.ts`
+- [x] T010 [US2] Create Pie Menu (delete) action in `autohotpie-tauri/src/state/profileStore.ts`
+- [x] T011 [P] [US2] Add UI for create/delete menus in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T012 [US2] Show helper hints for slice functions in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T013 [US2] Visualize assigned actions for each slice in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 
 ## Phase 5: User Story 3 — Multiple profiles with app binding (P2)
 
 - [ ] T014 [US3] Implement profile create/delete UI in `autohotpie-tauri/src/App.tsx`
 - [ ] T015 [US3] Bind profile to app via context rules in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
-- [ ] T016 [US3] Activate profile and persist routing in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
+- [x] T016 [US3] Activate profile and persist routing in `autohotpie-tauri/src-tauri/src/commands/profiles.rs`
 
 ## Phase 6: User Story 4 — Context conditions with auto-detection (P2)
 
-- [ ] T017 [US4] Implement 5‑second auto-detect app rule in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
-- [ ] T018 [US4] Consume `system://window-info` for auto-fill in `autohotpie-tauri/src/state/systemStore.ts`
-- [ ] T019 [US4] Visual indicator of active rules in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
+- [x] T017 [US4] Implement 5‑second auto-detect app rule in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
+- [x] T018 [US4] Consume `system://window-info` for auto-fill in `autohotpie-tauri/src/state/systemStore.ts`
+- [x] T019 [US4] Visual indicator of active rules in `autohotpie-tauri/src/components/profile-editor/ContextConditionsPanel.tsx`
 
 ## Phase 7: User Story 5 — Remove hotkey registration (P3)
 
-- [ ] T020 [US5] Remove Hotkey Registration UI from `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T021 [US5] Disable hotkey registration path in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
+- [x] T020 [US5] Remove Hotkey Registration UI from `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T021 [US5] Disable hotkey registration path in `autohotpie-tauri/src-tauri/src/commands/hotkeys.rs`
 
 ## Phase 8: User Story 6 — Custom actions and scenarios (P2)
 
-- [ ] T022 [US6] Actions sidebar: list, filters, drag‑drop in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
-- [ ] T023 [US6] Extend action model (steps/validation) in `autohotpie-tauri/src/types/actions.ts`
-- [ ] T024 [US6] Execute action and show toast in `autohotpie-tauri/src/App.tsx`
-- [ ] T025 [P] [US6] Drag‑drop bind action to slice in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T022 [US6] Actions sidebar: list, filters, drag‑drop in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
+- [x] T023 [US6] Extend action model (steps/validation) in `autohotpie-tauri/src/types/actions.ts`
+- [x] T024 [US6] Execute action and show toast in `autohotpie-tauri/src/App.tsx`
+- [x] T025 [P] [US6] Drag‑drop bind action to slice in `autohotpie-tauri/src/components/profile-editor/ProfileEditor.tsx`
 
 ## Phase 9: User Story 7 — Export and updates (P3)
 
-- [ ] T026 [US7] Export profiles UI in `autohotpie-tauri/src/components/settings/SettingsImportExport.tsx`
-- [ ] T027 [US7] Update checker UI and service in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
-- [ ] T028 [US7] Implement embedded update flow (no manual download) in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [x] T026 [US7] Export profiles UI in `autohotpie-tauri/src/components/settings/SettingsImportExport.tsx`
+- [x] T027 [US7] Update checker UI and service in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
+- [x] T028 [US7] Implement embedded update flow (no manual download) in `autohotpie-tauri/src-tauri/src/services/update_checker.rs`
 
 ## Phase 10: User Story 8 — Logs with filtering and search (P3)
 
-- [ ] T029 [US8] Implement filtering/search in `autohotpie-tauri/src/components/log/LogPanel.tsx`
-- [ ] T030 [US8] Enhance log entry visualization in `autohotpie-tauri/src/components/log/LogPanel.tsx`
+- [x] T029 [US8] Implement filtering/search in `autohotpie-tauri/src/components/log/LogPanel.tsx`
+- [x] T030 [US8] Enhance log entry visualization in `autohotpie-tauri/src/components/log/LogPanel.tsx`
 
 ## Phase 11: User Story 9 — Unified modern UI/UX (P1)
 
