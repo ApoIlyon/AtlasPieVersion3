@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import type { ActiveProfileSnapshot, HotkeyRegistrationStatus } from '../types/hotkeys';
+import { selectMockActiveProfile } from '../mocks/contextProfiles';
 
 export interface WindowInfo {
   application: string;
@@ -86,22 +87,47 @@ export const useSystemStore = create<SystemStoreState>()((set, get) => ({
     if (get().isTracking) return;
     
     if (!isTauriEnvironment()) {
-      // Mock data for browser preview
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const mockProcess = params?.get('mockProcess') ?? 'browser.exe';
+      const mockWindow = params?.get('mockWindow') ?? 'AutoHotPie - Pie Menu Overhaul';
+      const mockPlatform = params?.get('mockPlatform');
+      const mockFullscreen = params?.get('mockFullscreen');
+      const mockStorage = params?.get('mockStorageMode');
+      const forceSafeMode = params?.get('mockSafeMode');
+      const isFullscreen = mockFullscreen ? ['1','true','on','yes'].includes(mockFullscreen.toLowerCase()) : false;
+      const storageMode = mockStorage === 'read_only' ? 'read_only' : get().status.storageMode;
+      const safeMode = forceSafeMode && ['1','true','on','yes','strict'].includes(forceSafeMode.toLowerCase()) ? true : storageMode === 'read_only';
+      const connectivity = {
+        isOffline: get().status.connectivity.isOffline,
+        lastCheckedAt: new Date().toISOString(),
+      };
+
+      const selection = selectMockActiveProfile(mockProcess, mockWindow);
+      const activeProfileSnapshot: ActiveProfileSnapshot | null = selection
+        ? {
+            index: selection.index,
+            name: selection.name,
+            matchKind: selection.matchKind,
+            holdToOpen: selection.holdToOpen,
+          }
+        : null;
+
       set({
         currentWindow: {
-          application: 'Browser',
-          windowTitle: 'AutoHotPie - Pie Menu Overhaul',
-          processName: 'browser.exe',
+          application: mockPlatform === 'linux' ? 'GNOME Terminal' : 'Browser',
+          windowTitle: mockWindow,
+          processName: mockProcess,
           isActive: true,
         },
         isTracking: true,
         initialized: true,
         status: {
-          window: { isFullscreen: false },
-          storageMode: get().status.storageMode,
-          safeMode: get().status.safeMode,
-          connectivity: { isOffline: get().status.connectivity.isOffline, lastCheckedAt: new Date().toISOString() },
+          window: { isFullscreen },
+          storageMode,
+          safeMode,
+          connectivity,
         },
+        activeProfile: activeProfileSnapshot,
       });
       return;
     }
@@ -187,5 +213,7 @@ export const useSystemStore = create<SystemStoreState>()((set, get) => ({
 
 // Auto-start tracking when store is created
 if (typeof window !== 'undefined') {
+  (window as typeof window & { __AUTOHOTPIE_SYSTEM_STORE__?: typeof useSystemStore }).__AUTOHOTPIE_SYSTEM_STORE__ =
+    useSystemStore;
   useSystemStore.getState().startTracking().catch(console.error);
 }
