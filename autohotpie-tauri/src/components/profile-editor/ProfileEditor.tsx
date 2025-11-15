@@ -2,32 +2,16 @@ import React, { useState, useCallback } from 'react';
 import { PieMenu, PieSliceDefinition } from '../pie/PieMenu';
 import { ContextConditionsPanel, ContextCondition } from './ContextConditionsPanel';
 import { useSystemStore } from '../../state/systemStore';
+import type { PieSlice } from '../../state/profileStore';
+import type { ProfileRecord } from '../../state/profileStore';
 
 export interface ProfileEditorProps {
-  profile: {
-    profile: {
-      id: string;
-      name: string;
-      description?: string | null;
-      enabled: boolean;
-      globalHotkey?: string | null;
-      activationRules: any[];
-      rootMenu: string;
-      holdToOpen?: boolean | null;
-    };
-    menus: Array<{
-      id: string;
-      name: string;
-      slices: PieSliceDefinition[];
-      appearance?: any;
-    }>;
-    actions: any[];
-  } | null;
+  profile: ProfileRecord | null;
   mode: 'view' | 'create';
   onClose: () => void;
   animationsEnabled?: boolean;
   onToggleAnimations?: (enabled: boolean) => void;
-  onUpdateProfile?: (profile: ProfileEditorProps['profile']) => void;
+  onUpdateProfile?: (profile: ProfileRecord | null) => void;
 }
 
 export function ProfileEditor({
@@ -61,9 +45,10 @@ export function ProfileEditor({
     
     const newMenu = {
       id: `menu-${Date.now()}`,
-      name: newMenuName.trim(),
+      title: newMenuName.trim(),
       slices: [],
-    };
+      appearance: profile?.menus[0]?.appearance,
+    } as ProfileRecord['menus'][number];
     
     if (!profile) return;
     
@@ -93,27 +78,14 @@ export function ProfileEditor({
     }
   }, [profile, selectedMenuId, onUpdateProfile]);
 
-  if (!profile) {
-    return (
-      <div className="flex items-center justify-center h-full bg-background text-text">
-        <div className="text-center">
-          <p className="text-lg font-medium mb-2">No profile selected</p>
-          <p className="text-sm text-text-muted mb-4">Select a profile to start editing</p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-accent hover:bg-accent-hover rounded-md text-sm transition-colors"
-          >
-            Close Editor
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const hasProfile = Boolean(profile);
 
   const handleCreateSlice = useCallback(() => {
     if (!selectedMenu) return;
+    if (!profile) return;
+    const p = profile as ProfileRecord;
     
-    const newSlice: PieSliceDefinition = {
+    const newSlice: PieSlice = {
       id: `slice-${Date.now()}`,
       label: 'New Action',
       order: selectedMenu.slices.length,
@@ -126,38 +98,44 @@ export function ProfileEditor({
       slices: [...selectedMenu.slices, newSlice],
     };
     
-    const updatedProfile = {
-      ...profile,
-      menus: profile.menus.map(menu => 
+    const updatedProfile: ProfileRecord = {
+      ...p,
+      menus: p.menus.map(menu => 
         menu.id === selectedMenuId ? updatedMenu : menu
       ),
     };
     
-    onUpdateProfile?.(updatedProfile);
+    if (onUpdateProfile) {
+      onUpdateProfile(updatedProfile);
+    }
     setSelectedSliceId(newSlice.id);
   }, [profile, selectedMenu, selectedMenuId, onUpdateProfile]);
 
   const handleDeleteSlice = useCallback((sliceId: string) => {
     if (!selectedMenu) return;
+    if (!profile) return;
     
     const updatedMenu = {
       ...selectedMenu,
       slices: selectedMenu.slices.filter(slice => slice.id !== sliceId),
     };
     
-    const updatedProfile = {
+    const updatedProfile: ProfileRecord = {
       ...profile,
       menus: profile.menus.map(menu => 
         menu.id === selectedMenuId ? updatedMenu : menu
       ),
     };
     
-    onUpdateProfile?.(updatedProfile);
+    if (onUpdateProfile) {
+      onUpdateProfile(updatedProfile);
+    }
     setSelectedSliceId(null);
   }, [profile, selectedMenu, selectedMenuId, onUpdateProfile]);
 
-  const handleUpdateSlice = useCallback((sliceId: string, updates: Partial<PieSliceDefinition>) => {
+  const handleUpdateSlice = useCallback((sliceId: string, updates: Partial<PieSlice>) => {
     if (!selectedMenu) return;
+    if (!profile) return;
     
     const updatedMenu = {
       ...selectedMenu,
@@ -166,18 +144,21 @@ export function ProfileEditor({
       ),
     };
     
-    const updatedProfile = {
+    const updatedProfile: ProfileRecord = {
       ...profile,
       menus: profile.menus.map(menu => 
         menu.id === selectedMenuId ? updatedMenu : menu
       ),
     };
     
-    onUpdateProfile?.(updatedProfile);
+    if (onUpdateProfile) {
+      onUpdateProfile(updatedProfile);
+    }
   }, [profile, selectedMenu, selectedMenuId, onUpdateProfile]);
 
   const handleDragDrop = useCallback((draggedSliceId: string, targetIndex: number) => {
     if (!selectedMenu) return;
+    if (!profile) return;
     
     const draggedSlice = selectedMenu.slices.find(s => s.id === draggedSliceId);
     if (!draggedSlice) return;
@@ -194,14 +175,16 @@ export function ProfileEditor({
       slices: reorderedSlices,
     };
     
-    const updatedProfile = {
+    const updatedProfile: ProfileRecord = {
       ...profile,
       menus: profile.menus.map(menu => 
         menu.id === selectedMenuId ? updatedMenu : menu
       ),
     };
     
-    onUpdateProfile?.(updatedProfile);
+    if (onUpdateProfile) {
+      onUpdateProfile(updatedProfile);
+    }
   }, [profile, selectedMenu, selectedMenuId, onUpdateProfile]);
 
   const handleUpdateContextConditions = useCallback((conditions: ContextCondition[]) => {
@@ -271,41 +254,24 @@ export function ProfileEditor({
     setIsDraggingOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent, targetSliceId?: string) => {
+  const handleDrop = useCallback((targetSliceId: string, e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
     const actionId = e.dataTransfer.getData('text/plain');
     const action = actionLibrary.find(a => a.id === actionId);
-    
-    // Determine which slice to bind the action to
-    const targetSlice = targetSliceId ? 
-      selectedMenu?.slices.find(s => s.id === targetSliceId) :
-      selectedSlice;
-    
+    const targetSlice = selectedMenu?.slices.find(s => s.id === targetSliceId) || selectedSlice;
     if (action && targetSlice) {
-      // Bind the action to the slice by updating both label and action ID
-      handleUpdateSlice(targetSlice.id, { 
-        label: action.name,
-        description: action.description,
-        action: actionId // This binds the action to the slice
-      });
-      
-      // Auto-select the slice that was just updated
+      handleUpdateSlice(targetSlice.id, { label: action.name, description: action.description, action: actionId });
       setSelectedSliceId(targetSlice.id);
-      
-      // Show a toast notification that the action has been bound
-      if (window.__PIE_DEBUG__) {
-        console.log(`Action "${action.name}" bound to slice "${targetSlice.label}"`);
-      }
     }
-  };
+  }, [actionLibrary, selectedMenu, selectedSlice, handleUpdateSlice]);
 
   return (
     <div className="flex flex-col h-full bg-background text-text">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div>
-          <h1 className="text-xl font-semibold">{profile.profile.name}</h1>
+          <h1 className="text-xl font-semibold">{profile?.profile.name ?? 'No profile selected'}</h1>
           <p className="text-sm text-text-muted">
             {mode === 'create' ? 'Creating new profile' : 'Editing profile'}
           </p>
@@ -347,7 +313,7 @@ export function ProfileEditor({
               onClick={() => setSelectedMenuId(menu.id)}
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">{menu.name}</span>
+                <span className="font-medium">{(menu as any).title ?? (menu as any).name}</span>
                 {profile?.menus.length > 1 && (
                   <button
                     onClick={(e) => {
@@ -373,7 +339,7 @@ export function ProfileEditor({
             <input
               type="checkbox"
               checked={animationsEnabled}
-              onChange={(e) => onToggleAnimations(e.target.checked)}
+              onChange={(e) => onToggleAnimations?.(e.target.checked)}
               className="rounded"
             />
             <span className="text-sm">Enable Animations</span>
@@ -428,13 +394,26 @@ export function ProfileEditor({
       <div className="flex-1 flex items-center justify-center bg-background">
         <div
           className="relative"
-          onDrop={handleDrop}
+          onDrop={(e) => {
+            const target = selectedSliceId ?? selectedMenu?.slices[0]?.id;
+            if (target) {
+              handleDrop(target, e);
+            }
+          }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >
-          {selectedMenu && (
+          {hasProfile && selectedMenu && (
             <PieMenu
-              slices={selectedMenu.slices}
+              slices={selectedMenu.slices.map((s, idx) => ({
+                id: s.id,
+                label: s.label ?? `Slice ${idx + 1}`,
+                order: s.order ?? idx,
+                description: s.description ?? null,
+                shortcut: s.shortcut ?? null,
+                color: s.color ?? null,
+                action: s.action ?? null,
+              }))}
               visible={true}
               radius={180}
               gapDeg={6}
@@ -447,12 +426,12 @@ export function ProfileEditor({
               onHover={(sliceId) => {
                 // Could show preview/tooltip here
               }}
-              centerContent={selectedMenu.name}
+              centerContent={(selectedMenu as any).title ?? (selectedMenu as any).name}
               onSliceDrop={handleDrop}
             />
           )}
-          
-          {showHints && selectedMenu && selectedMenu.slices.length === 0 && (
+
+          {hasProfile && showHints && selectedMenu && selectedMenu.slices.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-surface/90 backdrop-blur-sm rounded-lg p-4 text-center max-w-xs">
                 <p className="text-sm text-text-muted">
@@ -471,7 +450,12 @@ export function ProfileEditor({
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDrop={(e) => {
+          const target = selectedSliceId ?? selectedMenu?.slices[0]?.id;
+          if (target) {
+            handleDrop(target, e);
+          }
+        }}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Actions</h2>
@@ -489,7 +473,7 @@ export function ProfileEditor({
           </div>
         )}
 
-        {selectedSlice ? (
+        {hasProfile && selectedSlice ? (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">Label</label>
@@ -587,7 +571,7 @@ export function ProfileEditor({
       </div>
 
       {/* Context Conditions Panel */}
-      {showContextPanel && (
+      {hasProfile && showContextPanel && (
         <div className="absolute top-16 right-4 w-96 bg-surface border border-border rounded-lg shadow-lg z-10">
           <ContextConditionsPanel
             conditions={contextConditions}
@@ -600,7 +584,7 @@ export function ProfileEditor({
       )}
 
       {/* Actions Panel */}
-      {showActionsPanel && (
+      {hasProfile && showActionsPanel && (
         <div className="absolute top-16 left-4 w-80 bg-surface border border-border rounded-lg shadow-lg z-10">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">

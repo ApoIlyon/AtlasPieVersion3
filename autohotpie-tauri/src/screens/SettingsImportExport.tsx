@@ -409,6 +409,96 @@ export function SettingsImportExport() {
           {error ?? t('settings.importExport.clipboardFailed')}
         </div>
       )}
+
+      {showProfileSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-900/95 p-6 shadow-[0_0_50px_rgba(15,23,42,0.5)] backdrop-blur-xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white">{t('settings.importExport.selectProfiles')}</h3>
+              <button
+                type="button"
+                className="rounded-full p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+                onClick={() => setShowProfileSelector(false)}
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-4 flex gap-3">
+              <button
+                type="button"
+                className="rounded-full border border-white/10 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/15"
+                onClick={handleSelectAllProfiles}
+              >
+                {t('settings.importExport.selectAll')}
+              </button>
+              <button
+                type="button"
+                className="rounded-full border border-white/10 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/15"
+                onClick={handleDeselectAllProfiles}
+              >
+                {t('settings.importExport.deselectAll')}
+              </button>
+              <div className="ml-auto flex items-center text-sm text-white/60">
+                {selectedProfileIds.length} {t('settings.importExport.selected')}
+              </div>
+            </div>
+
+            <div className="mb-6 max-h-80 overflow-y-auto rounded-2xl border border-white/10 bg-black/30 p-4">
+              {profiles.length === 0 ? (
+                <p className="text-center text-sm text-white/60">{t('settings.importExport.noProfiles')}</p>
+              ) : (
+                <div className="space-y-2">
+                  {profiles.map((profile) => (
+                    <label
+                      key={profile.profile.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-white/20 hover:bg-black/30"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-white/20 bg-transparent text-accent focus:ring-accent/50"
+                        checked={selectedProfileIds.includes(profile.profile.id)}
+                        onChange={() => handleProfileToggle(profile.profile.id)}
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-white">{profile.profile.name}</div>
+                        <div className="text-sm text-white/60">
+                          {profile.menus.length} {t('settings.importExport.menus')}, {profile.actions.length} {t('settings.importExport.actions')}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="rounded-full border border-white/10 px-6 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/15"
+                onClick={() => setShowProfileSelector(false)}
+              >
+                {t('settings.importExport.cancel')}
+              </button>
+              <button
+                type="button"
+                className={clsx(
+                  'rounded-full border border-accent/30 bg-accent/20 px-6 py-2 text-sm font-medium text-accent transition',
+                  selectedProfileIds.length === 0
+                    ? 'cursor-not-allowed opacity-40'
+                    : 'hover:border-accent/50 hover:bg-accent/30'
+                )}
+                disabled={selectedProfileIds.length === 0 || isExporting}
+                onClick={handleExportSelected}
+              >
+                {isExporting ? t('settings.importExport.exporting') : t('settings.importExport.export')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

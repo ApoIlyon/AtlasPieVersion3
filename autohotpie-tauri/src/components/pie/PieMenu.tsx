@@ -9,8 +9,16 @@ export interface PieSliceDefinition {
   accentToken?: string;
   disabled?: boolean;
   color?: string | null;
-  description?: string;
-  shortcut?: string;
+  description?: string | null;
+  shortcut?: string | null;
+  action?: string | null;
+}
+
+// Интерфейс для CSS свойств с поддержкой пользовательских CSS-переменных
+interface CSSPropertiesWithCustomVars extends React.CSSProperties {
+  '--x'?: string;
+  '--y'?: string;
+  '--radial-item-size'?: string;
 }
 
 export interface PieMenuProps {
@@ -93,7 +101,7 @@ export function PieMenu({
       )}
       style={{
         '--radial-item-size': `56px`,
-      } as React.CSSProperties}
+      } as CSSPropertiesWithCustomVars}
       ref={containerRef}
       onPointerMove={(e) => {
         if (!interactive) return;
@@ -158,8 +166,6 @@ export function PieMenu({
               style={{
                 left: '50%',
                 top: '50%',
-                '--x': `${x}px`,
-                '--y': `${y}px`,
                 transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
                 width: '56px',
                 height: '56px',
@@ -173,7 +179,7 @@ export function PieMenu({
                 transition: animationsEnabled 
                   ? 'all var(--duration-normal) var(--ease-in-out)' 
                   : 'none',
-              }}
+              } as CSSPropertiesWithCustomVars}
               aria-label={slice.label}
               onMouseEnter={() => onHover?.(slice.id, slice)}
               onFocus={() => onHover?.(slice.id, slice)}

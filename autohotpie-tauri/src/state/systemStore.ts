@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
 import type { SystemStatus, StorageMode } from './types';
+import type { ActiveProfileSnapshot, HotkeyRegistrationStatus } from '../types/hotkeys';
 
 export interface WindowInfo {
   application: string;
@@ -29,7 +30,8 @@ export interface SystemStoreState {
   status: SystemStatus;
   initialized: boolean;
   error: string | null;
-  activeProfile: string | null;
+  activeProfile: ActiveProfileSnapshot | null;
+  hotkeyStatus: HotkeyRegistrationStatus | null;
   readOnlyInstructionUrl: string | null;
   init: () => Promise<void>;
   setOffline: (offline: boolean, timestamp?: string | null) => void;
@@ -153,7 +155,13 @@ export const useSystemStore = create<SystemStoreState>()((set, get) => ({
   },
   initialized: false,
   error: null,
-  activeProfile: null,
+  activeProfile: {
+    index: 0,
+    name: 'Default',
+    matchKind: 'fallback',
+    holdToOpen: false,
+  },
+  hotkeyStatus: null,
   readOnlyInstructionUrl: 'https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting',
 
   async init() {

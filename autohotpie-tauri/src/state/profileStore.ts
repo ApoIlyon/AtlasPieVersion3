@@ -822,6 +822,120 @@ export const useProfileStore = create<ProfileStoreState>()((set, get) => ({
       return { profiles };
     });
   },
+  async createPieMenu(
+    profileId: string,
+    menuData: { title?: string; appearance?: Partial<PieAppearance>; slices?: PieSlice[] }
+  ) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Pie menus cannot be modified in browser preview mode.' });
+      return null;
+    }
+    const record = get().getProfileById(profileId);
+    if (!record) {
+      set({ error: `Profile ${profileId} not found.` });
+      return null;
+    }
+    
+    const newMenu: PieMenu = {
+      id: `menu-${Date.now()}`,
+      title: menuData.title || 'New Menu',
+      appearance: {
+        radius: 200,
+        innerRadius: 60,
+        fontSize: 14,
+        animationsEnabled: true,
+        theme: 'dark',
+        animationStyle: 'slide',
+        accentColor: '#3b82f6',
+        backgroundColor: 'rgba(30, 41, 59, 0.8)',
+        textColor: '#f1f5f9',
+        ...menuData.appearance,
+      },
+      slices: menuData.slices || [],
+    };
+    
+    const updatedRecord = {
+      ...record,
+      menus: [...record.menus, newMenu],
+    };
+    
+    const saved = await get().saveProfile(updatedRecord);
+    return saved ? newMenu : null;
+  },
+  async deletePieMenu(profileId: string, menuId: string) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Pie menus cannot be modified in browser preview mode.' });
+      return;
+    }
+    const record = get().getProfileById(profileId);
+    if (!record) {
+      set({ error: `Profile ${profileId} not found.` });
+      return;
+    }
+    
+    if (record.menus.length <= 1) {
+      set({ error: 'Cannot delete the last menu in a profile.' });
+      return;
+    }
+    
+    const updatedRecord = {
+      ...record,
+      menus: record.menus.filter(menu => menu.id !== menuId),
+    };
+    
+    await get().saveProfile(updatedRecord);
+  },
+  async updatePieMenu(profileId: string, menuId: string, updates: Partial<PieMenu>) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Pie menus cannot be modified in browser preview mode.' });
+      return null;
+    }
+    const record = get().getProfileById(profileId);
+    if (!record) {
+      set({ error: `Profile ${profileId} not found.` });
+      return null;
+    }
+    
+    const updatedRecord = {
+      ...record,
+      menus: record.menus.map(menu => 
+        menu.id === menuId ? { ...menu, ...updates } : menu
+      ),
+    };
+    
+    const saved = await get().saveProfile(updatedRecord);
+    return saved ? saved.menus.find(menu => menu.id === menuId) || null : null;
+  },
+  async updatePieMenuAppearance(
+    profileId: string,
+    menuId: string,
+    appearance: Partial<PieAppearance>
+  ) {
+    if (!isTauriEnvironment()) {
+      set({ error: 'Pie menus cannot be modified in browser preview mode.' });
+      return null;
+    }
+    const record = get().getProfileById(profileId);
+    if (!record) {
+      set({ error: `Profile ${profileId} not found.` });
+      return null;
+    }
+    
+    const updatedRecord = {
+      ...record,
+      menus: record.menus.map(menu => 
+        menu.id === menuId 
+          ? { 
+              ...menu, 
+              appearance: { ...menu.appearance, ...appearance }
+            } 
+          : menu
+      ),
+    };
+    
+    const saved = await get().saveProfile(updatedRecord);
+    return saved ? saved.menus.find(menu => menu.id === menuId) || null : null;
+  },
 }));
 
 export const selectProfileHotkeyStatus = (state: ProfileStoreState) =>

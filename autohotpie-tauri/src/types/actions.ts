@@ -290,7 +290,7 @@ export function createStep(kind: MacroStepKind, order: number): MacroStep {
         kind,
         order,
         operation: 'minimize',
-        windowTitle: null,
+        windowTitle: undefined,
         note: null,
       };
     case 'media':

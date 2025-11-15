@@ -17,6 +17,7 @@ import { LinuxFallbackPanel } from './components/tray/LinuxFallbackPanel';
 import { PieMenu } from './components/pie/PieMenu';
 import type { PieSliceDefinition } from './components/pie/PieMenu';
 import { slicesForProfile } from './mocks/contextProfiles';
+import type { ActiveProfileSnapshot } from './types/hotkeys';
 import { ProfilesDashboard } from './screens/ProfilesDashboard';
 import { ProfileEditor } from './components/profile-editor/ProfileEditor';
 import { LanguageSwitcher } from './components/localization/LanguageSwitcher';
@@ -354,11 +355,23 @@ export function App() {
     return profiles.find((record) => record.profile.id === selectedProfileId) ?? null;
   }, [profiles, selectedProfileId]);
 
+  const initialActiveProfileSnapshot = useMemo<ActiveProfileSnapshot | null>(() => {
+    const record = activeProfileRecord ?? profiles[0] ?? null;
+    if (!record) return null;
+    const index = profiles.findIndex((r) => r.profile.id === record.profile.id);
+    return {
+      index: index >= 0 ? index : 0,
+      name: record.profile.name,
+      matchKind: 'fallback',
+      holdToOpen: Boolean(record.profile.holdToOpen),
+    };
+  }, [activeProfileRecord, profiles]);
+
   const pieMenuState = usePieMenuHotkey({
     hotkeyEvent: 'hotkeys://trigger',
     autoCloseMs: 0,
-    profileHoldToOpen: systemActiveProfile?.holdToOpen,
-    initialActiveProfile: systemActiveProfile,
+    profileHoldToOpen: initialActiveProfileSnapshot?.holdToOpen,
+    initialActiveProfile: initialActiveProfileSnapshot,
   });
   const {
     isOpen: isPieMenuVisible,
@@ -379,7 +392,7 @@ export function App() {
 
   const menuSlices = useMemo<PieSliceDefinition[]>(() => {
     const fallbackSlices = FALLBACK_PLACEHOLDER_SLICES;
-    const activeSnapshot = pieMenuActiveProfile ?? systemActiveProfile;
+    const activeSnapshot = pieMenuActiveProfile ?? initialActiveProfileSnapshot;
 
     if (!isTauriEnvironment()) {
       if (activeSnapshot) {
@@ -549,9 +562,12 @@ export function App() {
           }
 
           // Find the action associated with this slice
-          const activeRecord = profiles.find(p => 
-            p.profile.id === (pieMenuActiveProfile?.id ?? activeProfileId)
-          );
+          const snapshot = pieMenuActiveProfile ?? initialActiveProfileSnapshot;
+          let activeRecord = snapshot?.index != null && profiles[snapshot.index]
+            ? profiles[snapshot.index]
+            : activeProfileId
+              ? profiles.find((p) => p.profile.id === activeProfileId)
+              : profiles[0];
           
           if (!activeRecord) {
             console.warn('No active profile found for action execution');
@@ -562,7 +578,7 @@ export function App() {
           const rootMenu = activeRecord.menus.find(m => m.id === activeRecord.profile.rootMenu);
           const sliceConfig = rootMenu?.slices.find(s => s.id === sliceId);
           
-          if (!sliceConfig?.actionId) {
+          if (!sliceConfig?.action) {
             console.warn(`No action configured for slice ${sliceId}`);
             recordActionOutcome({
               id: sliceId,
@@ -577,7 +593,7 @@ export function App() {
           try {
             const startTime = Date.now();
             const result = await invoke('run_action', { 
-              actionId: sliceConfig.actionId 
+              actionId: sliceConfig.action 
             }) as { 
               event_id: string;
               id: string;
@@ -602,7 +618,7 @@ export function App() {
           } catch (error) {
             console.error('Failed to execute action:', error);
             recordActionOutcome({
-              id: sliceConfig.actionId,
+              id: sliceConfig.action ?? sliceId,
               name: slice.label,
               status: 'failure',
               message: error instanceof Error ? error.message : 'Action execution failed',

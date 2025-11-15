@@ -233,10 +233,82 @@ export function SettingsUpdates() {
               role="alert"
               data-testid="updates-error"
             >
-              {message}
+              <div className="flex items-start gap-3">
+                <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>{message}</div>
+              </div>
             </div>
           );
         })()}
+
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <button
+            type="button"
+            className="flex items-center gap-2 text-sm text-white/60 transition hover:text-white"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            <span>{t('settings.updates.advanced')}</span>
+            <svg
+              className={clsx('h-4 w-4 transition-transform', showAdvanced && 'rotate-180')}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showAdvanced && (
+            <div className="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-black/30 p-4">
+              <div>
+                <label className="block text-xs uppercase tracking-[0.3em] text-white/40 mb-2">
+                  {t('settings.updates.updateChannel')}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={clsx(
+                      'rounded-full border px-4 py-2 text-sm transition',
+                      updateChannel === 'stable'
+                        ? 'border-accent/30 bg-accent/20 text-accent'
+                        : 'border-white/10 text-white/70 hover:border-white/20 hover:bg-white/15'
+                    )}
+                    onClick={() => {
+                      setUpdateChannel('stable');
+                      void setUpdateChannel('stable');
+                    }}
+                  >
+                    {t('settings.updates.channel.stable')}
+                  </button>
+                  <button
+                    type="button"
+                    className={clsx(
+                      'rounded-full border px-4 py-2 text-sm transition',
+                      updateChannel === 'beta'
+                        ? 'border-accent/30 bg-accent/20 text-accent'
+                        : 'border-white/10 text-white/70 hover:border-white/20 hover:bg-white/15'
+                    )}
+                    onClick={() => {
+                      setUpdateChannel('beta');
+                      void setUpdateChannel('beta');
+                    }}
+                  >
+                    {t('settings.updates.channel.beta')}
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-xs text-white/60">
+                <p>{t('settings.updates.autoCheck')}</p>
+                <p className="mt-1 text-white/40">
+                  {t('settings.updates.checkInterval').replace('{hours}', '6')}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
