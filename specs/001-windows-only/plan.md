@@ -55,7 +55,8 @@ specs/001-windows-only/
 │       ├── README.md
 │       ├── timings.json
 │       ├── workflow-log.md
-│       └── playwright-log.json
+│       ├── playwright-log.json
+│       └── allowlist-report.json
 ├── allowlist.md          # список разрешённых зависимостей/команд
 └── tasks.md              # будет создан /speckit.tasks
 ```

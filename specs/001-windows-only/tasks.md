@@ -40,6 +40,7 @@ description: "Task list for Windows-only AtlasPie cleanup"
 - [ ] T007 [P] Реализовать `autohotpie-tauri/scripts/windows-only/verify-windows-only.ps1` (последовательность `cargo clean/check`, `pnpm install/test`, `npx playwright test`, `rg`-поиск) с логированием в `specs/001-windows-only/artifacts/verification/`.
 - [ ] T008 Зафиксировать первоначальный отчёт `specs/001-windows-only/data/platform-artifacts-initial.json` (snapshot результата T005) как baseline для дальнейшего контроля.
 - [ ] T009 [P] Добавить шаг в verify-скрипт для подсчёта длительности каждой команды (start/end timestamps) и записи в `specs/001-windows-only/artifacts/verification/timings.json`.
+- [ ] T036 [P] Реализовать `scripts/windows-only/check-allowlist.ps1`, который читает `allowlist.md`, сканирует Rust/TS invoke-команды и зависимости, формирует `specs/001-windows-only/artifacts/verification/allowlist-report.json` и завершает процесс с ошибкой при несоответствии.
 
 **Checkpoint**: инструменты поиска/очистки готовы — можно выполнять user stories.
 
@@ -83,6 +84,7 @@ description: "Task list for Windows-only AtlasPie cleanup"
 - [ ] T024 [US2] Переписать `autohotpie-tauri/src-tauri/tauri.conf.json5`, оставив только `bundle.windows` и удалив секции `linux`, `macOS`, `docker`.
 - [ ] T025 [US2] Сократить `.github/workflows/` до одного Windows pipeline (msix/msi) и удалить macOS/Linux jobs, Husky hook'и и Dockerfile для Linux.
 - [ ] T026 [US2] Выполнить `cargo clean && cargo check`, `pnpm install`, `pnpm test`, `npx playwright test --project=windows-chromium`; сохранить логи и обновить `timings.json`.
+- [ ] T037 [US2] Запустить `scripts/windows-only/check-allowlist.ps1` после обновления backend/frontend/config, убедиться в отсутствии нарушений и приложить свежий `allowlist-report.json` в `artifacts/verification/`.
 
 
 **Checkpoint**: Кодовая база и конфиги поддерживают только Windows.
@@ -103,7 +105,8 @@ description: "Task list for Windows-only AtlasPie cleanup"
 - [ ] T030 [P] [US3] Удалить или переписать Playwright спеки, моделирующие другие платформы (`tests/e2e/linux-fallback.spec.ts`, `menu-bar.spec.ts`, т.п.), заменив их Windows-эквивалентами или документируя архив в `docs/legacy/`).
 - [ ] T031 [US3] Удалить условные проверки платформы из Vitest/unit тестов (`tests/unit/`, `tests/integration/`) и обновить мок-данные/fixtures на Windows-only значения.
 - [ ] T032 [US3] Обновить GitHub Actions/Playwright документацию (`.github/workflows/README.md`, `docs/ci.md` если есть) и добавить ссылку на `verify-windows-only.ps1` как обязательный шаг.
-- [ ] T033 [US3] После правок конфигов выполнить `npx playwright test --project=windows-chromium`, сохранить лог в `specs/001-windows-only/artifacts/verification/playwright-log.json` и обновить `workflow-log.md` ссылкой на успешный Windows workflow.
+- [ ] T033 [US3] После правок конфигов выполнить `npx playwright test --project=windows-chromium`, сохранить лог в `specs/001-windows-only/artifacts/verification/playwright-log.json`, а затем задокументировать итоговые изменения в `workflow-log.md` (описание шагов, версия сценариев, ответственный).
+- [ ] T038 [US3] Триггернуть Windows workflow через `gh workflow run` (или UI), дождаться завершения, зафиксировать run ID, commit hash и длительность в `specs/001-windows-only/artifacts/verification/workflow-log.md` вместе со ссылкой на прогон.
 
 **Checkpoint**: Пользователи и CI видят только Windows-флоу.
 
@@ -113,7 +116,8 @@ description: "Task list for Windows-only AtlasPie cleanup"
 
 **Purpose**: Финальные проверки, документация и контроль качества.
 
-- [ ] T034 Запустить `scripts/windows-only/verify-windows-only.ps1`, собрать полный лог выполнения, обновить `timings.json` и `workflow-log.md`, приложить их к `specs/001-windows-only/artifacts/verification/`.
+- [ ] T034 Запустить `scripts/windows-only/verify-windows-only.ps1`, убедившись, что он вызывает `check-allowlist.ps1`; собрать полный лог выполнения, обновить `timings.json`, `allowlist-report.json` и `workflow-log.md`, приложить артефакты в `specs/001-windows-only/artifacts/verification/`.
+- [ ] T039 [P] Проанализировать `timings.json`, подтвердить, что суммарное время `cargo/pnpm/playwright` < 15 минут, задокументировать результат в `workflow-log.md`/`spec.md` (секция Success Criteria) и задать тревогу, если SLA нарушен.
 - [ ] T035 [P] Выполнить финальный `rg -i "linux|macos|darwin|systemd|xdg|launchctl|appimage|deb|wayland|gtk" -g"!*CHANGELOG*"` и обновить раздел **Success Criteria** в `specs/001-windows-only/spec.md` результатами поиска/логами.
 
 ---

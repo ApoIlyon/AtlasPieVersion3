@@ -87,7 +87,7 @@
 - **FR-003**: Конфигурация Tauri (`tauri.conf.json`, `tauri.conf.json5`, `Cargo.toml` фичи, `package.json` скрипты) ДОЛЖНА содержать только Windows-таргеты и совместимые зависимости.
 - **FR-004**: Код Rust (особенно `src-tauri/src`) ДОЛЖЕН быть очищен от `#[cfg(target_os ...)]` и альтернативных модулей, оставив единственный Windows-код-путь; сервисы, существовавшие исключительно ради других платформ, нужно удалить.
 - **FR-005**: Frontend (React/TypeScript) ДОЛЖЕН удалить все проверки `isLinux`, `isMac`, `process.platform` и UI-блоки для других ОС, заменив их на Windows-ориентированные тексты и состояния.
-- **FR-006**: Zustand/Redux сторы и invoke-слои ДОЛЖНЫ обращаться только к существующим Windows-командам Tauri; команды, удалённые на backend, не должны вызываться из UI. Список допустимых зависимостей/команд фиксируется в `specs/001-windows-only/allowlist.md` с кратким обоснованием и ссылкой на Win32 аналог, а любые обращения вне списка немедленно устраняются.
+- **FR-006**: Zustand/Redux сторы и invoke-слои ДОЛЖНЫ обращаться только к существующим Windows-командам Tauri; команды, удалённые на backend, не должны вызываться из UI. Список допустимых зависимостей/команд фиксируется в `specs/001-windows-only/allowlist.md` с кратким обоснованием и ссылкой на Win32 аналог, а любые обращения вне списка немедленно устраняются. Каждая верификация запускает `scripts/windows-only/check-allowlist.ps1`, который формирует `specs/001-windows-only/artifacts/verification/allowlist-report.json` и прерывает процесс при обнаружении несоответствий.
 - **FR-007**: GitHub Actions, Husky, PowerShell/Bash скрипты ДОЛЖНЫ содержать только Windows-пайплайны (например, `windows-latest` runners, msbuild/msi пакеты) и не ссылаться на `.app`, `.deb`, AppImage, Docker для Linux.
 - **FR-008**: Playwright/Vitest конфигурации и тесты ДОЛЖНЫ иметь только Windows-проекты/фикстуры; тесты, моделирующие другие платформы, следует удалить или переписать.
 - **FR-009**: После очистки проект ДОЛЖЕН успешно проходить `cargo clean`, `cargo check`, `pnpm install`, `pnpm test` на Windows, не запрашивая отсутствующие платформенные зависимости.
@@ -114,6 +114,7 @@
 - **SC-003**: Единственный GitHub Actions workflow `windows-latest` (msix/msi) проходит успешно, а ссылка на run ID, хэш коммита и длительность прогона задокументированы в `specs/001-windows-only/artifacts/verification/workflow-log.md`.
 - **SC-004**: После чистки Playwright конфигурации проект `windows-chromium` проходит без ошибок; лог запуска (`test-results/.last-run.json` или экспортированный отчёт) копируется в `specs/001-windows-only/artifacts/verification/playwright-log.json`.
 - **SC-005**: README.md и Quickstart проходят ручное ревью — в них минимум 3 явных упоминания Windows-шага (установка зависимостей, сборка, установка) и 0 ссылок на Linux/macOS.
+- **SC-006**: `scripts/windows-only/check-allowlist.ps1` формирует `artifacts/verification/allowlist-report.json`, в котором нет нарушений (все обнаруженные invoke-команды и зависимости присутствуют в allowlist) и ссылка на отчёт приложена в итоговый лог.
 
 ## Assumptions & Constraints
 
