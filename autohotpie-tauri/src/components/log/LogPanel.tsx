@@ -33,7 +33,7 @@ export function LogPanel({ isOpen, onClose }: LogPanelProps) {
   const setAutoRefresh = useLogStore((state) => state.setAutoRefresh);
   const refresh = useLogStore((state) => state.refresh);
   const lastUpdated = useLogStore((state) => state.lastUpdated);
-  const storageMode = useSystemStore((state) => state.status.storageMode);
+  const storageMode = useSystemStore((state) => state.status?.storageMode ?? 'read_write');
   const instructionUrl = useSystemStore((state) => state.readOnlyInstructionUrl);
   const isReadOnly = storageMode === 'read_only';
 

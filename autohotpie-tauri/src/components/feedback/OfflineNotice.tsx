@@ -11,7 +11,7 @@ export function OfflineNotice() {
     instructionUrl: state.readOnlyInstructionUrl,
   }));
 
-  if (!error && !status.connectivity.isOffline && !status.safeMode) {
+  if (!error && !(status?.connectivity?.isOffline) && !(status?.safeMode)) {
     return null;
   }
 
@@ -21,10 +21,10 @@ export function OfflineNotice() {
       className="rounded-2xl border border-border bg-overlay/80 px-4 py-3 text-sm shadow-lg shadow-black/30 space-y-2"
     >
       {error && <p className="text-red-400">{error}</p>}
-      {!error && status.connectivity.isOffline && (
+      {!error && Boolean(status?.connectivity?.isOffline) && (
         <p className="text-text-secondary">{t('status.offlineNotice')}</p>
       )}
-      {!error && status.safeMode && (
+      {!error && Boolean(status?.safeMode) && (
         <div className="space-y-2">
           <p className="text-text-secondary">{t('status.readOnlyNotice')}</p>
           {instructionUrl && (

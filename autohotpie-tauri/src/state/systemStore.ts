@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isTauriEnvironment } from '../utils/tauriEnvironment';
+import type { SystemStatus, StorageMode } from './types';
 
 export interface WindowInfo {
   application: string;
@@ -15,15 +16,24 @@ export interface WindowInfo {
 }
 
 export interface SystemStoreState {
+  // Window tracking
   currentWindow: WindowInfo | null;
   isTracking: boolean;
-  error: string | null;
   trackingInterval: number;
-  initialized: boolean;
+  getCurrentWindow: () => Promise<WindowInfo | null>;
   startTracking: () => Promise<void>;
   stopTracking: () => Promise<void>;
-  getCurrentWindow: () => Promise<WindowInfo | null>;
   setTrackingInterval: (interval: number) => void;
+
+  // App/system status
+  status: SystemStatus;
+  initialized: boolean;
+  error: string | null;
+  activeProfile: string | null;
+  readOnlyInstructionUrl: string | null;
+  init: () => Promise<void>;
+  setOffline: (offline: boolean, timestamp?: string | null) => void;
+  setStorageMode: (mode: StorageMode) => void;
 }
 
 const eventBindings: {
@@ -46,11 +56,10 @@ async function attachListeners(set: (partial: Partial<SystemStoreState>) => void
 }
 
 export const useSystemStore = create<SystemStoreState>()((set, get) => ({
+  // Window tracking
   currentWindow: null,
   isTracking: false,
-  error: null,
   trackingInterval: 1000, // 1 second default
-  initialized: false,
   
   async startTracking() {
     if (get().isTracking) return;
@@ -134,9 +143,54 @@ export const useSystemStore = create<SystemStoreState>()((set, get) => ({
       });
     }
   },
+
+  // App/system status
+  status: {
+    connectivity: { isOffline: false, lastChecked: null },
+    window: { isFullscreen: false, timestamp: new Date().toISOString() },
+    safeMode: false,
+    storageMode: 'read_write',
+  },
+  initialized: false,
+  error: null,
+  activeProfile: null,
+  readOnlyInstructionUrl: 'https://github.com/Apollyon/AtlasPieVersion3/blob/main/specs/001-build-tauri-pie/quickstart.md#troubleshooting',
+
+  async init() {
+    if (get().initialized) {
+      return;
+    }
+    if (!isTauriEnvironment()) {
+      set({ initialized: true });
+      return;
+    }
+    try {
+      const status = await invoke<SystemStatus>('system_get_status');
+      set({ status, initialized: true, error: null });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load system status';
+      set({ error: message, initialized: true });
+    }
+  },
+
+  setOffline(offline: boolean, timestamp?: string | null) {
+    const prev = get().status;
+    set({
+      status: {
+        ...prev,
+        connectivity: { isOffline: offline, lastChecked: timestamp ?? new Date().toISOString() },
+      },
+    });
+  },
+
+  setStorageMode(mode: StorageMode) {
+    const prev = get().status;
+    set({ status: { ...prev, storageMode: mode } });
+  },
 }));
 
-// Auto-start tracking when store is created
+// Auto-start tracking when store is created (window and status)
 if (typeof window !== 'undefined') {
   useSystemStore.getState().startTracking().catch(console.error);
+  useSystemStore.getState().init().catch(console.error);
 }

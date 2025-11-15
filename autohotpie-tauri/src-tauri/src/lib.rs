@@ -1,4 +1,4 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+﻿// Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
@@ -9,7 +9,7 @@ mod storage;
 mod backend;
 mod update_services_state;
 
-use commands::init_v2::{init_app, shutdown_app};
+use crate::commands::init_v2::{init_app, shutdown_app};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -90,6 +90,7 @@ pub fn run() {
             commands::pie_overlay::pie_overlay_select_slice,
             commands::pie_overlay::pie_overlay_focus_slice,
             commands::toggle::toggle_pie_menu,
+            #[cfg(target_os = "linux")]
             commands::linux_shortcut::setup_gnome_shortcut,
         ])
         .build(tauri::generate_context!())

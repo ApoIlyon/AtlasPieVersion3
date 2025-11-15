@@ -13,7 +13,7 @@ pub mod settings;
 pub mod system;
 pub mod updates;
 pub mod update_state;
-pub mod linux_shortcut;
+pub mod init_v2;
 
 use self::hotkeys::HotkeyState;
 use self::update_state::UpdatesState;
@@ -210,8 +210,8 @@ pub fn init<R: Runtime>(app: &mut App<R>) -> anyhow::Result<()> {
     std::fs::create_dir_all(&temp_dir)?;
 
     // Initialize update services
-    let downloader = Arc::new(UpdateDownloader::new(downloads_dir, temp_dir));
-    let installer = Arc::new(UpdateInstaller::new());
+    let downloader = Arc::new(UpdateDownloader::new(downloads_dir)?);
+    let installer = Arc::new(UpdateInstaller::new(temp_dir)?);
 
     app.manage(AppState {
         storage: storage.clone(),
