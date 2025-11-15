@@ -120,6 +120,11 @@ interface ProfileStoreState {
     profileId: string,
     rules: ActivationRule[],
   ) => Promise<ProfileRecord | null>;
+  updatePieMenuAppearance: (
+    profileId: string,
+    menuId: string,
+    appearance: Partial<PieAppearance>
+  ) => Promise<PieMenu | null>;
   deleteProfile: (profileId: string) => Promise<void>;
   activateProfile: (profileId: string) => Promise<void>;
   setProfiles: (payload: ProfileStorePayload) => void;

@@ -36,6 +36,12 @@ pub struct PieOverlayState {
     pub trigger_accelerator: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub activation_mode: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub animations_enabled: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub animation_style: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -51,6 +57,12 @@ pub struct PieOverlayUpdate {
     pub trigger_accelerator: Option<Option<String>>,
     #[serde(default)]
     pub activation_mode: Option<Option<String>>,
+    #[serde(default)]
+    pub animations_enabled: Option<Option<bool>>,
+    #[serde(default)]
+    pub theme: Option<Option<String>>,
+    #[serde(default)]
+    pub animation_style: Option<Option<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,6 +187,9 @@ pub fn sync<R: Runtime>(
     let slices_update = update.slices.clone();
     let active_slice_update = update.active_slice_id.clone();
     let center_label_update = update.center_label.clone();
+    let animations_enabled_update = update.animations_enabled.clone();
+    let theme_update = update.theme.clone();
+    let animation_style_update = update.animation_style.clone();
 
     let state = store.update(|current| {
         if let Some(slices) = &slices_update {
@@ -191,6 +206,15 @@ pub fn sync<R: Runtime>(
         }
         if let Some(mode) = &update.activation_mode {
             current.activation_mode = mode.clone();
+        }
+        if let Some(animations_enabled) = &animations_enabled_update {
+            current.animations_enabled = animations_enabled.clone();
+        }
+        if let Some(theme) = &theme_update {
+            current.theme = theme.clone();
+        }
+        if let Some(animation_style) = &animation_style_update {
+            current.animation_style = animation_style.clone();
         }
     });
 

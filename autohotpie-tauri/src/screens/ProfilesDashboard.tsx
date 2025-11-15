@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import type { ProfileRecord } from '../state/profileStore';
 import { useLocalization } from '../hooks/useLocalization';
@@ -11,6 +11,7 @@ export interface ProfilesDashboardProps {
   onCreateProfile?: () => void;
   onOpenEditor?: (profileId: string) => void;
   onActivateProfile?: (profileId: string) => void;
+  onDeleteProfile?: (profileId: string) => void;
 }
 
 interface ProfileMetrics {
@@ -77,8 +78,10 @@ export function ProfilesDashboard({
   onCreateProfile,
   onOpenEditor,
   onActivateProfile,
+  onDeleteProfile,
 }: ProfilesDashboardProps) {
   const { t } = useLocalization();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const sortedProfiles = useMemo(() => {
     return profiles
       .filter((record): record is ProfileRecord => Boolean(record && record.profile))
@@ -203,10 +206,50 @@ export function ProfilesDashboard({
                       {t('profilesDashboard.currentlyActive')}
                     </div>
                   )}
+                  {onDeleteProfile && !isActive && (
+                    <button
+                      type="button"
+                      className="w-full rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:border-red-500/30 hover:bg-red-500/20"
+                      onClick={() => setDeleteConfirmId(record.profile.id)}
+                    >
+                      {t('profilesDashboard.deleteProfile')}
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-surface rounded-lg p-6 w-96 mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Profile</h3>
+            <p className="text-sm text-text-muted mb-6">
+              Are you sure you want to delete this profile? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 text-text-muted hover:text-text transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onDeleteProfile && deleteConfirmId) {
+                    onDeleteProfile(deleteConfirmId);
+                  }
+                  setDeleteConfirmId(null);
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

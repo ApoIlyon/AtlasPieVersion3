@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PieMenu, PieSliceDefinition } from '../pie/PieMenu';
 import { ContextConditionsPanel, ContextCondition } from './ContextConditionsPanel';
 import { useSystemStore } from '../../state/systemStore';
-import type { ProfileRecord, PieMenu as PieMenuConfig, PieSlice as PieSliceConfig } from '../../state/profileStore';
+import type { ProfileRecord, PieMenu as PieMenuConfig, PieSlice as PieSliceConfig, ActivationMatchMode } from '../../state/profileStore';
 
 export interface ProfileEditorProps {
   profile: ProfileRecord | null;
@@ -11,15 +11,17 @@ export interface ProfileEditorProps {
   animationsEnabled?: boolean;
   onToggleAnimations?: (enabled: boolean) => void;
   onUpdateProfile?: (profile: ProfileRecord) => void;
+  onSelectedMenuChange?: (menuId: string) => void;
 }
 
 export function ProfileEditor({
   profile,
   mode,
   onClose,
-  animationsEnabled = true,
+  animationsEnabled,
   onToggleAnimations,
   onUpdateProfile,
+  onSelectedMenuChange,
 }: ProfileEditorProps) {
   const [selectedMenuId, setSelectedMenuId] = useState<string>(profile?.menus[0]?.id || '');
   const [selectedSliceId, setSelectedSliceId] = useState<string | null>(null);
@@ -30,6 +32,32 @@ export function ProfileEditor({
   const [showActionsPanel, setShowActionsPanel] = useState(false);
   const [contextConditions, setContextConditions] = useState<ContextCondition[]>([]);
   const [autoDetectApp, setAutoDetectApp] = useState(false);
+
+  // Initialize context conditions from profile activation rules
+  useEffect(() => {
+    if (profile?.profile?.activationRules) {
+      const typeMap: Record<ActivationMatchMode, ContextCondition['type']> = {
+        always: 'application',
+        process_name: 'application',
+        window_title: 'window_title',
+        window_class: 'application',
+        screen_area: 'application',
+        custom: 'application',
+      };
+
+      const conditions: ContextCondition[] = profile.profile.activationRules
+        .map((rule, index) => ({
+          id: `rule-${index}`,
+          type: typeMap[rule.mode] || 'application',
+          value: rule.value || '',
+          operator: (rule.isRegex ? 'regex' : 'equals') as ContextCondition['operator'],
+          enabled: !rule.negate,
+        }))
+        .filter((condition) => !!condition.value);
+
+      setContextConditions(conditions);
+    }
+  }, [profile]);
   const [actionFilter, setActionFilter] = useState('');
   const [selectedActionCategory, setSelectedActionCategory] = useState('all');
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -37,6 +65,13 @@ export function ProfileEditor({
   const currentWindowInfo = useSystemStore((state) => state.currentWindow);
 
   const selectedMenu = profile?.menus.find(menu => menu.id === selectedMenuId) as PieMenuConfig | undefined;
+  
+  useEffect(() => {
+    if (selectedMenuId && onSelectedMenuChange) {
+      onSelectedMenuChange(selectedMenuId);
+    }
+  }, [selectedMenuId, onSelectedMenuChange]);
+
   const visualSlices: PieSliceDefinition[] = useMemo(() => {
     const src = selectedMenu?.slices ?? [];
     return src.map((s, index) => ({
@@ -200,8 +235,35 @@ export function ProfileEditor({
 
   const handleUpdateContextConditions = useCallback((conditions: ContextCondition[]) => {
     setContextConditions(conditions);
-    // TODO: Update profile with new conditions
-  }, []);
+    
+    // Convert ContextCondition[] to ActivationRule[] and update profile
+    if (profile && onUpdateProfile) {
+      const modeMap: Record<ContextCondition['type'], ActivationMatchMode> = {
+        application: 'process_name',
+        window_title: 'window_title',
+        url: 'window_title',
+        file_path: 'process_name',
+      };
+
+      const activationRules = conditions.map((condition) => ({
+        mode: modeMap[condition.type],
+        value: condition.value,
+        negate: !condition.enabled,
+        isRegex: condition.operator === 'regex',
+        caseSensitive: false,
+      }));
+
+      const updatedProfile = {
+        ...profile,
+        profile: {
+          ...profile.profile,
+          activationRules,
+        },
+      };
+
+      onUpdateProfile(updatedProfile);
+    }
+  }, [profile, onUpdateProfile]);
 
   const handleToggleAutoDetect = useCallback((enabled: boolean) => {
     setAutoDetectApp(enabled);
@@ -362,7 +424,7 @@ export function ProfileEditor({
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
               type="checkbox"
-              checked={animationsEnabled}
+              checked={animationsEnabled ?? selectedMenu?.appearance?.animationsEnabled ?? true}
               onChange={(e) => onToggleAnimations?.(e.target.checked)}
               className="rounded"
             />

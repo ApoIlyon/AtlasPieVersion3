@@ -165,10 +165,14 @@ export function App() {
   const retryProfileHotkeyWithOverride = useProfileStore((state) => state.retryProfileHotkeyWithOverride);
   const profileHotkeyStatus = useProfileStore(selectProfileHotkeyStatus);
   const clearProfileHotkeyStatus = useProfileStore((state) => state.clearHotkeyStatus);
+  const updatePieMenuAppearance = useProfileStore((state) => state.updatePieMenuAppearance);
+  const saveProfile = useProfileStore((state) => state.saveProfile);
+  const deleteProfile = useProfileStore((state) => state.deleteProfile);
   const systemActiveProfile = useSystemStore((state) => state.activeProfile);
   const status = useSystemStore((state) => state.status);
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -503,6 +507,21 @@ export function App() {
 
     const syncOverlay = async () => {
       try {
+        // Get the current active menu to extract appearance settings
+        let activeRecord = null;
+        if (pieMenuActiveProfile?.index != null) {
+          activeRecord = profiles[pieMenuActiveProfile.index] ?? null;
+        } else if (activeProfileId) {
+          activeRecord = profiles.find((record) => record.profile.id === activeProfileId) ?? null;
+        } else if (profiles.length > 0) {
+          activeRecord = profiles[0];
+        }
+
+        const rootMenu = activeRecord
+          ? activeRecord.menus.find((menu) => menu.id === activeRecord.profile.rootMenu) ??
+            activeRecord.menus[0]
+          : null;
+
         if (isPieMenuVisible) {
           await invoke('pie_overlay_show', {
             state: {
@@ -512,6 +531,9 @@ export function App() {
               centerLabel: lastSafeModeReason,
               triggerAccelerator: pieMenuTriggerAccelerator ?? null,
               activationMode: pieMenuActivationMode,
+              animationsEnabled: rootMenu?.appearance?.animationsEnabled ?? true,
+              theme: rootMenu?.appearance?.theme ?? 'dark',
+              animationStyle: rootMenu?.appearance?.animationStyle ?? 'slide',
             },
           });
         } else {
@@ -523,7 +545,7 @@ export function App() {
     };
 
     void syncOverlay();
-  }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+  }, [activeSliceId, isPieMenuVisible, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator, profiles, pieMenuActiveProfile, activeProfileId]);
 
   // Listen for pie overlay slice selection events and execute actions
   useEffect(() => {
@@ -633,6 +655,21 @@ export function App() {
 
     const updateOverlay = async () => {
       try {
+        // Get the current active menu to extract appearance settings
+        let activeRecord = null;
+        if (pieMenuActiveProfile?.index != null) {
+          activeRecord = profiles[pieMenuActiveProfile.index] ?? null;
+        } else if (activeProfileId) {
+          activeRecord = profiles.find((record) => record.profile.id === activeProfileId) ?? null;
+        } else if (profiles.length > 0) {
+          activeRecord = profiles[0];
+        }
+
+        const rootMenu = activeRecord
+          ? activeRecord.menus.find((menu) => menu.id === activeRecord.profile.rootMenu) ??
+            activeRecord.menus[0]
+          : null;
+
         await invoke('pie_overlay_sync_state', {
           update: {
             slices: menuSlices,
@@ -640,6 +677,9 @@ export function App() {
             centerLabel: lastSafeModeReason ?? null,
             triggerAccelerator: pieMenuTriggerAccelerator ?? null,
             activationMode: pieMenuActivationMode ?? null,
+            animationsEnabled: rootMenu?.appearance?.animationsEnabled ?? true,
+            theme: rootMenu?.appearance?.theme ?? 'dark',
+            animationStyle: rootMenu?.appearance?.animationStyle ?? 'slide',
           },
         });
       } catch (error) {
@@ -648,7 +688,7 @@ export function App() {
     };
 
     void updateOverlay();
-  }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator]);
+  }, [activeSliceId, lastSafeModeReason, menuSlices, pieMenuActivationMode, pieMenuTriggerAccelerator, profiles, pieMenuActiveProfile, activeProfileId]);
 
   
 
@@ -942,12 +982,52 @@ export function App() {
                 onActivateProfile={(profileId) => {
                   void activateProfile(profileId);
                 }}
+                onDeleteProfile={async (profileId) => {
+                  try {
+                    await deleteProfile(profileId);
+                    // If the deleted profile was selected, clear the selection
+                    if (selectedProfileId === profileId) {
+                      setSelectedProfileId(null);
+                    }
+                  } catch (error) {
+                    console.error('Failed to delete profile:', error);
+                  }
+                }}
               />
 
               <ProfileEditor
                 profile={activeProfileRecord}
                 mode={activeProfileRecord ? 'view' : 'create'}
-                onClose={() => setSelectedProfileId(null)}
+                onClose={() => {
+                  setSelectedProfileId(null);
+                  setSelectedMenuId(null);
+                }}
+                animationsEnabled={(() => {
+                  if (!activeProfileRecord || !selectedMenuId) return true;
+                  const menu = activeProfileRecord.menus.find(m => m.id === selectedMenuId);
+                  return menu?.appearance?.animationsEnabled ?? true;
+                })()}
+                onToggleAnimations={async (enabled) => {
+                  if (!activeProfileRecord || !selectedMenuId) return;
+                  
+                  try {
+                    await updatePieMenuAppearance(
+                      activeProfileRecord.profile.id,
+                      selectedMenuId,
+                      { animationsEnabled: enabled }
+                    );
+                  } catch (error) {
+                    console.error('Failed to update animation settings:', error);
+                  }
+                }}
+                onUpdateProfile={async (updatedProfile) => {
+                  try {
+                    await saveProfile(updatedProfile);
+                  } catch (error) {
+                    console.error('Failed to update profile:', error);
+                  }
+                }}
+                onSelectedMenuChange={(menuId) => setSelectedMenuId(menuId)}
               />
             </div>
           )}
